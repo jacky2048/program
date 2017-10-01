@@ -48,12 +48,15 @@ import org.springframework.validation.annotation.Validated;
  * inline constraint annotations. Validation groups can be specified through {@code @Validated}
  * as well. By default, JSR-303 will validate against its default group only.
  *
- * <p>As of Spring 5.0, this functionality requires a Bean Validation 1.1 provider.
+ * <p>As of Spring 4.0, this functionality requires either a Bean Validation 1.1 provider
+ * (such as Hibernate Validator 5.x) or the Bean Validation 1.0 API with Hibernate Validator
+ * 4.3. The actual provider will be autodetected and automatically adapted.
  *
  * @author Juergen Hoeller
  * @since 3.1
  * @see MethodValidationInterceptor
  * @see javax.validation.executable.ExecutableValidator
+ * @see org.hibernate.validator.method.MethodValidator
  */
 @SuppressWarnings("serial")
 public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
@@ -82,8 +85,12 @@ public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvis
 	 * <p>Default is the default ValidatorFactory's default Validator.
 	 */
 	public void setValidator(Validator validator) {
+		// Unwrap to the native Validator with forExecutables support
 		if (validator instanceof LocalValidatorFactoryBean) {
 			this.validator = ((LocalValidatorFactoryBean) validator).getValidator();
+		}
+		else if (validator instanceof SpringValidatorAdapter) {
+			this.validator = validator.unwrap(Validator.class);
 		}
 		else {
 			this.validator = validator;

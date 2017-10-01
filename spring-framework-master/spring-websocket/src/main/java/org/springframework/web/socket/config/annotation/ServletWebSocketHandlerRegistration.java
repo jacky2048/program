@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,26 +40,14 @@ import org.springframework.web.socket.sockjs.support.SockJsHttpRequestHandler;
 public class ServletWebSocketHandlerRegistration
 		extends AbstractWebSocketHandlerRegistration<MultiValueMap<HttpRequestHandler, String>> {
 
-
-	public ServletWebSocketHandlerRegistration() {
-	}
-
-	/**
-	 * Deprecated constructor with a TaskScheduler for SockJS use.
-	 *
-	 * @deprecated as of 5.0 a TaskScheduler is not provided upfront, not until
-	 * it is obvious that it is needed, see {@link #getSockJsServiceRegistration()}.
-	 */
-	@Deprecated
-	@SuppressWarnings("deprecated")
-	public ServletWebSocketHandlerRegistration(TaskScheduler scheduler) {
-		super(scheduler);
+	public ServletWebSocketHandlerRegistration(TaskScheduler sockJsTaskScheduler) {
+		super(sockJsTaskScheduler);
 	}
 
 
 	@Override
 	protected MultiValueMap<HttpRequestHandler, String> createMappings() {
-		return new LinkedMultiValueMap<>();
+		return new LinkedMultiValueMap<HttpRequestHandler, String>();
 	}
 
 	@Override
@@ -72,12 +60,10 @@ public class ServletWebSocketHandlerRegistration
 
 	@Override
 	protected void addWebSocketHandlerMapping(MultiValueMap<HttpRequestHandler, String> mappings,
-			WebSocketHandler webSocketHandler, HandshakeHandler handshakeHandler,
+			WebSocketHandler wsHandler, HandshakeHandler handshakeHandler,
 			HandshakeInterceptor[] interceptors, String path) {
 
-		WebSocketHttpRequestHandler httpHandler =
-				new WebSocketHttpRequestHandler(webSocketHandler, handshakeHandler);
-
+		WebSocketHttpRequestHandler httpHandler = new WebSocketHttpRequestHandler(wsHandler, handshakeHandler);
 		if (!ObjectUtils.isEmpty(interceptors)) {
 			httpHandler.setHandshakeInterceptors(Arrays.asList(interceptors));
 		}

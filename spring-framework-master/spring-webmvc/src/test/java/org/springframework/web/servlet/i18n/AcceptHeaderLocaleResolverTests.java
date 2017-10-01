@@ -63,7 +63,7 @@ public class AcceptHeaderLocaleResolverTests {
 		this.resolver.setDefaultLocale(Locale.JAPAN);
 
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Accept-Language", KOREA.toLanguageTag());
+		request.addHeader("Accept-Language", KOREA.toString());
 		request.setPreferredLocales(Collections.singletonList(KOREA));
 		assertEquals(Locale.JAPAN, this.resolver.resolveLocale(request));
 	}
@@ -74,7 +74,7 @@ public class AcceptHeaderLocaleResolverTests {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		assertEquals(JAPANESE, this.resolver.resolveLocale(request));
 
-		request.addHeader("Accept-Language", US.toLanguageTag());
+		request.addHeader("Accept-Language", US.toString());
 		request.setPreferredLocales(Collections.singletonList(US));
 		assertEquals(US, this.resolver.resolveLocale(request));
 	}

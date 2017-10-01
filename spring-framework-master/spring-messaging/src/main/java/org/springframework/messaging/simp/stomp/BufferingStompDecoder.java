@@ -103,7 +103,7 @@ public class BufferingStompDecoder {
 		checkBufferLimits();
 
 		if (this.expectedContentLength != null && getBufferSize() < this.expectedContentLength) {
-			return Collections.emptyList();
+			return Collections.<Message<byte[]>>emptyList();
 		}
 
 		ByteBuffer bufferToDecode = assembleChunksAndReset();

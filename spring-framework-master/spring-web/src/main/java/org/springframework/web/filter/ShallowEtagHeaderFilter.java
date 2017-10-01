@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
@@ -41,9 +42,6 @@ import org.springframework.web.util.WebUtils;
  * <p>Since the ETag is based on the response content, the response
  * (e.g. a {@link org.springframework.web.servlet.View}) is still rendered.
  * As such, this filter only saves bandwidth, not server performance.
- *
- * <p><b>NOTE:</b> As of Spring Framework 5.0, this filter uses request/response
- * decorators built on the Servlet 3.1 API.
  *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
@@ -63,6 +61,10 @@ public class ShallowEtagHeaderFilter extends OncePerRequestFilter {
 
 	private static final String STREAMING_ATTRIBUTE = ShallowEtagHeaderFilter.class.getName() + ".STREAMING";
 
+
+	/** Checking for Servlet 3.0+ HttpServletResponse.getHeader(String) */
+	private static final boolean servlet3Present =
+			ClassUtils.hasMethod(HttpServletResponse.class, "getHeader", String.class);
 
 	private boolean writeWeakETag = false;
 
@@ -172,7 +174,10 @@ public class ShallowEtagHeaderFilter extends OncePerRequestFilter {
 		if (responseStatusCode >= 200 && responseStatusCode < 300
 				&& HttpMethod.GET.matches(method)) {
 
-			String cacheControl = response.getHeader(HEADER_CACHE_CONTROL);
+			String cacheControl = null;
+			if (servlet3Present) {
+				cacheControl = response.getHeader(HEADER_CACHE_CONTROL);
+			}
 			if (cacheControl == null || !cacheControl.contains(DIRECTIVE_NO_STORE)) {
 				return true;
 			}

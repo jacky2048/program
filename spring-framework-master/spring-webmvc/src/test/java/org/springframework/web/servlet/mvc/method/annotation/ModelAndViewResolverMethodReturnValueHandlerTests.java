@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,8 @@ public class ModelAndViewResolverMethodReturnValueHandlerTests {
 
 
 	@Before
-	public void setup() {
-		mavResolvers = new ArrayList<>();
+	public void setUp() {
+		mavResolvers = new ArrayList<ModelAndViewResolver>();
 		handler = new ModelAndViewResolverMethodReturnValueHandler(mavResolvers);
 		mavContainer = new ModelAndViewContainer();
 		request = new ServletWebRequest(new MockHttpServletRequest());
@@ -118,7 +118,7 @@ public class ModelAndViewResolverMethodReturnValueHandlerTests {
 
 	private static class TestModelAndViewResolver implements ModelAndViewResolver {
 
-		private final Class<?> returnValueType;
+		private Class<?> returnValueType;
 
 		public TestModelAndViewResolver(Class<?> returnValueType) {
 			this.returnValueType = returnValueType;

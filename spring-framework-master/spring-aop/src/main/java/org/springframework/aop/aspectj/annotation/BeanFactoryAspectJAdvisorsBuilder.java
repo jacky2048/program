@@ -45,9 +45,10 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 
 	private volatile List<String> aspectBeanNames;
 
-	private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<>();
+	private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<String, List<Advisor>>();
 
-	private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache = new ConcurrentHashMap<>();
+	private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache =
+			new ConcurrentHashMap<String, MetadataAwareAspectInstanceFactory>();
 
 
 	/**
@@ -85,8 +86,8 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 			synchronized (this) {
 				aspectNames = this.aspectBeanNames;
 				if (aspectNames == null) {
-					List<Advisor> advisors = new LinkedList<>();
-					aspectNames = new LinkedList<>();
+					List<Advisor> advisors = new LinkedList<Advisor>();
+					aspectNames = new LinkedList<String>();
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
@@ -136,7 +137,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		if (aspectNames.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<Advisor> advisors = new LinkedList<>();
+		List<Advisor> advisors = new LinkedList<Advisor>();
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
 			if (cachedAdvisors != null) {

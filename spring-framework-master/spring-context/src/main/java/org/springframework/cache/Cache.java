@@ -145,7 +145,6 @@ public interface Cache {
 	/**
 	 * A (wrapper) object representing a cache value.
 	 */
-	@FunctionalInterface
 	interface ValueWrapper {
 
 		/**

@@ -58,6 +58,7 @@ import org.springframework.web.servlet.view.tiles3.TilesViewResolver;
  * @since 4.1
  * @see TilesConfigurerBeanDefinitionParser
  * @see FreeMarkerConfigurerBeanDefinitionParser
+ * @see VelocityConfigurerBeanDefinitionParser
  * @see GroovyMarkupConfigurerBeanDefinitionParser
  * @see ScriptTemplateConfigurerBeanDefinitionParser
  */
@@ -66,13 +67,14 @@ public class ViewResolversBeanDefinitionParser implements BeanDefinitionParser {
 	public static final String VIEW_RESOLVER_BEAN_NAME = "mvcViewResolver";
 
 
+	@SuppressWarnings("deprecation")
 	public BeanDefinition parse(Element element, ParserContext context) {
 		Object source = context.extractSource(element);
 		context.pushContainingComponent(new CompositeComponentDefinition(element.getTagName(), source));
 
-		ManagedList<Object> resolvers = new ManagedList<>(4);
+		ManagedList<Object> resolvers = new ManagedList<Object>(4);
 		resolvers.setSource(context.extractSource(element));
-		String[] names = new String[] {"jsp", "tiles", "bean-name", "freemarker", "groovy", "script-template", "bean", "ref"};
+		String[] names = new String[] {"jsp", "tiles", "bean-name", "freemarker", "velocity", "groovy", "script-template", "bean", "ref"};
 
 		for (Element resolverElement : DomUtils.getChildElementsByTagName(element, names)) {
 			String name = resolverElement.getLocalName();
@@ -80,7 +82,7 @@ public class ViewResolversBeanDefinitionParser implements BeanDefinitionParser {
 				resolvers.add(context.getDelegate().parsePropertySubElement(resolverElement, null));
 				continue;
 			}
-			RootBeanDefinition resolverBeanDef;
+			RootBeanDefinition resolverBeanDef = null;
 			if ("jsp".equals(name)) {
 				resolverBeanDef = new RootBeanDefinition(InternalResourceViewResolver.class);
 				resolverBeanDef.getPropertyValues().add("prefix", "/WEB-INF/");
@@ -94,6 +96,11 @@ public class ViewResolversBeanDefinitionParser implements BeanDefinitionParser {
 			else if ("freemarker".equals(name)) {
 				resolverBeanDef = new RootBeanDefinition(FreeMarkerViewResolver.class);
 				resolverBeanDef.getPropertyValues().add("suffix", ".ftl");
+				addUrlBasedViewResolverProperties(resolverElement, resolverBeanDef);
+			}
+			else if ("velocity".equals(name)) {
+				resolverBeanDef = new RootBeanDefinition(org.springframework.web.servlet.view.velocity.VelocityViewResolver.class);
+				resolverBeanDef.getPropertyValues().add("suffix", ".vm");
 				addUrlBasedViewResolverProperties(resolverElement, resolverBeanDef);
 			}
 			else if ("groovy".equals(name)) {
@@ -130,7 +137,7 @@ public class ViewResolversBeanDefinitionParser implements BeanDefinitionParser {
 		else if (contentnNegotiationElements.size() == 1) {
 			BeanDefinition beanDef = createContentNegotiatingViewResolver(contentnNegotiationElements.get(0), context);
 			beanDef.getPropertyValues().add("viewResolvers", resolvers);
-			ManagedList<Object> list = new ManagedList<>(1);
+			ManagedList<Object> list = new ManagedList<Object>(1);
 			list.add(beanDef);
 			compositeResolverBeanDef.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 			compositeResolverBeanDef.getPropertyValues().add("viewResolvers", list);
@@ -175,7 +182,7 @@ public class ViewResolversBeanDefinitionParser implements BeanDefinitionParser {
 
 		List<Element> elements = DomUtils.getChildElementsByTagName(resolverElement, new String[] {"default-views"});
 		if (!elements.isEmpty()) {
-			ManagedList<Object> list = new ManagedList<>();
+			ManagedList<Object> list = new ManagedList<Object>();
 			for (Element element : DomUtils.getChildElementsByTagName(elements.get(0), "bean", "ref")) {
 				list.add(context.getDelegate().parsePropertySubElement(element, null));
 			}

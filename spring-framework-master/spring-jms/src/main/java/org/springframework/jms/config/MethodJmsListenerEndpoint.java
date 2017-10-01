@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.jms.listener.MessageListenerContainer;
 import org.springframework.jms.listener.adapter.MessagingMessageListenerAdapter;
-import org.springframework.jms.support.QosSettings;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -147,10 +146,6 @@ public class MethodJmsListenerEndpoint extends AbstractJmsListenerEndpoint imple
 			else {
 				messageListener.setDefaultResponseQueueName(responseDestination);
 			}
-		}
-		QosSettings responseQosSettings = container.getReplyQosSettings();
-		if (responseQosSettings != null) {
-			messageListener.setResponseQosSettings(responseQosSettings);
 		}
 		MessageConverter messageConverter = container.getMessageConverter();
 		if (messageConverter != null) {

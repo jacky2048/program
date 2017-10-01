@@ -47,6 +47,15 @@ public abstract class StreamingSockJsSession extends AbstractHttpSockJsSession {
 
 
 	/**
+	 * @deprecated as of 4.2, since this method is no longer used.
+	 */
+	@Override
+	@Deprecated
+	protected boolean isStreaming() {
+		return true;
+	}
+
+	/**
 	 * Get the prelude to write to the response before any other data.
 	 * @since 4.2
 	 */

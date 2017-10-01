@@ -17,7 +17,6 @@
 package org.springframework.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -40,27 +39,15 @@ public class LinkedMultiValueMapTests {
 		map.add("key", "value1");
 		map.add("key", "value2");
 		assertEquals(1, map.size());
-		List<String> expected = new ArrayList<>(2);
+		List<String> expected = new ArrayList<String>(2);
 		expected.add("value1");
 		expected.add("value2");
-		assertEquals(expected, map.get("key"));
-	}
-
-	@Test
-	public void addAll() throws Exception {
-		map.add("key", "value1");
-		map.addAll("key", Arrays.asList("value2", "value3"));
-		assertEquals(1, map.size());
-		List<String> expected = new ArrayList<>(2);
-		expected.add("value1");
-		expected.add("value2");
-		expected.add("value3");
 		assertEquals(expected, map.get("key"));
 	}
 
 	@Test
 	public void getFirst() {
-		List<String> values = new ArrayList<>(2);
+		List<String> values = new ArrayList<String>(2);
 		values.add("value1");
 		values.add("value2");
 		map.put("key", values);
@@ -80,11 +67,11 @@ public class LinkedMultiValueMapTests {
 	public void equals() {
 		map.set("key1", "value1");
 		assertEquals(map, map);
-		MultiValueMap<String, String> o1 = new LinkedMultiValueMap<>();
+		MultiValueMap<String, String> o1 = new LinkedMultiValueMap<String, String>();
 		o1.set("key1", "value1");
 		assertEquals(map, o1);
 		assertEquals(o1, map);
-		Map<String, List<String>> o2 = new HashMap<>();
+		Map<String, List<String>> o2 = new HashMap<String, List<String>>();
 		o2.put("key1", Collections.singletonList("value1"));
 		assertEquals(map, o2);
 		assertEquals(o2, map);

@@ -52,7 +52,7 @@ public class SerializableTypeWrapperTests {
 	@Test
 	public void forMethodParameter() throws Exception {
 		Method method = Methods.class.getDeclaredMethod("method", Class.class, Object.class);
-		Type type = SerializableTypeWrapper.forMethodParameter(MethodParameter.forExecutable(method, 0));
+		Type type = SerializableTypeWrapper.forMethodParameter(MethodParameter.forMethodOrConstructor(method, 0));
 		assertThat(type.toString(), equalTo("java.lang.Class<T>"));
 		assertSerializable(type);
 	}
@@ -60,7 +60,7 @@ public class SerializableTypeWrapperTests {
 	@Test
 	public void forConstructor() throws Exception {
 		Constructor<?> constructor = Constructors.class.getDeclaredConstructor(List.class);
-		Type type = SerializableTypeWrapper.forMethodParameter(MethodParameter.forExecutable(constructor, 0));
+		Type type = SerializableTypeWrapper.forMethodParameter(MethodParameter.forMethodOrConstructor(constructor, 0));
 		assertThat(type.toString(), equalTo("java.util.List<java.lang.String>"));
 		assertSerializable(type);
 	}

@@ -17,9 +17,10 @@
 package org.springframework.http.converter.json;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.core.JsonEncoding;
@@ -34,14 +35,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractGenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -54,7 +53,7 @@ import org.springframework.util.TypeUtils;
  * Abstract base class for Jackson based and content type independent
  * {@link HttpMessageConverter} implementations.
  *
- * <p>Compatible with Jackson 2.9 and higher, as of Spring 5.0.
+ * <p>Compatible with Jackson 2.6 and higher, as of Spring 4.3.
  *
  * @author Arjen Poutsma
  * @author Keith Donald
@@ -65,7 +64,9 @@ import org.springframework.util.TypeUtils;
  */
 public abstract class AbstractJackson2HttpMessageConverter extends AbstractGenericHttpMessageConverter<Object> {
 
-	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+
+	private static final MediaType TEXT_EVENT_STREAM = new MediaType("text", "event-stream");
 
 
 	protected ObjectMapper objectMapper;
@@ -154,10 +155,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 			return false;
 		}
 		JavaType javaType = getJavaType(type, contextClass);
-		if (!logger.isWarnEnabled()) {
-			return this.objectMapper.canDeserialize(javaType);
-		}
-		AtomicReference<Throwable> causeRef = new AtomicReference<>();
+		AtomicReference<Throwable> causeRef = new AtomicReference<Throwable>();
 		if (this.objectMapper.canDeserialize(javaType, causeRef)) {
 			return true;
 		}
@@ -170,10 +168,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 		if (!canWrite(mediaType)) {
 			return false;
 		}
-		if (!logger.isWarnEnabled()) {
-			return this.objectMapper.canSerialize(clazz);
-		}
-		AtomicReference<Throwable> causeRef = new AtomicReference<>();
+		AtomicReference<Throwable> causeRef = new AtomicReference<Throwable>();
 		if (this.objectMapper.canSerialize(clazz, causeRef)) {
 			return true;
 		}
@@ -190,10 +185,20 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	 * @since 4.3
 	 */
 	protected void logWarningIfNecessary(Type type, Throwable cause) {
-		if (cause != null && !(cause instanceof JsonMappingException && cause.getMessage().startsWith("Can not find"))) {
+		if (cause == null) {
+			return;
+		}
+
+		boolean debugLevel = (cause instanceof JsonMappingException &&
+				cause.getMessage().startsWith("Can not find"));
+
+		if (debugLevel ? logger.isDebugEnabled() : logger.isWarnEnabled()) {
 			String msg = "Failed to evaluate Jackson " + (type instanceof JavaType ? "de" : "") +
 					"serialization for type [" + type + "]";
-			if (logger.isDebugEnabled()) {
+			if (debugLevel) {
+				logger.debug(msg, cause);
+			}
+			else if (logger.isDebugEnabled()) {
 				logger.warn(msg, cause);
 			}
 			else {
@@ -229,12 +234,11 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 			}
 			return this.objectMapper.readValue(inputMessage.getBody(), javaType);
 		}
-		catch (InvalidDefinitionException ex) {
-			throw new HttpMessageNotReadableException(
-					"Could not map JSON to target object of " + javaType, ex, HttpStatus.INTERNAL_SERVER_ERROR);
+		catch (JsonProcessingException ex) {
+			throw new HttpMessageNotReadableException("JSON parse error: " + ex.getOriginalMessage(), ex);
 		}
 		catch (IOException ex) {
-			throw new HttpMessageNotReadableException("Could not read JSON document: " + ex.getMessage(), ex);
+			throw new HttpMessageNotReadableException("I/O error while reading input message", ex);
 		}
 	}
 
@@ -275,7 +279,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 				objectWriter = objectWriter.forType(javaType);
 			}
 			SerializationConfig config = objectWriter.getConfig();
-			if (contentType != null && contentType.isCompatibleWith(MediaType.TEXT_EVENT_STREAM) &&
+			if (contentType != null && contentType.isCompatibleWith(TEXT_EVENT_STREAM) &&
 					config.isEnabled(SerializationFeature.INDENT_OUTPUT)) {
 				objectWriter = objectWriter.with(this.ssePrettyPrinter);
 			}
@@ -286,7 +290,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 
 		}
 		catch (JsonProcessingException ex) {
-			throw new HttpMessageNotWritableException("Could not write JSON document: " + ex.getMessage(), ex);
+			throw new HttpMessageNotWritableException("Could not write JSON: " + ex.getOriginalMessage(), ex);
 		}
 	}
 
@@ -308,6 +312,18 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 
 	/**
 	 * Return the Jackson {@link JavaType} for the specified type and context class.
+	 * <p>The default implementation returns {@code typeFactory.constructType(type, contextClass)},
+	 * but this can be overridden in subclasses, to allow for custom generic collection handling.
+	 * For instance:
+	 * <pre class="code">
+	 * protected JavaType getJavaType(Type type) {
+	 *   if (type instanceof Class && List.class.isAssignableFrom((Class)type)) {
+	 *     return TypeFactory.collectionType(ArrayList.class, MyBean.class);
+	 *   } else {
+	 *     return super.getJavaType(type);
+	 *   }
+	 * }
+	 * </pre>
 	 * @param type the generic type to return the Jackson JavaType for
 	 * @param contextClass a context class for the target type, for example a class
 	 * in which the target type appears in a method signature (can be {@code null})
@@ -315,7 +331,65 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 	 */
 	protected JavaType getJavaType(Type type, Class<?> contextClass) {
 		TypeFactory typeFactory = this.objectMapper.getTypeFactory();
-		return typeFactory.constructType(GenericTypeResolver.resolveType(type, contextClass));
+		if (contextClass != null) {
+			ResolvableType resolvedType = ResolvableType.forType(type);
+			if (type instanceof TypeVariable) {
+				ResolvableType resolvedTypeVariable = resolveVariable(
+						(TypeVariable<?>) type, ResolvableType.forClass(contextClass));
+				if (resolvedTypeVariable != ResolvableType.NONE) {
+					return typeFactory.constructType(resolvedTypeVariable.resolve());
+				}
+			}
+			else if (type instanceof ParameterizedType && resolvedType.hasUnresolvableGenerics()) {
+				ParameterizedType parameterizedType = (ParameterizedType) type;
+				Class<?>[] generics = new Class<?>[parameterizedType.getActualTypeArguments().length];
+				Type[] typeArguments = parameterizedType.getActualTypeArguments();
+				for (int i = 0; i < typeArguments.length; i++) {
+					Type typeArgument = typeArguments[i];
+					if (typeArgument instanceof TypeVariable) {
+						ResolvableType resolvedTypeArgument = resolveVariable(
+								(TypeVariable<?>) typeArgument, ResolvableType.forClass(contextClass));
+						if (resolvedTypeArgument != ResolvableType.NONE) {
+							generics[i] = resolvedTypeArgument.resolve();
+						}
+						else {
+							generics[i] = ResolvableType.forType(typeArgument).resolve();
+						}
+					}
+					else {
+						generics[i] = ResolvableType.forType(typeArgument).resolve();
+					}
+				}
+				return typeFactory.constructType(ResolvableType.
+						forClassWithGenerics(resolvedType.getRawClass(), generics).getType());
+			}
+		}
+		return typeFactory.constructType(type);
+	}
+
+	private ResolvableType resolveVariable(TypeVariable<?> typeVariable, ResolvableType contextType) {
+		ResolvableType resolvedType;
+		if (contextType.hasGenerics()) {
+			resolvedType = ResolvableType.forType(typeVariable, contextType);
+			if (resolvedType.resolve() != null) {
+				return resolvedType;
+			}
+		}
+
+		ResolvableType superType = contextType.getSuperType();
+		if (superType != ResolvableType.NONE) {
+			resolvedType = resolveVariable(typeVariable, superType);
+			if (resolvedType.resolve() != null) {
+				return resolvedType;
+			}
+		}
+		for (ResolvableType ifc : contextType.getInterfaces()) {
+			resolvedType = resolveVariable(typeVariable, ifc);
+			if (resolvedType.resolve() != null) {
+				return resolvedType;
+			}
+		}
+		return ResolvableType.NONE;
 	}
 
 	/**

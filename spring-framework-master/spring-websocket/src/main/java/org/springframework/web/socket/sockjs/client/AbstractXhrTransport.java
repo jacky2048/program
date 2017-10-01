@@ -59,6 +59,8 @@ public abstract class AbstractXhrTransport implements XhrTransport {
 
 	private boolean xhrStreamingDisabled;
 
+	private HttpHeaders requestHeaders = new HttpHeaders();
+
 
 	@Override
 	public List<TransportType> getTransportTypes() {
@@ -88,12 +90,31 @@ public abstract class AbstractXhrTransport implements XhrTransport {
 		return this.xhrStreamingDisabled;
 	}
 
+	/**
+	 * Configure headers to be added to every executed HTTP request.
+	 * @param requestHeaders the headers to add to requests
+	 * @deprecated as of 4.2 in favor of {@link SockJsClient#setHttpHeaderNames}.
+	 */
+	@Deprecated
+	public void setRequestHeaders(HttpHeaders requestHeaders) {
+		this.requestHeaders.clear();
+		if (requestHeaders != null) {
+			this.requestHeaders.putAll(requestHeaders);
+		}
+	}
+
+	@Deprecated
+	public HttpHeaders getRequestHeaders() {
+		return this.requestHeaders;
+	}
+
 
 	// Transport methods
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public ListenableFuture<WebSocketSession> connect(TransportRequest request, WebSocketHandler handler) {
-		SettableListenableFuture<WebSocketSession> connectFuture = new SettableListenableFuture<>();
+		SettableListenableFuture<WebSocketSession> connectFuture = new SettableListenableFuture<WebSocketSession>();
 		XhrClientSockJsSession session = new XhrClientSockJsSession(request, handler, this, connectFuture);
 		request.addTimeoutTask(session.getTimeoutTask());
 
@@ -104,6 +125,7 @@ public abstract class AbstractXhrTransport implements XhrTransport {
 		}
 
 		HttpHeaders handshakeHeaders = new HttpHeaders();
+		handshakeHeaders.putAll(getRequestHeaders());
 		handshakeHeaders.putAll(request.getHandshakeHeaders());
 
 		connectInternal(request, handler, receiveUrl, handshakeHeaders, session, connectFuture);
@@ -118,11 +140,13 @@ public abstract class AbstractXhrTransport implements XhrTransport {
 	// InfoReceiver methods
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public String executeInfoRequest(URI infoUrl, HttpHeaders headers) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing SockJS Info request, url=" + infoUrl);
 		}
 		HttpHeaders infoRequestHeaders = new HttpHeaders();
+		infoRequestHeaders.putAll(getRequestHeaders());
 		if (headers != null) {
 			infoRequestHeaders.putAll(headers);
 		}

@@ -24,7 +24,6 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,7 +35,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.NumberUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -55,6 +53,20 @@ import org.springframework.util.StringUtils;
 class TypeConverterDelegate {
 
 	private static final Log logger = LogFactory.getLog(TypeConverterDelegate.class);
+
+	/** Java 8's java.util.Optional.empty() instance */
+	private static Object javaUtilOptionalEmpty = null;
+
+	static {
+		try {
+			Class<?> clazz = ClassUtils.forName("java.util.Optional", TypeConverterDelegate.class.getClassLoader());
+			javaUtilOptionalEmpty = ClassUtils.getMethod(clazz, "empty").invoke(null);
+		}
+		catch (Exception ex) {
+			// Java 8 not available - conversion to Optional not supported then.
+		}
+	}
+
 
 	private final PropertyEditorRegistrySupport propertyEditorRegistry;
 
@@ -257,8 +269,8 @@ class TypeConverterDelegate {
 			}
 			else {
 				// convertedValue == null
-				if (requiredType == Optional.class) {
-					convertedValue = Optional.empty();
+				if (javaUtilOptionalEmpty != null && requiredType == javaUtilOptionalEmpty.getClass()) {
+					convertedValue = javaUtilOptionalEmpty;
 				}
 			}
 
@@ -544,8 +556,7 @@ class TypeConverterDelegate {
 				convertedCopy = CollectionFactory.createApproximateCollection(original, original.size());
 			}
 			else {
-				convertedCopy = (Collection<Object>)
-						ReflectionUtils.accessibleConstructor(requiredType).newInstance();
+				convertedCopy = (Collection<Object>) requiredType.newInstance();
 			}
 		}
 		catch (Throwable ex) {
@@ -627,8 +638,7 @@ class TypeConverterDelegate {
 				convertedCopy = CollectionFactory.createApproximateMap(original, original.size());
 			}
 			else {
-				convertedCopy = (Map<Object, Object>)
-						ReflectionUtils.accessibleConstructor(requiredType).newInstance();
+				convertedCopy = (Map<Object, Object>) requiredType.newInstance();
 			}
 		}
 		catch (Throwable ex) {

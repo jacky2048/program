@@ -17,7 +17,6 @@
 package org.springframework.messaging.support;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -113,7 +112,7 @@ import org.springframework.util.StringUtils;
  */
 public class MessageHeaderAccessor {
 
-	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
 	private static final MimeType[] READABLE_MIME_TYPES = new MimeType[] {
 			MimeTypeUtils.APPLICATION_JSON, MimeTypeUtils.APPLICATION_XML,
@@ -273,7 +272,7 @@ public class MessageHeaderAccessor {
 	 * where each new call returns a fresh copy of the current header values.
 	 */
 	public Map<String, Object> toMap() {
-		return new HashMap<>(this.headers);
+		return new HashMap<String, Object>(this.headers);
 	}
 
 
@@ -350,7 +349,7 @@ public class MessageHeaderAccessor {
 	 * names. Supported pattern styles are: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
 	 */
 	public void removeHeaders(String... headerPatterns) {
-		List<String> headersToRemove = new ArrayList<>();
+		List<String> headersToRemove = new ArrayList<String>();
 		for (String pattern : headerPatterns) {
 			if (StringUtils.hasLength(pattern)){
 				if (pattern.contains("*")){
@@ -367,7 +366,7 @@ public class MessageHeaderAccessor {
 	}
 
 	private List<String> getMatchingHeaderNames(String pattern, Map<String, Object> headers) {
-		List<String> matchingHeaderNames = new ArrayList<>();
+		List<String> matchingHeaderNames = new ArrayList<String>();
 		if (headers != null) {
 			for (String key : headers.keySet()) {
 				if (PatternMatchUtils.simpleMatch(pattern, key)) {

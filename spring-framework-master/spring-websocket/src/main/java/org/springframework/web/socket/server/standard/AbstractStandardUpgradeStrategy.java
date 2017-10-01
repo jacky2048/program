@@ -91,7 +91,7 @@ public abstract class AbstractStandardUpgradeStrategy implements RequestUpgradeS
 	}
 
 	protected List<WebSocketExtension> getInstalledExtensions(WebSocketContainer container) {
-		List<WebSocketExtension> result = new ArrayList<>();
+		List<WebSocketExtension> result = new ArrayList<WebSocketExtension>();
 		for (Extension extension : container.getInstalledExtensions()) {
 			result.add(new StandardToWebSocketExtensionAdapter(extension));
 		}
@@ -123,7 +123,7 @@ public abstract class AbstractStandardUpgradeStrategy implements RequestUpgradeS
 		StandardWebSocketSession session = new StandardWebSocketSession(headers, attrs, localAddr, remoteAddr, user);
 		StandardWebSocketHandlerAdapter endpoint = new StandardWebSocketHandlerAdapter(wsHandler, session);
 
-		List<Extension> extensions = new ArrayList<>();
+		List<Extension> extensions = new ArrayList<Extension>();
 		for (WebSocketExtension extension : selectedExtensions) {
 			extensions.add(new WebSocketToStandardExtensionAdapter(extension));
 		}

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractor;
 import org.springframework.util.Assert;
 
 /**
@@ -57,6 +58,8 @@ public class PreparedStatementCreatorFactory {
 
 	private String[] generatedKeysColumnNames = null;
 
+	private NativeJdbcExtractor nativeJdbcExtractor;
+
 
 	/**
 	 * Create a new factory. Will need to add parameters via the
@@ -64,7 +67,7 @@ public class PreparedStatementCreatorFactory {
 	 */
 	public PreparedStatementCreatorFactory(String sql) {
 		this.sql = sql;
-		this.declaredParameters = new LinkedList<>();
+		this.declaredParameters = new LinkedList<SqlParameter>();
 	}
 
 	/**
@@ -128,6 +131,13 @@ public class PreparedStatementCreatorFactory {
 	 */
 	public void setGeneratedKeysColumnNames(String... names) {
 		this.generatedKeysColumnNames = names;
+	}
+
+	/**
+	 * Specify the NativeJdbcExtractor to use for unwrapping PreparedStatements, if any.
+	 */
+	public void setNativeJdbcExtractor(NativeJdbcExtractor nativeJdbcExtractor) {
+		this.nativeJdbcExtractor = nativeJdbcExtractor;
 	}
 
 
@@ -195,7 +205,7 @@ public class PreparedStatementCreatorFactory {
 			this.parameters = parameters;
 			if (this.parameters.size() != declaredParameters.size()) {
 				// account for named parameters being used multiple times
-				Set<String> names = new HashSet<>();
+				Set<String> names = new HashSet<String>();
 				for (int i = 0; i < parameters.size(); i++) {
 					Object param = parameters.get(i);
 					if (param instanceof SqlParameterValue) {
@@ -237,6 +247,12 @@ public class PreparedStatementCreatorFactory {
 
 		@Override
 		public void setValues(PreparedStatement ps) throws SQLException {
+			// Determine PreparedStatement to pass to custom types.
+			PreparedStatement psToUse = ps;
+			if (nativeJdbcExtractor != null) {
+				psToUse = nativeJdbcExtractor.getNativePreparedStatement(ps);
+			}
+
 			// Set arguments: Does nothing if there are no parameters.
 			int sqlColIndx = 1;
 			for (int i = 0; i < this.parameters.size(); i++) {
@@ -264,16 +280,16 @@ public class PreparedStatementCreatorFactory {
 						if (entry instanceof Object[]) {
 							Object[] valueArray = ((Object[])entry);
 							for (Object argValue : valueArray) {
-								StatementCreatorUtils.setParameterValue(ps, sqlColIndx++, declaredParameter, argValue);
+								StatementCreatorUtils.setParameterValue(psToUse, sqlColIndx++, declaredParameter, argValue);
 							}
 						}
 						else {
-							StatementCreatorUtils.setParameterValue(ps, sqlColIndx++, declaredParameter, entry);
+							StatementCreatorUtils.setParameterValue(psToUse, sqlColIndx++, declaredParameter, entry);
 						}
 					}
 				}
 				else {
-					StatementCreatorUtils.setParameterValue(ps, sqlColIndx++, declaredParameter, in);
+					StatementCreatorUtils.setParameterValue(psToUse, sqlColIndx++, declaredParameter, in);
 				}
 			}
 		}

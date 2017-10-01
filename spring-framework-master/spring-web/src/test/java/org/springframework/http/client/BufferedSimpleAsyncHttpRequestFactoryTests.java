@@ -26,7 +26,6 @@ import org.springframework.http.HttpMethod;
 
 public class BufferedSimpleAsyncHttpRequestFactoryTests extends AbstractAsyncHttpRequestFactoryTestCase {
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected AsyncClientHttpRequestFactory createRequestFactory() {
 		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();

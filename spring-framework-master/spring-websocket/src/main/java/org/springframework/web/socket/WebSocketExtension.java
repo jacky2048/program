@@ -72,7 +72,7 @@ public class WebSocketExtension {
 		Assert.hasLength(name, "Extension name must not be empty");
 		this.name = name;
 		if (!CollectionUtils.isEmpty(parameters)) {
-			Map<String, String> map = new LinkedCaseInsensitiveMap<>(parameters.size(), Locale.ENGLISH);
+			Map<String, String> map = new LinkedCaseInsensitiveMap<String>(parameters.size(), Locale.ENGLISH);
 			map.putAll(parameters);
 			this.parameters = Collections.unmodifiableMap(map);
 		}
@@ -158,7 +158,7 @@ public class WebSocketExtension {
 
 		Map<String, String> parameters = null;
 		if (parts.length > 1) {
-			parameters = new LinkedHashMap<>(parts.length - 1);
+			parameters = new LinkedHashMap<String, String>(parts.length - 1);
 			for (int i = 1; i < parts.length; i++) {
 				String parameter = parts[i];
 				int eqIndex = parameter.indexOf('=');

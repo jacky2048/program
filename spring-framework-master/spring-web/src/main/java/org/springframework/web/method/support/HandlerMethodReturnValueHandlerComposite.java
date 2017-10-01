@@ -33,12 +33,12 @@ import org.springframework.web.context.request.NativeWebRequest;
  * @author Rossen Stoyanchev
  * @since 3.1
  */
-public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodReturnValueHandler {
+public class HandlerMethodReturnValueHandlerComposite implements AsyncHandlerMethodReturnValueHandler {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final List<HandlerMethodReturnValueHandler> returnValueHandlers =
-			new ArrayList<>();
+		new ArrayList<HandlerMethodReturnValueHandler>();
 
 
 	/**
@@ -94,7 +94,8 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 		return null;
 	}
 
-	private boolean isAsyncReturnValue(Object value, MethodParameter returnType) {
+	@Override
+	public boolean isAsyncReturnValue(Object value, MethodParameter returnType) {
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
 			if (handler instanceof AsyncHandlerMethodReturnValueHandler) {
 				if (((AsyncHandlerMethodReturnValueHandler) handler).isAsyncReturnValue(value, returnType)) {

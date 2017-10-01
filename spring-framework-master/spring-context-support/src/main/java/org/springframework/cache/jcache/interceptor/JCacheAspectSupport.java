@@ -110,7 +110,7 @@ public class JCacheAspectSupport extends AbstractCacheInvoker implements Initial
 	private CacheOperationInvocationContext<?> createCacheOperationInvocationContext(
 			Object target, Object[] args, JCacheOperation<?> operation) {
 
-		return new DefaultCacheInvocationContext<>(
+		return new DefaultCacheInvocationContext<Annotation>(
 				(JCacheOperation<Annotation>) operation, target, args);
 	}
 

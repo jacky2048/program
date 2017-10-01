@@ -26,7 +26,7 @@ import org.springframework.cache.interceptor.KeyGenerator;
  *
  * @author Stephane Nicoll
  */
-public class SomeCustomKeyGenerator implements KeyGenerator {
+public final class SomeCustomKeyGenerator implements KeyGenerator {
 
     @Override
     public Object generate(Object target, Method method, Object... params) {

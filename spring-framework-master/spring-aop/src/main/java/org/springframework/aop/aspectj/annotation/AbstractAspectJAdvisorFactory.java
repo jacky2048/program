@@ -140,7 +140,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	private static <A extends Annotation> AspectJAnnotation<A> findAnnotation(Method method, Class<A> toLookFor) {
 		A result = AnnotationUtils.findAnnotation(method, toLookFor);
 		if (result != null) {
-			return new AspectJAnnotation<>(result);
+			return new AspectJAnnotation<A>(result);
 		}
 		else {
 			return null;
@@ -167,7 +167,8 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 		private static final String[] EXPRESSION_PROPERTIES = new String[] {"value", "pointcut"};
 
-		private static Map<Class<?>, AspectJAnnotationType> annotationTypes = new HashMap<>();
+		private static Map<Class<?>, AspectJAnnotationType> annotationTypes =
+				new HashMap<Class<?>, AspectJAnnotationType>();
 
 		static {
 			annotationTypes.put(Pointcut.class,AspectJAnnotationType.AtPointcut);
@@ -260,7 +261,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 		@Override
 		public String[] getParameterNames(Method method) {
-			if (method.getParameterCount() == 0) {
+			if (method.getParameterTypes().length == 0) {
 				return new String[0];
 			}
 			AspectJAnnotation<?> annotation = findAspectJAnnotationOnMethod(method);

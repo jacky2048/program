@@ -23,8 +23,11 @@ import java.sql.Connection;
  * Connection proxies. Allows access to the underlying target Connection.
  *
  * <p>This interface can be checked when there is a need to cast to a
- * native JDBC Connection such as Oracle's OracleConnection. Alternatively,
- * all such connections also support JDBC 4.0's {@link Connection#unwrap}.
+ * native JDBC Connection such as Oracle's OracleConnection. Spring's
+ * {@link org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractorAdapter}
+ * automatically detects such proxies before delegating to the actual
+ * unwrapping for a specific connection pool. Alternatively, all such
+ * connections also support JDBC 4.0's {@link Connection#unwrap}.
  *
  * @author Juergen Hoeller
  * @since 1.1

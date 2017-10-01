@@ -17,7 +17,6 @@
 package org.springframework.web.socket.sockjs.frame;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import org.springframework.util.Assert;
 
@@ -29,7 +28,7 @@ import org.springframework.util.Assert;
  */
 public class SockJsFrame {
 
-	public static final Charset CHARSET = StandardCharsets.UTF_8;
+	public static final Charset CHARSET = Charset.forName("UTF-8");
 
 	private static final SockJsFrame OPEN_FRAME = new SockJsFrame("o");
 

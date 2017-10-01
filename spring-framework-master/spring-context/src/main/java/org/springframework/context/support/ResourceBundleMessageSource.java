@@ -77,7 +77,7 @@ public class ResourceBundleMessageSource extends AbstractResourceBasedMessageSou
 	 * than the ResourceBundle class's own cache.
 	 */
 	private final Map<String, Map<Locale, ResourceBundle>> cachedResourceBundles =
-			new HashMap<>();
+			new HashMap<String, Map<Locale, ResourceBundle>>();
 
 	/**
 	 * Cache to hold already generated MessageFormats.
@@ -88,7 +88,7 @@ public class ResourceBundleMessageSource extends AbstractResourceBasedMessageSou
 	 * @see #getMessageFormat
 	 */
 	private final Map<ResourceBundle, Map<String, Map<Locale, MessageFormat>>> cachedBundleMessageFormats =
-			new HashMap<>();
+			new HashMap<ResourceBundle, Map<String, Map<Locale, MessageFormat>>>();
 
 
 	/**
@@ -184,7 +184,7 @@ public class ResourceBundleMessageSource extends AbstractResourceBasedMessageSou
 				try {
 					ResourceBundle bundle = doGetBundle(basename, locale);
 					if (localeMap == null) {
-						localeMap = new HashMap<>();
+						localeMap = new HashMap<Locale, ResourceBundle>();
 						this.cachedResourceBundles.put(basename, localeMap);
 					}
 					localeMap.put(locale, bundle);
@@ -257,11 +257,11 @@ public class ResourceBundleMessageSource extends AbstractResourceBasedMessageSou
 			String msg = getStringOrNull(bundle, code);
 			if (msg != null) {
 				if (codeMap == null) {
-					codeMap = new HashMap<>();
+					codeMap = new HashMap<String, Map<Locale, MessageFormat>>();
 					this.cachedBundleMessageFormats.put(bundle, codeMap);
 				}
 				if (localeMap == null) {
-					localeMap = new HashMap<>();
+					localeMap = new HashMap<Locale, MessageFormat>();
 					codeMap.put(code, localeMap);
 				}
 				MessageFormat result = createMessageFormat(msg, locale);

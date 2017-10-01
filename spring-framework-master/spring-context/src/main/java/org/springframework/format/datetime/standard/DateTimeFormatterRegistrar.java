@@ -35,6 +35,7 @@ import java.util.Map;
 import org.springframework.format.FormatterRegistrar;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
+import org.springframework.lang.UsesJava8;
 
 /**
  * Configures the JSR-310 <code>java.time</code> formatting system for use with Spring.
@@ -50,6 +51,7 @@ import org.springframework.format.annotation.DateTimeFormat.ISO;
  * @see org.springframework.format.datetime.DateFormatterRegistrar
  * @see org.springframework.format.datetime.joda.DateTimeFormatterFactoryBean
  */
+@UsesJava8
 public class DateTimeFormatterRegistrar implements FormatterRegistrar {
 
 	private enum Type {DATE, TIME, DATE_TIME}
@@ -58,12 +60,14 @@ public class DateTimeFormatterRegistrar implements FormatterRegistrar {
 	/**
 	 * User-defined formatters.
 	 */
-	private final Map<Type, DateTimeFormatter> formatters = new EnumMap<>(Type.class);
+	private final Map<Type, DateTimeFormatter> formatters =
+			new EnumMap<Type, DateTimeFormatter>(Type.class);
 
 	/**
 	 * Factories used when specific formatters have not been specified.
 	 */
-	private final Map<Type, DateTimeFormatterFactory> factories = new EnumMap<>(Type.class);
+	private final Map<Type, DateTimeFormatterFactory> factories =
+			new EnumMap<Type, DateTimeFormatterFactory>(Type.class);
 
 
 	public DateTimeFormatterRegistrar() {

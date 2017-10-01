@@ -18,7 +18,6 @@ package org.springframework.web.client;
 
 import java.io.EOFException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import okhttp3.mockwebserver.Dispatcher;
@@ -39,10 +38,14 @@ import static org.junit.Assert.*;
  */
 public class AbstractMockWebServerTestCase {
 
-	protected static final MediaType textContentType =
-			new MediaType("text", "plain", Collections.singletonMap("charset", "UTF-8"));
+	private static final Charset UTF_8 = Charset.forName("UTF-8");
+
+	private static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
 	protected static final String helloWorld = "H\u00e9llo W\u00f6rld";
+
+	protected static final MediaType textContentType =
+			new MediaType("text", "plain", Collections.singletonMap("charset", "UTF-8"));
 
 	private MockWebServer server;
 
@@ -90,7 +93,7 @@ public class AbstractMockWebServerTestCase {
 				Integer.parseInt(request.getHeader("Content-Length")) > 0);
 		String requestContentType = request.getHeader("Content-Type");
 		assertNotNull("No content-type", requestContentType);
-		Charset charset = StandardCharsets.ISO_8859_1;
+		Charset charset = ISO_8859_1;
 		if (requestContentType.contains("charset=")) {
 			String charsetName = requestContentType.split("charset=")[1];
 			charset = Charset.forName(charsetName);
@@ -181,7 +184,7 @@ public class AbstractMockWebServerTestCase {
 				Integer.parseInt(request.getHeader("Content-Length")) > 0);
 		String requestContentType = request.getHeader("Content-Type");
 		assertNotNull("No content-type", requestContentType);
-		Charset charset = StandardCharsets.ISO_8859_1;
+		Charset charset = ISO_8859_1;
 		if (requestContentType.contains("charset=")) {
 			String charsetName = requestContentType.split("charset=")[1];
 			charset = Charset.forName(charsetName);
@@ -200,7 +203,7 @@ public class AbstractMockWebServerTestCase {
 				Integer.parseInt(request.getHeader("Content-Length")) > 0);
 		String requestContentType = request.getHeader("Content-Type");
 		assertNotNull("No content-type", requestContentType);
-		Charset charset = StandardCharsets.ISO_8859_1;
+		Charset charset = ISO_8859_1;
 		if (requestContentType.contains("charset=")) {
 			String charsetName = requestContentType.split("charset=")[1];
 			charset = Charset.forName(charsetName);
@@ -215,7 +218,7 @@ public class AbstractMockWebServerTestCase {
 		@Override
 		public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
 			try {
-				byte[] helloWorldBytes = helloWorld.getBytes(StandardCharsets.UTF_8);
+				byte[] helloWorldBytes = helloWorld.getBytes(UTF_8);
 
 				if (request.getPath().equals("/get")) {
 					return getRequest(request, helloWorldBytes, textContentType.toString());

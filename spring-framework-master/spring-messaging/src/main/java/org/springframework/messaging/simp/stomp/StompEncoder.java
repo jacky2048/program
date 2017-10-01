@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.messaging.simp.stomp;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,7 +55,7 @@ public class StompEncoder  {
 
 
 	private final Map<String, byte[]> headerKeyAccessCache =
-			new ConcurrentHashMap<>(HEADER_KEY_CACHE_LIMIT);
+			new ConcurrentHashMap<String, byte[]>(HEADER_KEY_CACHE_LIMIT);
 
 	@SuppressWarnings("serial")
 	private final Map<String, byte[]> headerKeyUpdateCache =
@@ -98,9 +97,7 @@ public class StompEncoder  {
 			DataOutputStream output = new DataOutputStream(baos);
 
 			if (SimpMessageType.HEARTBEAT.equals(SimpMessageHeaderAccessor.getMessageType(headers))) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Encoding heartbeat");
-				}
+				logger.trace("Encoding heartbeat");
 				output.write(StompDecoder.HEARTBEAT_PAYLOAD);
 			}
 
@@ -110,7 +107,7 @@ public class StompEncoder  {
 					throw new IllegalStateException("Missing STOMP command: " + headers);
 				}
 
-				output.write(command.toString().getBytes(StandardCharsets.UTF_8));
+				output.write(command.toString().getBytes(StompDecoder.UTF8_CHARSET));
 				output.write(LF);
 				writeHeaders(command, headers, payload, output);
 				output.write(LF);
@@ -164,8 +161,8 @@ public class StompEncoder  {
 
 		if (command.requiresContentLength()) {
 			int contentLength = payload.length;
-			output.write("content-length:".getBytes(StandardCharsets.UTF_8));
-			output.write(Integer.toString(contentLength).getBytes(StandardCharsets.UTF_8));
+			output.write("content-length:".getBytes(StompDecoder.UTF8_CHARSET));
+			output.write(Integer.toString(contentLength).getBytes(StompDecoder.UTF8_CHARSET));
 			output.write(LF);
 		}
 	}
@@ -178,7 +175,7 @@ public class StompEncoder  {
 		synchronized (this.headerKeyUpdateCache) {
 			byte[] bytes = this.headerKeyUpdateCache.get(inputToUse);
 			if (bytes == null) {
-				bytes = inputToUse.getBytes(StandardCharsets.UTF_8);
+				bytes = inputToUse.getBytes(StompDecoder.UTF8_CHARSET);
 				this.headerKeyAccessCache.put(inputToUse, bytes);
 				this.headerKeyUpdateCache.put(inputToUse, bytes);
 			}
@@ -188,7 +185,7 @@ public class StompEncoder  {
 
 	private byte[] encodeHeaderValue(String input, boolean escape) {
 		String inputToUse = (escape ? escape(input) : input);
-		return inputToUse.getBytes(StandardCharsets.UTF_8);
+		return inputToUse.getBytes(StompDecoder.UTF8_CHARSET);
 	}
 
 	/**

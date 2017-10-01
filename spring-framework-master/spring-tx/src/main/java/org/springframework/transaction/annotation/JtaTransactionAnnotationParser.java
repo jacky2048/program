@@ -57,7 +57,7 @@ public class JtaTransactionAnnotationParser implements TransactionAnnotationPars
 		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
 		rbta.setPropagationBehaviorName(
 				RuleBasedTransactionAttribute.PREFIX_PROPAGATION + attributes.getEnum("value").toString());
-		ArrayList<RollbackRuleAttribute> rollBackRules = new ArrayList<>();
+		ArrayList<RollbackRuleAttribute> rollBackRules = new ArrayList<RollbackRuleAttribute>();
 		Class<?>[] rbf = attributes.getClassArray("rollbackOn");
 		for (Class<?> rbRule : rbf) {
 			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbRule);

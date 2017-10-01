@@ -32,7 +32,6 @@ import org.springframework.transaction.TransactionStatus;
  * @see TransactionTemplate
  * @see CallbackPreferringPlatformTransactionManager
  */
-@FunctionalInterface
 public interface TransactionCallback<T> {
 
 	/**

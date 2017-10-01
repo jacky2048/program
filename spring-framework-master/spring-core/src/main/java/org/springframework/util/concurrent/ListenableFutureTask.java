@@ -28,7 +28,7 @@ import java.util.concurrent.FutureTask;
  */
 public class ListenableFutureTask<T> extends FutureTask<T> implements ListenableFuture<T> {
 
-	private final ListenableFutureCallbackRegistry<T> callbacks = new ListenableFutureCallbackRegistry<>();
+	private final ListenableFutureCallbackRegistry<T> callbacks = new ListenableFutureCallbackRegistry<T>();
 
 
 	/**

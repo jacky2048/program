@@ -143,9 +143,9 @@ public class GroovyBeanDefinitionReader extends AbstractBeanDefinitionReader imp
 	 */
 	private final XmlBeanDefinitionReader groovyDslXmlBeanDefinitionReader;
 
-	private final Map<String, String> namespaces = new HashMap<>();
+	private final Map<String, String> namespaces = new HashMap<String, String>();
 
-	private final Map<String, DeferredProperty> deferredProperties = new HashMap<>();
+	private final Map<String, DeferredProperty> deferredProperties = new HashMap<String, DeferredProperty>();
 
 	private MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
 
@@ -568,7 +568,7 @@ public class GroovyBeanDefinitionReader extends AbstractBeanDefinitionReader imp
 			}
 		}
 		if (containsRuntimeRefs) {
-			Map<Object, Object> managedMap = new ManagedMap<>();
+			Map<Object, Object> managedMap = new ManagedMap<Object, Object>();
 			managedMap.putAll(map);
 			return managedMap;
 		}
@@ -590,7 +590,7 @@ public class GroovyBeanDefinitionReader extends AbstractBeanDefinitionReader imp
 			}
 		}
 		if (containsRuntimeRefs) {
-			List<Object> managedList = new ManagedList<>();
+			List<Object> managedList = new ManagedList<Object>();
 			managedList.addAll(list);
 			return managedList;
 		}

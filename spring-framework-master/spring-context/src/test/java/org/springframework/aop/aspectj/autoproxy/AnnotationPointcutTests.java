@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
  * @author Juergen Hoeller
  * @author Chris Beams
  */
-public class AnnotationPointcutTests {
+public final class AnnotationPointcutTests {
 
 	private AnnotatedTestBean testBean;
 

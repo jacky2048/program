@@ -54,17 +54,17 @@ final class ConfigurationClass {
 
 	private String beanName;
 
-	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<>(1);
+	private final Set<ConfigurationClass> importedBy = new LinkedHashSet<ConfigurationClass>(1);
 
-	private final Set<BeanMethod> beanMethods = new LinkedHashSet<>();
+	private final Set<BeanMethod> beanMethods = new LinkedHashSet<BeanMethod>();
 
 	private final Map<String, Class<? extends BeanDefinitionReader>> importedResources =
-			new LinkedHashMap<>();
+			new LinkedHashMap<String, Class<? extends BeanDefinitionReader>>();
 
 	private final Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars =
-			new LinkedHashMap<>();
+			new LinkedHashMap<ImportBeanDefinitionRegistrar, AnnotationMetadata>();
 
-	final Set<String> skippedBeanMethods = new HashSet<>();
+	final Set<String> skippedBeanMethods = new HashSet<String>();
 
 
 	/**

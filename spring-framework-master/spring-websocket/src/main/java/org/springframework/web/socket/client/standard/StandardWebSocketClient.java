@@ -38,6 +38,7 @@ import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.lang.UsesJava7;
 import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureTask;
@@ -59,7 +60,7 @@ public class StandardWebSocketClient extends AbstractWebSocketClient {
 
 	private final WebSocketContainer webSocketContainer;
 
-	private final Map<String,Object> userProperties = new HashMap<>();
+	private final Map<String,Object> userProperties = new HashMap<String, Object>();
 
 	private AsyncListenableTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
@@ -155,20 +156,21 @@ public class StandardWebSocketClient extends AbstractWebSocketClient {
 			return this.taskExecutor.submitListenable(connectTask);
 		}
 		else {
-			ListenableFutureTask<WebSocketSession> task = new ListenableFutureTask<>(connectTask);
+			ListenableFutureTask<WebSocketSession> task = new ListenableFutureTask<WebSocketSession>(connectTask);
 			task.run();
 			return task;
 		}
 	}
 
 	private static List<Extension> adaptExtensions(List<WebSocketExtension> extensions) {
-		List<Extension> result = new ArrayList<>();
+		List<Extension> result = new ArrayList<Extension>();
 		for (WebSocketExtension extension : extensions) {
 			result.add(new WebSocketToStandardExtensionAdapter(extension));
 		}
 		return result;
 	}
 
+	@UsesJava7  // fallback to InetAddress.getLoopbackAddress()
 	private InetAddress getLocalHost() {
 		try {
 			return InetAddress.getLocalHost();

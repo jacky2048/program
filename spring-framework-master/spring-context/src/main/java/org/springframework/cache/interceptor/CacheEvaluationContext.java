@@ -43,7 +43,7 @@ import org.springframework.core.ParameterNameDiscoverer;
  */
 class CacheEvaluationContext extends MethodBasedEvaluationContext {
 
-	private final Set<String> unavailableVariables = new HashSet<>(1);
+	private final Set<String> unavailableVariables = new HashSet<String>(1);
 
 
 	CacheEvaluationContext(Object rootObject, Method method, Object[] arguments,

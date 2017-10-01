@@ -36,7 +36,7 @@ import static org.mockito.BDDMockito.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class AfterAdviceBindingTests {
+public final class AfterAdviceBindingTests {
 
 	private AdviceBindingCollaborator mockCollaborator;
 

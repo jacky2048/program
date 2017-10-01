@@ -56,7 +56,7 @@ public class GenericCallMetaDataProvider implements CallMetaDataProvider {
 
 	private boolean storesLowerCaseIdentifiers = false;
 
-	private List<CallParameterMetaData> callParameterMetaData = new ArrayList<>();
+	private List<CallParameterMetaData> callParameterMetaData = new ArrayList<CallParameterMetaData>();
 
 
 	/**
@@ -323,7 +323,7 @@ public class GenericCallMetaDataProvider implements CallMetaDataProvider {
 		ResultSet procs = null;
 		try {
 			procs = databaseMetaData.getProcedures(metaDataCatalogName, metaDataSchemaName, metaDataProcedureName);
-			List<String> found = new ArrayList<>();
+			List<String> found = new ArrayList<String>();
 			while (procs.next()) {
 				found.add(procs.getString("PROCEDURE_CAT") + '.' + procs.getString("PROCEDURE_SCHEM") +
 						'.' + procs.getString("PROCEDURE_NAME"));

@@ -39,7 +39,7 @@ import static org.junit.Assert.*;
  * @author Chris Beams
  * @since 2.0
  */
-public class RequiredAnnotationBeanPostProcessorTests {
+public final class RequiredAnnotationBeanPostProcessorTests {
 
 	@Test
 	public void testWithRequiredPropertyOmitted() {

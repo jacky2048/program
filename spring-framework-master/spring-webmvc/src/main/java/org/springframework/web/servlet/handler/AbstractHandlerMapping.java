@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -75,13 +74,13 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
-	private final List<Object> interceptors = new ArrayList<>();
+	private final List<Object> interceptors = new ArrayList<Object>();
 
-	private final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<>();
-
-	private final UrlBasedCorsConfigurationSource globalCorsConfigSource = new UrlBasedCorsConfigurationSource();
+	private final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<HandlerInterceptor>();
 
 	private CorsProcessor corsProcessor = new DefaultCorsProcessor();
+
+	private final UrlBasedCorsConfigurationSource corsConfigSource = new UrlBasedCorsConfigurationSource();
 
 
 	/**
@@ -124,7 +123,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	public void setAlwaysUseFullPath(boolean alwaysUseFullPath) {
 		this.urlPathHelper.setAlwaysUseFullPath(alwaysUseFullPath);
-		this.globalCorsConfigSource.setAlwaysUseFullPath(alwaysUseFullPath);
+		this.corsConfigSource.setAlwaysUseFullPath(alwaysUseFullPath);
 	}
 
 	/**
@@ -136,7 +135,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	public void setUrlDecode(boolean urlDecode) {
 		this.urlPathHelper.setUrlDecode(urlDecode);
-		this.globalCorsConfigSource.setUrlDecode(urlDecode);
+		this.corsConfigSource.setUrlDecode(urlDecode);
 	}
 
 	/**
@@ -146,7 +145,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	public void setRemoveSemicolonContent(boolean removeSemicolonContent) {
 		this.urlPathHelper.setRemoveSemicolonContent(removeSemicolonContent);
-		this.globalCorsConfigSource.setRemoveSemicolonContent(removeSemicolonContent);
+		this.corsConfigSource.setRemoveSemicolonContent(removeSemicolonContent);
 	}
 
 	/**
@@ -158,7 +157,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	public void setUrlPathHelper(UrlPathHelper urlPathHelper) {
 		Assert.notNull(urlPathHelper, "UrlPathHelper must not be null");
 		this.urlPathHelper = urlPathHelper;
-		this.globalCorsConfigSource.setUrlPathHelper(urlPathHelper);
+		this.corsConfigSource.setUrlPathHelper(urlPathHelper);
 	}
 
 	/**
@@ -176,7 +175,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		Assert.notNull(pathMatcher, "PathMatcher must not be null");
 		this.pathMatcher = pathMatcher;
-		this.globalCorsConfigSource.setPathMatcher(pathMatcher);
+		this.corsConfigSource.setPathMatcher(pathMatcher);
 	}
 
 	/**
@@ -202,23 +201,6 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	}
 
 	/**
-	 * Set "global" CORS configuration based on URL patterns. By default the first
-	 * matching URL pattern is combined with the CORS configuration for the
-	 * handler, if any.
-	 * @since 4.2
-	 */
-	public void setCorsConfigurations(Map<String, CorsConfiguration> corsConfigurations) {
-		this.globalCorsConfigSource.setCorsConfigurations(corsConfigurations);
-	}
-
-	/**
-	 * Get the "global" CORS configuration.
-	 */
-	public Map<String, CorsConfiguration> getCorsConfigurations() {
-		return this.globalCorsConfigSource.getCorsConfigurations();
-	}
-
-	/**
 	 * Configure a custom {@link CorsProcessor} to use to apply the matched
 	 * {@link CorsConfiguration} for a request.
 	 * <p>By default {@link DefaultCorsProcessor} is used.
@@ -234,6 +216,23 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	public CorsProcessor getCorsProcessor() {
 		return this.corsProcessor;
+	}
+
+	/**
+	 * Set "global" CORS configuration based on URL patterns. By default the first
+	 * matching URL pattern is combined with the CORS configuration for the
+	 * handler, if any.
+	 * @since 4.2
+	 */
+	public void setCorsConfigurations(Map<String, CorsConfiguration> corsConfigurations) {
+		this.corsConfigSource.setCorsConfigurations(corsConfigurations);
+	}
+
+	/**
+	 * Get the CORS configuration.
+	 */
+	public Map<String, CorsConfiguration> getCorsConfigurations() {
+		return this.corsConfigSource.getCorsConfigurations();
 	}
 
 
@@ -330,7 +329,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @return the array of {@link MappedInterceptor}s, or {@code null} if none
 	 */
 	protected final MappedInterceptor[] getMappedInterceptors() {
-		List<MappedInterceptor> mappedInterceptors = new ArrayList<>();
+		List<MappedInterceptor> mappedInterceptors = new ArrayList<MappedInterceptor>();
 		for (HandlerInterceptor interceptor : this.adaptedInterceptors) {
 			if (interceptor instanceof MappedInterceptor) {
 				mappedInterceptors.add((MappedInterceptor) interceptor);
@@ -365,7 +364,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 		if (CorsUtils.isCorsRequest(request)) {
-			CorsConfiguration globalConfig = this.globalCorsConfigSource.getCorsConfiguration(request);
+			CorsConfiguration globalConfig = this.corsConfigSource.getCorsConfiguration(request);
 			CorsConfiguration handlerConfig = getCorsConfiguration(handler, request);
 			CorsConfiguration config = (globalConfig != null ? globalConfig.combine(handlerConfig) : handlerConfig);
 			executionChain = getCorsHandlerExecutionChain(request, executionChain, config);

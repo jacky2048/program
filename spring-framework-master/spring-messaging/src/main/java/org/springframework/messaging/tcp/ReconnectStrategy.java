@@ -22,7 +22,6 @@ package org.springframework.messaging.tcp;
  * @author Rossen Stoyanchev
  * @since 4.0
  */
-@FunctionalInterface
 public interface ReconnectStrategy {
 
 	/**

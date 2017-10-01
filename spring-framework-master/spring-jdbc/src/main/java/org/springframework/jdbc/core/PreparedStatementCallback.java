@@ -40,7 +40,6 @@ import org.springframework.dao.DataAccessException;
  * @see JdbcTemplate#execute(String, PreparedStatementCallback)
  * @see JdbcTemplate#execute(PreparedStatementCreator, PreparedStatementCallback)
  */
-@FunctionalInterface
 public interface PreparedStatementCallback<T> {
 
 	/**

@@ -58,7 +58,7 @@ public abstract class BeanUtils {
 	private static final Log logger = LogFactory.getLog(BeanUtils.class);
 
 	private static final Set<Class<?>> unknownEditorTypes =
-			Collections.newSetFromMap(new ConcurrentReferenceHashMap<>(64));
+			Collections.newSetFromMap(new ConcurrentReferenceHashMap<Class<?>, Boolean>(64));
 
 
 	/**
@@ -66,11 +66,8 @@ public abstract class BeanUtils {
 	 * @param clazz class to instantiate
 	 * @return the new instance
 	 * @throws BeanInstantiationException if the bean cannot be instantiated
-	 * @deprecated as of Spring 5.0, following the deprecation of
-	 * {@link Class#newInstance()} in JDK 9
 	 * @see Class#newInstance()
 	 */
-	@Deprecated
 	public static <T> T instantiate(Class<T> clazz) throws BeanInstantiationException {
 		Assert.notNull(clazz, "Class must not be null");
 		if (clazz.isInterface()) {
@@ -267,12 +264,12 @@ public abstract class BeanUtils {
 		int numMethodsFoundWithCurrentMinimumArgs = 0;
 		for (Method method : methods) {
 			if (method.getName().equals(methodName)) {
-				int numParams = method.getParameterCount();
-				if (targetMethod == null || numParams < targetMethod.getParameterCount()) {
+				int numParams = method.getParameterTypes().length;
+				if (targetMethod == null || numParams < targetMethod.getParameterTypes().length) {
 					targetMethod = method;
 					numMethodsFoundWithCurrentMinimumArgs = 1;
 				}
-				else if (!method.isBridge() && targetMethod.getParameterCount() == numParams) {
+				else if (!method.isBridge() && targetMethod.getParameterTypes().length == numParams) {
 					if (targetMethod.isBridge()) {
 						// Prefer regular method over bridge...
 						targetMethod = method;

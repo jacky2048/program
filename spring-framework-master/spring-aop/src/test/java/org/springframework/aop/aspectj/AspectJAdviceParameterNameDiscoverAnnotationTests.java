@@ -30,7 +30,7 @@ import org.junit.Test;
  * @author Adrian Colyer
  * @author Chris Beams
  */
-public class AspectJAdviceParameterNameDiscoverAnnotationTests
+public final class AspectJAdviceParameterNameDiscoverAnnotationTests
 		extends AspectJAdviceParameterNameDiscovererTests {
 
 	@Retention(RetentionPolicy.RUNTIME)

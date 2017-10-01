@@ -61,9 +61,13 @@ import org.springframework.util.Assert;
  * that all operations performed through standard JDBC will automatically participate
  * in Spring-managed transaction timeouts.
  *
- * <p><b>NOTE:</b> This DataSource proxy needs to return wrapped Connections (which
- * implement the {@link ConnectionProxy} interface) in order to handle close calls
- * properly. Use {@link Connection#unwrap} to retrieve the native JDBC Connection.
+ * <p><b>NOTE:</b> This DataSource proxy needs to return wrapped Connections
+ * (which implement the {@link ConnectionProxy} interface) in order to handle
+ * close calls properly. Therefore, the returned Connections cannot be cast
+ * to a native JDBC Connection type such as OracleConnection or to a connection
+ * pool implementation type. Use a corresponding
+ * {@link org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractor}
+ * or JDBC 4's {@link Connection#unwrap} to retrieve the native JDBC Connection.
  *
  * @author Juergen Hoeller
  * @since 1.1

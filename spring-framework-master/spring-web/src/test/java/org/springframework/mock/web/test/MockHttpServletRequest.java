@@ -27,7 +27,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -53,10 +52,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
@@ -72,7 +69,7 @@ import org.springframework.util.StringUtils;
  * is {@link Locale#ENGLISH}. This value can be changed via {@link #addPreferredLocale}
  * or {@link #setPreferredLocales}.
  *
- * <p>As of Spring Framework 5.0, this set of mocks is designed on a Servlet 4.0 baseline.
+ * <p>As of Spring Framework 4.0, this set of mocks is designed on a Servlet 3.0 baseline.
  *
  * @author Juergen Hoeller
  * @author Rod Johnson
@@ -88,6 +85,10 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	private static final String HTTP = "http";
 
 	private static final String HTTPS = "https";
+
+	private static final String CONTENT_TYPE_HEADER = "Content-Type";
+
+	private static final String HOST_HEADER = "Host";
 
 	private static final String CHARSET_PREFIX = "charset=";
 
@@ -165,7 +166,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	// ServletRequest properties
 	// ---------------------------------------------------------------------
 
-	private final Map<String, Object> attributes = new LinkedHashMap<>();
+	private final Map<String, Object> attributes = new LinkedHashMap<String, Object>();
 
 	private String characterEncoding;
 
@@ -173,7 +174,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	private String contentType;
 
-	private final Map<String, String[]> parameters = new LinkedHashMap<>(16);
+	private final Map<String, String[]> parameters = new LinkedHashMap<String, String[]>();
 
 	private String protocol = DEFAULT_PROTOCOL;
 
@@ -188,7 +189,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	private String remoteHost = DEFAULT_REMOTE_HOST;
 
 	/** List of locales in descending order */
-	private final List<Locale> locales = new LinkedList<>();
+	private final List<Locale> locales = new LinkedList<Locale>();
 
 	private boolean secure = false;
 
@@ -217,7 +218,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	private Cookie[] cookies;
 
-	private final Map<String, HeaderValueHolder> headers = new LinkedCaseInsensitiveMap<>();
+	private final Map<String, HeaderValueHolder> headers = new LinkedCaseInsensitiveMap<HeaderValueHolder>();
 
 	private String method;
 
@@ -229,7 +230,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	private String remoteUser;
 
-	private final Set<String> userRoles = new HashSet<>();
+	private final Set<String> userRoles = new HashSet<String>();
 
 	private Principal userPrincipal;
 
@@ -247,7 +248,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	private boolean requestedSessionIdFromURL = false;
 
-	private final MultiValueMap<String, Part> parts = new LinkedMultiValueMap<>();
+	private final MultiValueMap<String, Part> parts = new LinkedMultiValueMap<String, Part>();
 
 
 	// ---------------------------------------------------------------------
@@ -347,7 +348,9 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	 * throwing an IllegalStateException if not active anymore.
 	 */
 	protected void checkActive() throws IllegalStateException {
-		Assert.state(this.active, "Request is not active anymore");
+		if (!this.active) {
+			throw new IllegalStateException("Request is not active anymore");
+		}
 	}
 
 
@@ -364,7 +367,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	@Override
 	public Enumeration<String> getAttributeNames() {
 		checkActive();
-		return Collections.enumeration(new LinkedHashSet<>(this.attributes.keySet()));
+		return Collections.enumeration(new LinkedHashSet<String>(this.attributes.keySet()));
 	}
 
 	@Override
@@ -385,54 +388,12 @@ public class MockHttpServletRequest implements HttpServletRequest {
 					StringUtils.hasLength(this.characterEncoding)) {
 				sb.append(";").append(CHARSET_PREFIX).append(this.characterEncoding);
 			}
-			doAddHeaderValue(HttpHeaders.CONTENT_TYPE, sb.toString(), true);
+			doAddHeaderValue(CONTENT_TYPE_HEADER, sb.toString(), true);
 		}
 	}
 
-	/**
-	 * Set the content of the request body as a byte array.
-	 * <p>If the supplied byte array represents text such as XML or JSON, the
-	 * {@link #setCharacterEncoding character encoding} should typically be
-	 * set as well.
-	 * @see #setCharacterEncoding(String)
-	 * @see #getContentAsByteArray()
-	 * @see #getContentAsString()
-	 */
 	public void setContent(byte[] content) {
 		this.content = content;
-	}
-
-	/**
-	 * Get the content of the request body as a byte array.
-	 * @return the content as a byte array, potentially {@code null}
-	 * @since 5.0
-	 * @see #setContent(byte[])
-	 * @see #getContentAsString()
-	 */
-	public byte[] getContentAsByteArray() {
-		return this.content;
-	}
-
-	/**
-	 * Get the content of the request body as a {@code String}, using the configured
-	 * {@linkplain #getCharacterEncoding character encoding}.
-	 * @return the content as a {@code String}, potentially {@code null}
-	 * @throws IllegalStateException if the character encoding has not been set
-	 * @throws UnsupportedEncodingException if the character encoding is not supported
-	 * @since 5.0
-	 * @see #setContent(byte[])
-	 * @see #setCharacterEncoding(String)
-	 * @see #getContentAsByteArray()
-	 */
-	public String getContentAsString() throws IllegalStateException, UnsupportedEncodingException {
-		Assert.state(this.characterEncoding != null,
-				"Cannot get content as a String for a null character encoding. " +
-				"Consider setting the characterEncoding in the request.");
-
-		if (this.content == null) {
-			return null;
-		}
-		return new String(this.content, this.characterEncoding);
 	}
 
 	@Override
@@ -440,7 +401,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
 		return (this.content != null ? this.content.length : -1);
 	}
 
-	@Override
 	public long getContentLengthLong() {
 		return getContentLength();
 	}
@@ -631,7 +591,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getServerName() {
-		String host = getHeader(HttpHeaders.HOST);
+		String host = getHeader(HOST_HEADER);
 		if (host != null) {
 			host = host.trim();
 			if (host.startsWith("[")) {
@@ -653,7 +613,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public int getServerPort() {
-		String host = getHeader(HttpHeaders.HOST);
+		String host = getHeader(HOST_HEADER);
 		if (host != null) {
 			host = host.trim();
 			int idx;
@@ -737,7 +697,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	public void addPreferredLocale(Locale locale) {
 		Assert.notNull(locale, "Locale must not be null");
 		this.locales.add(0, locale);
-		updateAcceptLanguageHeader();
 	}
 
 	/**
@@ -750,13 +709,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
 		Assert.notEmpty(locales, "Locale list must not be empty");
 		this.locales.clear();
 		this.locales.addAll(locales);
-		updateAcceptLanguageHeader();
-	}
-
-	private void updateAcceptLanguageHeader() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAcceptLanguageAsLocales(this.locales);
-		doAddHeaderValue(HttpHeaders.ACCEPT_LANGUAGE, headers.getFirst(HttpHeaders.ACCEPT_LANGUAGE), true);
 	}
 
 	/**
@@ -870,7 +822,9 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public AsyncContext startAsync(ServletRequest request, ServletResponse response) {
-		Assert.state(this.asyncSupported, "Async not supported");
+		if (!this.asyncSupported) {
+			throw new IllegalStateException("Async not supported");
+		}
 		this.asyncStarted = true;
 		this.asyncContext = new MockAsyncContext(request, response);
 		return this.asyncContext;
@@ -928,12 +882,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	public void setCookies(Cookie... cookies) {
 		this.cookies = cookies;
-		this.headers.remove(HttpHeaders.COOKIE);
-		if (cookies != null) {
-			Arrays.stream(cookies)
-					.map(c -> c.getName() + '=' + (c.getValue() == null ? "" : c.getValue()))
-					.forEach(value -> doAddHeaderValue(HttpHeaders.COOKIE, value, false));
-		}
 	}
 
 	@Override
@@ -957,17 +905,8 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	 * @see #getDateHeader
 	 */
 	public void addHeader(String name, Object value) {
-		if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name) &&
-				!this.headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
-
+		if (CONTENT_TYPE_HEADER.equalsIgnoreCase(name) && !this.headers.containsKey(CONTENT_TYPE_HEADER)) {
 			setContentType(value.toString());
-		}
-		else if (HttpHeaders.ACCEPT_LANGUAGE.equalsIgnoreCase(name) &&
-				!this.headers.containsKey(HttpHeaders.ACCEPT_LANGUAGE)) {
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.add(HttpHeaders.ACCEPT_LANGUAGE, value.toString());
-			setPreferredLocales(headers.getAcceptLanguageAsLocales());
 		}
 		else {
 			doAddHeaderValue(name, value, false);
@@ -1049,7 +988,7 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	@Override
 	public Enumeration<String> getHeaders(String name) {
 		HeaderValueHolder header = HeaderValueHolder.getByName(this.headers, name);
-		return Collections.enumeration(header != null ? header.getStringValues() : new LinkedList<>());
+		return Collections.enumeration(header != null ? header.getStringValues() : new LinkedList<String>());
 	}
 
 	@Override
@@ -1286,16 +1225,11 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public Collection<Part> getParts() throws IOException, IllegalStateException, ServletException {
-		List<Part> result = new LinkedList<>();
+		List<Part> result = new LinkedList<Part>();
 		for (List<Part> list : this.parts.values()) {
 			result.addAll(list);
 		}
 		return result;
-	}
-
-	@Override
-	public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass) throws IOException, ServletException {
-		throw new UnsupportedOperationException();
 	}
 
 }

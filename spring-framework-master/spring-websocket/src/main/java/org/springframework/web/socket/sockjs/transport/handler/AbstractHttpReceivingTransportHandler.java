@@ -17,7 +17,6 @@
 package org.springframework.web.socket.sockjs.transport.handler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.springframework.http.HttpStatus;
@@ -84,7 +83,7 @@ public abstract class AbstractHttpReceivingTransportHandler extends AbstractTran
 			logger.trace("Received message(s): " + Arrays.asList(messages));
 		}
 		response.setStatusCode(getResponseStatus());
-		response.getHeaders().setContentType(new MediaType("text", "plain", StandardCharsets.UTF_8));
+		response.getHeaders().setContentType(new MediaType("text", "plain", UTF8_CHARSET));
 
 		sockJsSession.delegateMessages(messages);
 	}
@@ -92,7 +91,7 @@ public abstract class AbstractHttpReceivingTransportHandler extends AbstractTran
 	private void handleReadError(ServerHttpResponse response, String error, String sessionId) {
 		try {
 			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			response.getBody().write(error.getBytes(StandardCharsets.UTF_8));
+			response.getBody().write(error.getBytes(UTF8_CHARSET));
 		}
 		catch (IOException ex) {
 			throw new SockJsException("Failed to send error: " + error, sessionId, ex);

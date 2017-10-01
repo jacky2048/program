@@ -97,7 +97,7 @@ public abstract class AbstractEntityManagerFactoryBean implements
 
 	private String persistenceUnitName;
 
-	private final Map<String, Object> jpaPropertyMap = new HashMap<>();
+	private final Map<String, Object> jpaPropertyMap = new HashMap<String, Object>();
 
 	private Class<? extends EntityManagerFactory> entityManagerFactoryInterface;
 
@@ -389,7 +389,7 @@ public abstract class AbstractEntityManagerFactoryBean implements
 	 * @return proxy entity manager
 	 */
 	protected EntityManagerFactory createEntityManagerFactoryProxy(EntityManagerFactory emf) {
-		Set<Class<?>> ifcs = new LinkedHashSet<>();
+		Set<Class<?>> ifcs = new LinkedHashSet<Class<?>>();
 		if (this.entityManagerFactoryInterface != null) {
 			ifcs.add(this.entityManagerFactoryInterface);
 		}

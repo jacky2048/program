@@ -71,7 +71,7 @@ public class GenericMessagingTemplateTests {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(new GenericMessage<>("response"));
+				replyChannel.send(new GenericMessage<String>("response"));
 			}
 		});
 
@@ -94,7 +94,7 @@ public class GenericMessagingTemplateTests {
 				try {
 					Thread.sleep(500);
 					MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-					replyChannel.send(new GenericMessage<>("response"));
+					replyChannel.send(new GenericMessage<String>("response"));
 					failure.set(new IllegalStateException("Expected exception"));
 				}
 				catch (InterruptedException e) {

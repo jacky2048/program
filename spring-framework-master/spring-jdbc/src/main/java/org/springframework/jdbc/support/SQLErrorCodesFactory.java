@@ -85,7 +85,8 @@ public class SQLErrorCodesFactory {
 	/**
 	 * Map to cache the SQLErrorCodes instance per DataSource.
 	 */
-	private final Map<DataSource, SQLErrorCodes> dataSourceCache = new ConcurrentReferenceHashMap<>(16);
+	private final Map<DataSource, SQLErrorCodes> dataSourceCache =
+			new ConcurrentReferenceHashMap<DataSource, SQLErrorCodes>(16);
 
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +46,31 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.mvc.annotation.UriTemplateServletAnnotationControllerTests;
 import org.springframework.web.servlet.view.AbstractView;
 
 import static org.junit.Assert.*;
 
 /**
+ * The origin of this test class is {@link UriTemplateServletAnnotationControllerTests}.
+ *
+ * Tests in this class run against the {@link HandlerMethod} infrastructure:
+ * <ul>
+ * 	<li>RequestMappingHandlerMapping
+ * 	<li>RequestMappingHandlerAdapter
+ * 	<li>ExceptionHandlerExceptionResolver
+ * </ul>
+ *
+ * <p>Rather than against the existing infrastructure:
+ * <ul>
+ * 	<li>DefaultAnnotationHandlerMapping
+ * 	<li>AnnotationMethodHandlerAdapter
+ * 	<li>AnnotationMethodHandlerExceptionResolver
+ * </ul>
+ *
  * @author Rossen Stoyanchev
  * @since 3.1
  */
@@ -81,7 +99,7 @@ public class UriTemplateServletAnnotationControllerHandlerMethodTests extends Ab
 
 	@Test
 	public void pathVarsInModel() throws Exception {
-		final Map<String, Object> pathVars = new HashMap<>();
+		final Map<String, Object> pathVars = new HashMap<String, Object>();
 		pathVars.put("hotel", "42");
 		pathVars.put("booking", 21);
 		pathVars.put("other", "other");
@@ -571,14 +589,14 @@ public class UriTemplateServletAnnotationControllerHandlerMethodTests extends Ab
 	@RequestMapping("/category")
 	public static class MultiPathController {
 
-		@RequestMapping(value = {"/{category}/page/{page}", "/*/{category}/page/{page}"})
+		@RequestMapping(value = {"/{category}/page/{page}", "/**/{category}/page/{page}"})
 		public void category(@PathVariable String category, @PathVariable int page, Writer writer) throws IOException {
 			writer.write("handle1-");
 			writer.write("category-" + category);
 			writer.write("page-" + page);
 		}
 
-		@RequestMapping(value = {"/{category}", "/*/{category}"})
+		@RequestMapping(value = {"/{category}", "/**/{category}"})
 		public void category(@PathVariable String category, Writer writer) throws IOException {
 			writer.write("handle2-");
 			writer.write("category-" + category);
@@ -598,7 +616,7 @@ public class UriTemplateServletAnnotationControllerHandlerMethodTests extends Ab
 	}
 
 	@Controller
-	@RequestMapping("/*/menu/") // was /*/menu/**
+	@RequestMapping("/*/menu/**")
 	public static class MenuTreeController {
 
 		@RequestMapping("type/{var}")

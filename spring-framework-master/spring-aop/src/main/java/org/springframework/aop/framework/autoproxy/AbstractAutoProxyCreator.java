@@ -127,13 +127,15 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	private BeanFactory beanFactory;
 
-	private final Set<String> targetSourcedBeans = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
+	private final Set<String> targetSourcedBeans =
+			Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(16));
 
-	private final Set<Object> earlyProxyReferences = Collections.newSetFromMap(new ConcurrentHashMap<>(16));
+	private final Set<Object> earlyProxyReferences =
+			Collections.newSetFromMap(new ConcurrentHashMap<Object, Boolean>(16));
 
-	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<>(16);
+	private final Map<Object, Class<?>> proxyTypes = new ConcurrentHashMap<Object, Class<?>>(16);
 
-	private final Map<Object, Boolean> advisedBeans = new ConcurrentHashMap<>(256);
+	private final Map<Object, Boolean> advisedBeans = new ConcurrentHashMap<Object, Boolean>(256);
 
 
 	/**
@@ -507,7 +509,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		// Handle prototypes correctly...
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
-		List<Object> allInterceptors = new ArrayList<>();
+		List<Object> allInterceptors = new ArrayList<Object>();
 		if (specificInterceptors != null) {
 			allInterceptors.addAll(Arrays.asList(specificInterceptors));
 			if (commonInterceptors.length > 0) {
@@ -540,7 +542,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	private Advisor[] resolveInterceptorNames() {
 		ConfigurableBeanFactory cbf = (this.beanFactory instanceof ConfigurableBeanFactory ?
 				(ConfigurableBeanFactory) this.beanFactory : null);
-		List<Advisor> advisors = new ArrayList<>();
+		List<Advisor> advisors = new ArrayList<Advisor>();
 		for (String beanName : this.interceptorNames) {
 			if (cbf == null || !cbf.isCurrentlyInCreation(beanName)) {
 				Object next = this.beanFactory.getBean(beanName);

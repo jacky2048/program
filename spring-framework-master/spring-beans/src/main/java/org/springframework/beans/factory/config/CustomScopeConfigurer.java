@@ -70,7 +70,7 @@ public class CustomScopeConfigurer implements BeanFactoryPostProcessor, BeanClas
 	 */
 	public void addScope(String scopeName, Scope scope) {
 		if (this.scopes == null) {
-			this.scopes = new LinkedHashMap<>(1);
+			this.scopes = new LinkedHashMap<String, Object>(1);
 		}
 		this.scopes.put(scopeName, scope);
 	}

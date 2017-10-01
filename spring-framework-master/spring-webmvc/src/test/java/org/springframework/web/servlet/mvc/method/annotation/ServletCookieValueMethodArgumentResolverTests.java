@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,23 +41,25 @@ public class ServletCookieValueMethodArgumentResolverTests {
 
 	private ServletCookieValueMethodArgumentResolver resolver;
 
-	private MockHttpServletRequest request;
+	private MethodParameter cookieParameter;
+
+	private MethodParameter cookieStringParameter;
 
 	private ServletWebRequest webRequest;
 
-	private MethodParameter cookieParameter;
-	private MethodParameter cookieStringParameter;
+	private MockHttpServletRequest request;
 
 
 	@Before
-	public void setup() throws Exception {
+	public void setUp() throws Exception {
 		resolver = new ServletCookieValueMethodArgumentResolver(null);
-		request = new MockHttpServletRequest();
-		webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 
 		Method method = getClass().getMethod("params", Cookie.class, String.class);
 		cookieParameter = new SynthesizingMethodParameter(method, 0);
 		cookieStringParameter = new SynthesizingMethodParameter(method, 1);
+
+		request = new MockHttpServletRequest();
+		webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 	}
 
 

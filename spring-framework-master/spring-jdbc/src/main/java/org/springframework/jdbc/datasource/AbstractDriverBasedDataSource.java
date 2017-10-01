@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.springframework.lang.UsesJava7;
 import org.springframework.util.Assert;
 
 /**
@@ -178,6 +179,7 @@ public abstract class AbstractDriverBasedDataSource extends AbstractDataSource {
 	 * @throws SQLException in case of failure
 	 * @see java.sql.Driver#connect(String, java.util.Properties)
 	 */
+	@UsesJava7
 	protected Connection getConnectionFromDriver(String username, String password) throws SQLException {
 		Properties mergedProps = new Properties();
 		Properties connProps = getConnectionProperties();

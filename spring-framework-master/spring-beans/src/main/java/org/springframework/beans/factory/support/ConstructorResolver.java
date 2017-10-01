@@ -18,7 +18,7 @@ package org.springframework.beans.factory.support;
 
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
@@ -71,7 +71,7 @@ import org.springframework.util.StringUtils;
 class ConstructorResolver {
 
 	private static final NamedThreadLocal<InjectionPoint> currentInjectionPoint =
-			new NamedThreadLocal<>("Current injection point");
+			new NamedThreadLocal<InjectionPoint>("Current injection point");
 
 	private final AbstractAutowireCapableBeanFactory beanFactory;
 
@@ -196,7 +196,7 @@ class ConstructorResolver {
 						}
 						// Swallow and try next constructor.
 						if (causes == null) {
-							causes = new LinkedList<>();
+							causes = new LinkedList<UnsatisfiedDependencyException>();
 						}
 						causes.add(ex);
 						continue;
@@ -222,7 +222,7 @@ class ConstructorResolver {
 				}
 				else if (constructorToUse != null && typeDiffWeight == minTypeDiffWeight) {
 					if (ambiguousConstructors == null) {
-						ambiguousConstructors = new LinkedHashSet<>();
+						ambiguousConstructors = new LinkedHashSet<Constructor<?>>();
 						ambiguousConstructors.add(constructorToUse);
 					}
 					ambiguousConstructors.add(candidate);
@@ -375,7 +375,8 @@ class ConstructorResolver {
 						"factory-bean '" + factoryBeanName + "' (or a BeanPostProcessor involved) returned null");
 			}
 			if (mbd.isSingleton() && this.beanFactory.containsSingleton(beanName)) {
-				throw new ImplicitlyAppearedSingletonException();
+				throw new IllegalStateException("About-to-be-created singleton instance implicitly appeared " +
+						"through the creation of the factory bean that its bean definition points to");
 			}
 			factoryClass = factoryBean.getClass();
 			isStatic = false;
@@ -421,7 +422,7 @@ class ConstructorResolver {
 			factoryClass = ClassUtils.getUserClass(factoryClass);
 
 			Method[] rawCandidates = getCandidateMethods(factoryClass, mbd);
-			List<Method> candidateSet = new ArrayList<>();
+			List<Method> candidateSet = new ArrayList<Method>();
 			for (Method candidate : rawCandidates) {
 				if (Modifier.isStatic(candidate.getModifiers()) == isStatic && mbd.isFactoryMethod(candidate)) {
 					candidateSet.add(candidate);
@@ -473,7 +474,7 @@ class ConstructorResolver {
 							}
 							// Swallow and try next overloaded factory method.
 							if (causes == null) {
-								causes = new LinkedList<>();
+								causes = new LinkedList<UnsatisfiedDependencyException>();
 							}
 							causes.add(ex);
 							continue;
@@ -505,10 +506,10 @@ class ConstructorResolver {
 					// and explicitly ignore overridden methods (with the same parameter signature).
 					else if (factoryMethodToUse != null && typeDiffWeight == minTypeDiffWeight &&
 							!mbd.isLenientConstructorResolution() &&
-							paramTypes.length == factoryMethodToUse.getParameterCount() &&
+							paramTypes.length == factoryMethodToUse.getParameterTypes().length &&
 							!Arrays.equals(paramTypes, factoryMethodToUse.getParameterTypes())) {
 						if (ambiguousFactoryMethods == null) {
-							ambiguousFactoryMethods = new LinkedHashSet<>();
+							ambiguousFactoryMethods = new LinkedHashSet<Method>();
 							ambiguousFactoryMethods.add(factoryMethodToUse);
 						}
 						ambiguousFactoryMethods.add(candidate);
@@ -524,14 +525,14 @@ class ConstructorResolver {
 					}
 					throw ex;
 				}
-				List<String> argTypes = new ArrayList<>(minNrOfArgs);
+				List<String> argTypes = new ArrayList<String>(minNrOfArgs);
 				if (explicitArgs != null) {
 					for (Object arg : explicitArgs) {
 						argTypes.add(arg != null ? arg.getClass().getSimpleName() : "null");
 					}
 				}
 				else {
-					Set<ValueHolder> valueHolders = new LinkedHashSet<>(resolvedValues.getArgumentCount());
+					Set<ValueHolder> valueHolders = new LinkedHashSet<ValueHolder>(resolvedValues.getArgumentCount());
 					valueHolders.addAll(resolvedValues.getIndexedArgumentValues().values());
 					valueHolders.addAll(resolvedValues.getGenericArgumentValues());
 					for (ValueHolder value : valueHolders) {
@@ -661,7 +662,7 @@ class ConstructorResolver {
 	 */
 	private ArgumentsHolder createArgumentArray(
 			String beanName, RootBeanDefinition mbd, ConstructorArgumentValues resolvedValues,
-			BeanWrapper bw, Class<?>[] paramTypes, String[] paramNames, Executable executable,
+			BeanWrapper bw, Class<?>[] paramTypes, String[] paramNames, Object methodOrCtor,
 			boolean autowiring) throws UnsatisfiedDependencyException {
 
 		TypeConverter customConverter = this.beanFactory.getCustomTypeConverter();
@@ -669,8 +670,8 @@ class ConstructorResolver {
 
 		ArgumentsHolder args = new ArgumentsHolder(paramTypes.length);
 		Set<ConstructorArgumentValues.ValueHolder> usedValueHolders =
-				new HashSet<>(paramTypes.length);
-		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
+				new HashSet<ConstructorArgumentValues.ValueHolder>(paramTypes.length);
+		Set<String> autowiredBeanNames = new LinkedHashSet<String>(4);
 
 		for (int paramIndex = 0; paramIndex < paramTypes.length; paramIndex++) {
 			Class<?> paramType = paramTypes[paramIndex];
@@ -698,7 +699,7 @@ class ConstructorResolver {
 					ConstructorArgumentValues.ValueHolder sourceHolder =
 							(ConstructorArgumentValues.ValueHolder) valueHolder.getSource();
 					Object sourceValue = sourceHolder.getValue();
-					MethodParameter methodParam = MethodParameter.forExecutable(executable, paramIndex);
+					MethodParameter methodParam = MethodParameter.forMethodOrConstructor(methodOrCtor, paramIndex);
 					try {
 						convertedValue = converter.convertIfNecessary(originalValue, paramType, methodParam);
 						// TODO re-enable once race condition has been found (SPR-7423)
@@ -726,7 +727,7 @@ class ConstructorResolver {
 				args.rawArguments[paramIndex] = originalValue;
 			}
 			else {
-				MethodParameter methodParam = MethodParameter.forExecutable(executable, paramIndex);
+				MethodParameter methodParam = MethodParameter.forMethodOrConstructor(methodOrCtor, paramIndex);
 				// No explicit match found: we're either supposed to autowire or
 				// have to fail creating an argument array for the given constructor.
 				if (!autowiring) {
@@ -754,7 +755,7 @@ class ConstructorResolver {
 			this.beanFactory.registerDependentBean(autowiredBeanName, beanName);
 			if (this.beanFactory.logger.isDebugEnabled()) {
 				this.beanFactory.logger.debug("Autowiring by type from bean name '" + beanName +
-						"' via " + (executable instanceof Constructor ? "constructor" : "factory method") +
+						"' via " + (methodOrCtor instanceof Constructor ? "constructor" : "factory method") +
 						" to bean named '" + autowiredBeanName + "'");
 			}
 		}
@@ -766,19 +767,20 @@ class ConstructorResolver {
 	 * Resolve the prepared arguments stored in the given bean definition.
 	 */
 	private Object[] resolvePreparedArguments(
-			String beanName, RootBeanDefinition mbd, BeanWrapper bw, Executable executable, Object[] argsToResolve) {
+			String beanName, RootBeanDefinition mbd, BeanWrapper bw, Member methodOrCtor, Object[] argsToResolve) {
 
 		TypeConverter customConverter = this.beanFactory.getCustomTypeConverter();
 		TypeConverter converter = (customConverter != null ? customConverter : bw);
 		BeanDefinitionValueResolver valueResolver =
 				new BeanDefinitionValueResolver(this.beanFactory, beanName, mbd, converter);
-		Class<?>[] paramTypes = executable.getParameterTypes();
+		Class<?>[] paramTypes = (methodOrCtor instanceof Method ?
+				((Method) methodOrCtor).getParameterTypes() : ((Constructor<?>) methodOrCtor).getParameterTypes());
 
 		Object[] resolvedArgs = new Object[argsToResolve.length];
 		for (int argIndex = 0; argIndex < argsToResolve.length; argIndex++) {
 			Object argValue = argsToResolve[argIndex];
-			MethodParameter methodParam = MethodParameter.forExecutable(executable, argIndex);
-			GenericTypeResolver.resolveParameterType(methodParam, executable.getDeclaringClass());
+			MethodParameter methodParam = MethodParameter.forMethodOrConstructor(methodOrCtor, argIndex);
+			GenericTypeResolver.resolveParameterType(methodParam, methodOrCtor.getDeclaringClass());
 			if (argValue instanceof AutowiredArgumentMarker) {
 				argValue = resolveAutowiredArgument(methodParam, beanName, null, converter);
 			}
@@ -897,7 +899,7 @@ class ConstructorResolver {
 			return Integer.MAX_VALUE - 1024;
 		}
 
-		public void storeCache(RootBeanDefinition mbd, Executable constructorOrFactoryMethod) {
+		public void storeCache(RootBeanDefinition mbd, Object constructorOrFactoryMethod) {
 			synchronized (mbd.constructorArgumentLock) {
 				mbd.resolvedConstructorOrFactoryMethod = constructorOrFactoryMethod;
 				mbd.constructorArgumentsResolved = true;

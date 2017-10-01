@@ -107,9 +107,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 
 	private boolean setMetadataReaderFactoryCalled = false;
 
-	private final Set<Integer> registriesPostProcessed = new HashSet<>();
+	private final Set<Integer> registriesPostProcessed = new HashSet<Integer>();
 
-	private final Set<Integer> factoriesPostProcessed = new HashSet<>();
+	private final Set<Integer> factoriesPostProcessed = new HashSet<Integer>();
 
 	private ConfigurationClassBeanDefinitionReader reader;
 
@@ -255,7 +255,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * {@link Configuration} classes.
 	 */
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
-		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
+		List<BeanDefinitionHolder> configCandidates = new ArrayList<BeanDefinitionHolder>();
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
@@ -302,13 +302,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
-		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
-		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
+		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<BeanDefinitionHolder>(configCandidates);
+		Set<ConfigurationClass> alreadyParsed = new HashSet<ConfigurationClass>(configCandidates.size());
 		do {
 			parser.parse(candidates);
 			parser.validate();
 
-			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
+			Set<ConfigurationClass> configClasses = new LinkedHashSet<ConfigurationClass>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
 			// Read the model and create bean definitions based on its content
@@ -323,8 +323,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			candidates.clear();
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
-				Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
-				Set<String> alreadyParsedClasses = new HashSet<>();
+				Set<String> oldCandidateNames = new HashSet<String>(Arrays.asList(candidateNames));
+				Set<String> alreadyParsedClasses = new HashSet<String>();
 				for (ConfigurationClass configurationClass : alreadyParsed) {
 					alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
 				}
@@ -350,8 +350,6 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		if (this.metadataReaderFactory instanceof CachingMetadataReaderFactory) {
-			// Clear cache in externally provided MetadataReaderFactory; this is a no-op
-			// for a shared cache since it'll be cleared by the ApplicationContext.
 			((CachingMetadataReaderFactory) this.metadataReaderFactory).clearCache();
 		}
 	}
@@ -363,7 +361,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * @see ConfigurationClassEnhancer
 	 */
 	public void enhanceConfigurationClasses(ConfigurableListableBeanFactory beanFactory) {
-		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
+		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<String, AbstractBeanDefinition>();
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {

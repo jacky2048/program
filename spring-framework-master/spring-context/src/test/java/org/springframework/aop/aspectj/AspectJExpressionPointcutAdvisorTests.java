@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
  * @author Juergen Hoeller
  * @author Chris Beams
  */
-public class AspectJExpressionPointcutAdvisorTests {
+public final class AspectJExpressionPointcutAdvisorTests {
 
 	private ITestBean testBean;
 

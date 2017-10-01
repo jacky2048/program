@@ -185,7 +185,7 @@ class ConfigurationClassBeanDefinitionReader {
 
 		// Consider name and any aliases
 		AnnotationAttributes bean = AnnotationConfigUtils.attributesFor(metadata, Bean.class);
-		List<String> names = new ArrayList<>(Arrays.asList(bean.getStringArray("name")));
+		List<String> names = new ArrayList<String>(Arrays.asList(bean.getStringArray("name")));
 		String beanName = (!names.isEmpty() ? names.remove(0) : methodName);
 
 		// Register aliases even when overridden
@@ -195,6 +195,11 @@ class ConfigurationClassBeanDefinitionReader {
 
 		// Has this effectively been overridden before (e.g. via XML)?
 		if (isOverriddenByExistingDefinition(beanMethod, beanName)) {
+			if (beanName.equals(beanMethod.getConfigurationClass().getBeanName())) {
+				throw new BeanDefinitionStoreException(beanMethod.getConfigurationClass().getResource().getDescription(),
+						beanName, "Bean name derived from @Bean method '" + beanMethod.getMetadata().getMethodName() +
+						"' clashes with bean name for containing configuration class; please make those names unique!");
+			}
 			return;
 		}
 
@@ -307,7 +312,7 @@ class ConfigurationClassBeanDefinitionReader {
 	private void loadBeanDefinitionsFromImportedResources(
 			Map<String, Class<? extends BeanDefinitionReader>> importedResources) {
 
-		Map<Class<?>, BeanDefinitionReader> readerInstanceCache = new HashMap<>();
+		Map<Class<?>, BeanDefinitionReader> readerInstanceCache = new HashMap<Class<?>, BeanDefinitionReader>();
 
 		for (Map.Entry<String, Class<? extends BeanDefinitionReader>> entry : importedResources.entrySet()) {
 			String resource = entry.getKey();
@@ -416,7 +421,7 @@ class ConfigurationClassBeanDefinitionReader {
 	 */
 	private class TrackedConditionEvaluator {
 
-		private final Map<ConfigurationClass, Boolean> skipped = new HashMap<>();
+		private final Map<ConfigurationClass, Boolean> skipped = new HashMap<ConfigurationClass, Boolean>();
 
 		public boolean shouldSkip(ConfigurationClass configClass) {
 			Boolean skip = this.skipped.get(configClass);

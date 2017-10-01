@@ -16,11 +16,9 @@
 
 package org.springframework.http;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -34,13 +32,8 @@ import java.util.TimeZone;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link org.springframework.http.HttpHeaders}.
@@ -65,7 +58,7 @@ public class HttpHeadersTests {
 	public void accept() {
 		MediaType mediaType1 = new MediaType("text", "html");
 		MediaType mediaType2 = new MediaType("text", "plain");
-		List<MediaType> mediaTypes = new ArrayList<>(2);
+		List<MediaType> mediaTypes = new ArrayList<MediaType>(2);
 		mediaTypes.add(mediaType1);
 		mediaTypes.add(mediaType2);
 		headers.setAccept(mediaTypes);
@@ -92,9 +85,9 @@ public class HttpHeadersTests {
 
 	@Test
 	public void acceptCharsets() {
-		Charset charset1 = StandardCharsets.UTF_8;
-		Charset charset2 = StandardCharsets.ISO_8859_1;
-		List<Charset> charsets = new ArrayList<>(2);
+		Charset charset1 = Charset.forName("UTF-8");
+		Charset charset2 = Charset.forName("ISO-8859-1");
+		List<Charset> charsets = new ArrayList<Charset>(2);
 		charsets.add(charset1);
 		charsets.add(charset2);
 		headers.setAcceptCharset(charsets);
@@ -105,7 +98,7 @@ public class HttpHeadersTests {
 	@Test
 	public void acceptCharsetWildcard() {
 		headers.set("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-		assertEquals("Invalid Accept header", Arrays.asList(StandardCharsets.ISO_8859_1, StandardCharsets.UTF_8),
+		assertEquals("Invalid Accept header", Arrays.asList(Charset.forName("ISO-8859-1"), Charset.forName("UTF-8")),
 				headers.getAcceptCharset());
 	}
 
@@ -127,7 +120,7 @@ public class HttpHeadersTests {
 
 	@Test
 	public void contentType() {
-		MediaType contentType = new MediaType("text", "html", StandardCharsets.UTF_8);
+		MediaType contentType = new MediaType("text", "html", Charset.forName("UTF-8"));
 		headers.setContentType(contentType);
 		assertEquals("Invalid Content-Type header", contentType, headers.getContentType());
 		assertEquals("Invalid Content-Type header", "text/html;charset=UTF-8", headers.getFirst("Content-Type"));
@@ -147,22 +140,6 @@ public class HttpHeadersTests {
 		headers.setETag(eTag);
 		assertEquals("Invalid ETag header", eTag, headers.getETag());
 		assertEquals("Invalid ETag header", "\"v2.6\"", headers.getFirst("ETag"));
-	}
-
-	@Test
-	public void host() {
-		InetSocketAddress host = InetSocketAddress.createUnresolved("localhost", 8080);
-		headers.setHost(host);
-		assertEquals("Invalid Host header", host, headers.getHost());
-		assertEquals("Invalid Host header", "localhost:8080", headers.getFirst("Host"));
-	}
-
-	@Test
-	public void hostNoPort() {
-		InetSocketAddress host = InetSocketAddress.createUnresolved("localhost", 0);
-		headers.setHost(host);
-		assertEquals("Invalid Host header", host, headers.getHost());
-		assertEquals("Invalid Host header", "localhost", headers.getFirst("Host"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -216,7 +193,7 @@ public class HttpHeadersTests {
 	public void ifNoneMatchList() {
 		String ifNoneMatch1 = "\"v2.6\"";
 		String ifNoneMatch2 = "\"v2.7\", \"v2.8\"";
-		List<String> ifNoneMatchList = new ArrayList<>(2);
+		List<String> ifNoneMatchList = new ArrayList<String>(2);
 		ifNoneMatchList.add(ifNoneMatch1);
 		ifNoneMatchList.add(ifNoneMatch2);
 		headers.setIfNoneMatch(ifNoneMatchList);
@@ -336,13 +313,18 @@ public class HttpHeadersTests {
 
 	@Test
 	public void contentDisposition() {
-		ContentDisposition disposition = headers.getContentDisposition();
-		assertNotNull(disposition);
-		assertEquals("Invalid Content-Disposition header", ContentDisposition.empty(), headers.getContentDisposition());
+		headers.setContentDispositionFormData("name", null);
+		assertEquals("Invalid Content-Disposition header", "form-data; name=\"name\"",
+				headers.getFirst("Content-Disposition"));
 
-		disposition = ContentDisposition.builder("attachment").name("foo").filename("foo.txt").size(123L).build();
-		headers.setContentDisposition(disposition);
-		assertEquals("Invalid Content-Disposition header", disposition, headers.getContentDisposition());
+		headers.setContentDispositionFormData("name", "filename");
+		assertEquals("Invalid Content-Disposition header", "form-data; name=\"name\"; filename=\"filename\"",
+				headers.getFirst("Content-Disposition"));
+
+		headers.setContentDispositionFormData("name", "中文.txt", Charset.forName("UTF-8"));
+		assertEquals("Invalid Content-Disposition header",
+				"form-data; name=\"name\"; filename*=UTF-8''%E4%B8%AD%E6%96%87.txt",
+				headers.getFirst("Content-Disposition"));
 	}
 
 	@Test  // SPR-11917
@@ -427,37 +409,18 @@ public class HttpHeadersTests {
 		assertEquals(HttpMethod.POST, headers.getAccessControlRequestMethod());
 	}
 
-	@Test
-	public void acceptLanguage() {
-		String headerValue = "fr-ch, fr;q=0.9, en-*;q=0.8, de;q=0.7, *;q=0.5";
-		headers.setAcceptLanguage(Locale.LanguageRange.parse(headerValue));
-		assertEquals(headerValue, headers.getFirst(HttpHeaders.ACCEPT_LANGUAGE));
+	@Test  // SPR-14547
+	public void encodeHeaderFieldParam() {
+		String result = HttpHeaders.encodeHeaderFieldParam("test.txt", Charset.forName("US-ASCII"));
+		assertEquals("test.txt", result);
 
-		List<Locale.LanguageRange> expectedRanges = Arrays.asList(
-				new Locale.LanguageRange("fr-ch"),
-				new Locale.LanguageRange("fr", 0.9),
-				new Locale.LanguageRange("en-*", 0.8),
-				new Locale.LanguageRange("de", 0.7),
-				new Locale.LanguageRange("*", 0.5)
-		);
-		assertEquals(expectedRanges, headers.getAcceptLanguage());
-		assertEquals(Locale.forLanguageTag("fr-ch"), headers.getAcceptLanguageAsLocales().get(0));
-
-		headers.setAcceptLanguageAsLocales(Collections.singletonList(Locale.FRANCE));
-		assertEquals(Locale.FRANCE, headers.getAcceptLanguageAsLocales().get(0));
+		result = HttpHeaders.encodeHeaderFieldParam("中文.txt", Charset.forName("UTF-8"));
+		assertEquals("UTF-8''%E4%B8%AD%E6%96%87.txt", result);
 	}
 
-	@Test
-	public void contentLanguage() {
-		headers.setContentLanguage(Locale.FRANCE);
-		assertEquals(Locale.FRANCE, headers.getContentLanguage());
-		assertEquals("fr-FR", headers.getFirst(HttpHeaders.CONTENT_LANGUAGE));
-	}
-
-	@Test
-	public void contentLanguageSerialized() {
-		headers.set(HttpHeaders.CONTENT_LANGUAGE,  "de, en_CA");
-		assertEquals("Expected one (first) locale", Locale.GERMAN, headers.getContentLanguage());
+	@Test(expected = IllegalArgumentException.class)
+	public void encodeHeaderFieldParamInvalidCharset() {
+		HttpHeaders.encodeHeaderFieldParam("test", Charset.forName("UTF-16"));
 	}
 
 }

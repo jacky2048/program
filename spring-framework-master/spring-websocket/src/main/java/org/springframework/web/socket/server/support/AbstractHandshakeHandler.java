@@ -17,7 +17,7 @@
 package org.springframework.web.socket.server.support;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +35,6 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.SubProtocolCapable;
 import org.springframework.web.socket.WebSocketExtension;
@@ -70,6 +69,9 @@ import org.springframework.web.socket.server.RequestUpgradeStrategy;
  */
 public abstract class AbstractHandshakeHandler implements HandshakeHandler, Lifecycle {
 
+	private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
+
 	private static final boolean jettyWsPresent = ClassUtils.isPresent(
 			"org.eclipse.jetty.websocket.server.WebSocketServerFactory", AbstractHandshakeHandler.class.getClassLoader());
 
@@ -93,7 +95,7 @@ public abstract class AbstractHandshakeHandler implements HandshakeHandler, Life
 
 	private final RequestUpgradeStrategy requestUpgradeStrategy;
 
-	private final List<String> supportedProtocols = new ArrayList<>();
+	private final List<String> supportedProtocols = new ArrayList<String>();
 
 	private volatile boolean running = false;
 
@@ -143,7 +145,7 @@ public abstract class AbstractHandshakeHandler implements HandshakeHandler, Life
 
 		try {
 			Class<?> clazz = ClassUtils.forName(className, AbstractHandshakeHandler.class.getClassLoader());
-			return (RequestUpgradeStrategy) ReflectionUtils.accessibleConstructor(clazz).newInstance();
+			return (RequestUpgradeStrategy) clazz.newInstance();
 		}
 		catch (Throwable ex) {
 			throw new IllegalStateException(
@@ -283,7 +285,7 @@ public abstract class AbstractHandshakeHandler implements HandshakeHandler, Life
 			logger.error("Handshake failed due to invalid Upgrade header: " + request.getHeaders().getUpgrade());
 		}
 		response.setStatusCode(HttpStatus.BAD_REQUEST);
-		response.getBody().write("Can \"Upgrade\" only to \"WebSocket\".".getBytes(StandardCharsets.UTF_8));
+		response.getBody().write("Can \"Upgrade\" only to \"WebSocket\".".getBytes(UTF8_CHARSET));
 	}
 
 	protected void handleInvalidConnectHeader(ServerHttpRequest request, ServerHttpResponse response) throws IOException {
@@ -291,7 +293,7 @@ public abstract class AbstractHandshakeHandler implements HandshakeHandler, Life
 			logger.error("Handshake failed due to invalid Connection header " + request.getHeaders().getConnection());
 		}
 		response.setStatusCode(HttpStatus.BAD_REQUEST);
-		response.getBody().write("\"Connection\" must be \"upgrade\".".getBytes(StandardCharsets.UTF_8));
+		response.getBody().write("\"Connection\" must be \"upgrade\".".getBytes(UTF8_CHARSET));
 	}
 
 	protected boolean isWebSocketVersionSupported(WebSocketHttpHeaders httpHeaders) {
@@ -367,7 +369,7 @@ public abstract class AbstractHandshakeHandler implements HandshakeHandler, Life
 		if (handlerToCheck instanceof SubProtocolCapable) {
 			subProtocols = ((SubProtocolCapable) handlerToCheck).getSubProtocols();
 		}
-		return (subProtocols != null ? subProtocols : Collections.emptyList());
+		return (subProtocols != null ? subProtocols : Collections.<String>emptyList());
 	}
 
 	/**
@@ -382,7 +384,7 @@ public abstract class AbstractHandshakeHandler implements HandshakeHandler, Life
 	protected List<WebSocketExtension> filterRequestedExtensions(ServerHttpRequest request,
 			List<WebSocketExtension> requestedExtensions, List<WebSocketExtension> supportedExtensions) {
 
-		List<WebSocketExtension> result = new ArrayList<>(requestedExtensions.size());
+		List<WebSocketExtension> result = new ArrayList<WebSocketExtension>(requestedExtensions.size());
 		for (WebSocketExtension extension : requestedExtensions) {
 			if (supportedExtensions.contains(extension)) {
 				result.add(extension);

@@ -21,8 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,11 +45,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link RequestMappingHandlerMapping}.
@@ -91,7 +87,7 @@ public class RequestMappingHandlerMappingTests {
 		PathExtensionContentNegotiationStrategy strategy = new PathExtensionContentNegotiationStrategy(fileExtensions);
 		ContentNegotiationManager manager = new ContentNegotiationManager(strategy);
 
-		final Set<String> extensions = new HashSet<>();
+		final Set<String> extensions = new HashSet<String>();
 
 		RequestMappingHandlerMapping hm = new RequestMappingHandlerMapping() {
 			@Override

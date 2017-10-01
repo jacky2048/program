@@ -52,9 +52,11 @@ public class FormattingConversionService extends GenericConversionService
 
 	private StringValueResolver embeddedValueResolver;
 
-	private final Map<AnnotationConverterKey, GenericConverter> cachedPrinters = new ConcurrentHashMap<>(64);
+	private final Map<AnnotationConverterKey, GenericConverter> cachedPrinters =
+			new ConcurrentHashMap<AnnotationConverterKey, GenericConverter>(64);
 
-	private final Map<AnnotationConverterKey, GenericConverter> cachedParsers = new ConcurrentHashMap<>(64);
+	private final Map<AnnotationConverterKey, GenericConverter> cachedParsers =
+			new ConcurrentHashMap<AnnotationConverterKey, GenericConverter>(64);
 
 
 	@Override

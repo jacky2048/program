@@ -33,7 +33,7 @@ import org.springframework.tests.sample.beans.TestBean;
  * @author Juergen Hoeller
  */
 @Component
-public class FactoryMethodComponent {
+public final class FactoryMethodComponent {
 
 	private int i;
 

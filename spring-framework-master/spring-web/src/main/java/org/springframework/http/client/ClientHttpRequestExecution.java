@@ -30,7 +30,6 @@ import org.springframework.http.HttpRequest;
  * @since 3.1
  * @see ClientHttpRequestInterceptor
  */
-@FunctionalInterface
 public interface ClientHttpRequestExecution {
 
 	/**

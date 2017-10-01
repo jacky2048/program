@@ -19,7 +19,7 @@ package org.springframework.web.client;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -52,6 +52,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
+import org.springframework.http.client.OkHttpClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.util.LinkedMultiValueMap;
@@ -71,14 +72,14 @@ public class RestTemplateIntegrationTests extends AbstractMockWebServerTestCase 
 	@Parameter
 	public ClientHttpRequestFactory clientHttpRequestFactory;
 
-	@SuppressWarnings("deprecation")
 	@Parameters
 	public static Iterable<? extends ClientHttpRequestFactory> data() {
 		return Arrays.asList(
 				new SimpleClientHttpRequestFactory(),
 				new HttpComponentsClientHttpRequestFactory(),
 				new Netty4ClientHttpRequestFactory(),
-				new OkHttp3ClientHttpRequestFactory()
+				new OkHttp3ClientHttpRequestFactory(),
+				new OkHttpClientHttpRequestFactory()
 		);
 	}
 
@@ -145,7 +146,7 @@ public class RestTemplateIntegrationTests extends AbstractMockWebServerTestCase 
 	@Test
 	public void postForLocationEntity() throws URISyntaxException {
 		HttpHeaders entityHeaders = new HttpHeaders();
-		entityHeaders.setContentType(new MediaType("text", "plain", StandardCharsets.ISO_8859_1));
+		entityHeaders.setContentType(new MediaType("text", "plain", Charset.forName("ISO-8859-15")));
 		HttpEntity<String> entity = new HttpEntity<>(helloWorld, entityHeaders);
 		URI location = template.postForLocation(baseUrl + "/{method}", entity, "post");
 		assertEquals("Invalid location", new URI(baseUrl + "/post/1"), location);
@@ -257,7 +258,7 @@ public class RestTemplateIntegrationTests extends AbstractMockWebServerTestCase 
 	@Test
 	public void jsonPostForObject() throws URISyntaxException {
 		HttpHeaders entityHeaders = new HttpHeaders();
-		entityHeaders.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+		entityHeaders.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
 		MySampleBean bean = new MySampleBean();
 		bean.setWith1("with");
 		bean.setWith2("with");
@@ -272,7 +273,7 @@ public class RestTemplateIntegrationTests extends AbstractMockWebServerTestCase 
 	@Test
 	public void jsonPostForObjectWithJacksonView() throws URISyntaxException {
 		HttpHeaders entityHeaders = new HttpHeaders();
-		entityHeaders.setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+		entityHeaders.setContentType(new MediaType("application", "json", Charset.forName("UTF-8")));
 		MySampleBean bean = new MySampleBean("with", "with", "without");
 		MappingJacksonValue jacksonValue = new MappingJacksonValue(bean);
 		jacksonValue.setSerializationView(MyJacksonView1.class);
@@ -297,7 +298,7 @@ public class RestTemplateIntegrationTests extends AbstractMockWebServerTestCase 
 		ParameterizedTypeReference<?> typeReference = new ParameterizedTypeReference<List<ParentClass>>() {};
 		RequestEntity<List<ParentClass>> entity = RequestEntity
 				.post(new URI(baseUrl + "/jsonpost"))
-				.contentType(new MediaType("application", "json", StandardCharsets.UTF_8))
+				.contentType(new MediaType("application", "json", Charset.forName("UTF-8")))
 				.body(list, typeReference.getType());
 		String content = template.exchange(entity, String.class).getBody();
 		assertTrue(content.contains("\"type\":\"foo\""));

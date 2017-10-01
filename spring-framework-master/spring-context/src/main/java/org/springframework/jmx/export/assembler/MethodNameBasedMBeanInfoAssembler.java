@@ -73,7 +73,7 @@ public class MethodNameBasedMBeanInfoAssembler extends AbstractConfigurableMBean
 	 * @see #setMethodMappings
 	 */
 	public void setManagedMethods(String... methodNames) {
-		this.managedMethods = new HashSet<>(Arrays.asList(methodNames));
+		this.managedMethods = new HashSet<String>(Arrays.asList(methodNames));
 	}
 
 	/**
@@ -84,11 +84,11 @@ public class MethodNameBasedMBeanInfoAssembler extends AbstractConfigurableMBean
 	 * @param mappings the mappins of bean keys to method names
 	 */
 	public void setMethodMappings(Properties mappings) {
-		this.methodMappings = new HashMap<>();
+		this.methodMappings = new HashMap<String, Set<String>>();
 		for (Enumeration<?> en = mappings.keys(); en.hasMoreElements();) {
 			String beanKey = (String) en.nextElement();
 			String[] methodNames = StringUtils.commaDelimitedListToStringArray(mappings.getProperty(beanKey));
-			this.methodMappings.put(beanKey, new HashSet<>(Arrays.asList(methodNames)));
+			this.methodMappings.put(beanKey, new HashSet<String>(Arrays.asList(methodNames)));
 		}
 	}
 

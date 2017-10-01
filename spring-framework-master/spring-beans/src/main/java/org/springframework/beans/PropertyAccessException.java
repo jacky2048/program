@@ -25,8 +25,8 @@ import java.beans.PropertyChangeEvent;
  * @author Rod Johnson
  * @author Juergen Hoeller
  */
-@SuppressWarnings("serial")
-public abstract class PropertyAccessException extends BeansException {
+@SuppressWarnings({"serial", "deprecation"})
+public abstract class PropertyAccessException extends BeansException implements org.springframework.core.ErrorCoded {
 
 	private transient PropertyChangeEvent propertyChangeEvent;
 
@@ -78,6 +78,7 @@ public abstract class PropertyAccessException extends BeansException {
 	/**
 	 * Return a corresponding error code for this type of exception.
 	 */
+	@Override
 	public abstract String getErrorCode();
 
 }

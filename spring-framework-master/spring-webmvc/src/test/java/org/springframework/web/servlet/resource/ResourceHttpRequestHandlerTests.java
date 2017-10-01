@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,7 @@ import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.ContentNegotiationManagerFactoryBean;
 import org.springframework.web.servlet.HandlerMapping;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for ResourceHttpRequestHandler.
@@ -247,7 +243,7 @@ public class ResourceHttpRequestHandlerTests {
 	@Test // SPR-13658
 	public void getResourceWithRegisteredMediaType() throws Exception {
 		ContentNegotiationManagerFactoryBean factory = new ContentNegotiationManagerFactoryBean();
-		factory.addMediaType("bar", new MediaType("foo", "bar"));
+		factory.addMediaType("css", new MediaType("foo", "bar"));
 		factory.afterPropertiesSet();
 		ContentNegotiationManager manager = factory.getObject();
 
@@ -258,7 +254,7 @@ public class ResourceHttpRequestHandlerTests {
 		handler.setContentNegotiationManager(manager);
 		handler.afterPropertiesSet();
 
-		this.request.setAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "foo.bar");
+		this.request.setAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "foo.css");
 		handler.handleRequest(this.request, this.response);
 
 		assertEquals("foo/bar", this.response.getContentType());

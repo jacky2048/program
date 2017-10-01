@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.client.MockClientHttpRequest;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Unit tests for {@link MockRestRequestMatchers}.

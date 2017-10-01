@@ -67,7 +67,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 	 */
 	public AnnotationCacheOperationSource(boolean publicMethodsOnly) {
 		this.publicMethodsOnly = publicMethodsOnly;
-		this.annotationParsers = new LinkedHashSet<>(1);
+		this.annotationParsers = new LinkedHashSet<CacheAnnotationParser>(1);
 		this.annotationParsers.add(new SpringCacheAnnotationParser());
 	}
 
@@ -88,7 +88,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 	public AnnotationCacheOperationSource(CacheAnnotationParser... annotationParsers) {
 		this.publicMethodsOnly = true;
 		Assert.notEmpty(annotationParsers, "At least one CacheAnnotationParser needs to be specified");
-		Set<CacheAnnotationParser> parsers = new LinkedHashSet<>(annotationParsers.length);
+		Set<CacheAnnotationParser> parsers = new LinkedHashSet<CacheAnnotationParser>(annotationParsers.length);
 		Collections.addAll(parsers, annotationParsers);
 		this.annotationParsers = parsers;
 	}
@@ -141,7 +141,7 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 			Collection<CacheOperation> annOps = provider.getCacheOperations(annotationParser);
 			if (annOps != null) {
 				if (ops == null) {
-					ops = new ArrayList<>();
+					ops = new ArrayList<CacheOperation>();
 				}
 				ops.addAll(annOps);
 			}
@@ -181,7 +181,6 @@ public class AnnotationCacheOperationSource extends AbstractFallbackCacheOperati
 	 * Callback interface providing {@link CacheOperation} instance(s) based on
 	 * a given {@link CacheAnnotationParser}.
 	 */
-	@FunctionalInterface
 	protected interface CacheOperationProvider {
 
 		/**

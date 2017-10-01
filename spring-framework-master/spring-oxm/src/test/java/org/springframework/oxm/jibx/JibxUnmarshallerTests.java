@@ -41,13 +41,6 @@ public class JibxUnmarshallerTests extends AbstractUnmarshallerTests<JibxMarshal
 					"<tns:flight><tns:airline>Air Libert\u00e9</tns:airline><tns:number>42</tns:number></tns:flight></tns:flights>";
 
 
-	@BeforeClass
-	public static void compilerAssumptions() {
-		// JiBX compiler is currently not compatible with JDK 9
-		Assume.assumeTrue(System.getProperty("java.version").startsWith("1.8."));
-	}
-
-
 	@Override
 	protected JibxMarshaller createUnmarshaller() throws Exception {
 		JibxMarshaller unmarshaller = new JibxMarshaller();

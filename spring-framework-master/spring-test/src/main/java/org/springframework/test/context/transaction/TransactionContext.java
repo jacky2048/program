@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.util.Assert;
 
 /**
  * Transaction context for a specific {@link TestContext}.
@@ -77,8 +76,10 @@ class TransactionContext {
 	}
 
 	void setFlaggedForRollback(boolean flaggedForRollback) {
-		Assert.state(this.transactionStatus != null, () -> String.format(
+		if (this.transactionStatus == null) {
+			throw new IllegalStateException(String.format(
 				"Failed to set rollback flag for test context %s: transaction does not exist.", this.testContext));
+		}
 		this.flaggedForRollback = flaggedForRollback;
 	}
 
@@ -89,8 +90,10 @@ class TransactionContext {
 	 * @throws TransactionException if starting the transaction fails
 	 */
 	void startTransaction() {
-		Assert.state(this.transactionStatus == null,
+		if (this.transactionStatus != null) {
+			throw new IllegalStateException(
 				"Cannot start a new transaction without ending the existing transaction first.");
+		}
 		this.flaggedForRollback = this.defaultRollback;
 		this.transactionStatus = this.transactionManager.getTransaction(this.transactionDefinition);
 		++this.transactionsStarted;
@@ -112,8 +115,10 @@ class TransactionContext {
 				"Ending transaction for test context %s; transaction status [%s]; rollback [%s]", this.testContext,
 				this.transactionStatus, flaggedForRollback));
 		}
-		Assert.state(this.transactionStatus != null, () -> String.format(
+		if (this.transactionStatus == null) {
+			throw new IllegalStateException(String.format(
 				"Failed to end transaction for test context %s: transaction does not exist.", this.testContext));
+		}
 
 		try {
 			if (flaggedForRollback) {

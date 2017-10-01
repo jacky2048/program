@@ -47,7 +47,8 @@ public class JmsListenerEndpointRegistrar implements BeanFactoryAware, Initializ
 
 	private BeanFactory beanFactory;
 
-	private final List<JmsListenerEndpointDescriptor> endpointDescriptors = new ArrayList<>();
+	private final List<JmsListenerEndpointDescriptor> endpointDescriptors =
+			new ArrayList<JmsListenerEndpointDescriptor>();
 
 	private boolean startImmediately;
 

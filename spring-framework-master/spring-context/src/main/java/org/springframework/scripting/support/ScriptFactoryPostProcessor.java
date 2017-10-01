@@ -176,7 +176,7 @@ public class ScriptFactoryPostProcessor extends InstantiationAwareBeanPostProces
 	final DefaultListableBeanFactory scriptBeanFactory = new DefaultListableBeanFactory();
 
 	/** Map from bean name String to ScriptSource object */
-	private final Map<String, ScriptSource> scriptSourceCache = new HashMap<>();
+	private final Map<String, ScriptSource> scriptSourceCache = new HashMap<String, ScriptSource>();
 
 	/**
 	 * Set the delay between refresh checks, in milliseconds.

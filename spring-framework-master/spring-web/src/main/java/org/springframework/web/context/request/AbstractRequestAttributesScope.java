@@ -87,6 +87,7 @@ public abstract class AbstractRequestAttributesScope implements Scope {
 	 * {@link RequestAttributes} constant
 	 * @see RequestAttributes#SCOPE_REQUEST
 	 * @see RequestAttributes#SCOPE_SESSION
+	 * @see RequestAttributes#SCOPE_GLOBAL_SESSION
 	 */
 	protected abstract int getScope();
 

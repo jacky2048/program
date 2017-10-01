@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import static org.junit.Assert.*;
  * @author Ramnivas Laddad
  * @author Chris Beams
  */
-public class AfterReturningGenericTypeMatchingTests {
+public final class AfterReturningGenericTypeMatchingTests {
 
 	private GenericReturnTypeVariationClass testBean;
 
@@ -105,19 +105,19 @@ public class AfterReturningGenericTypeMatchingTests {
 class GenericReturnTypeVariationClass {
 
 	public Collection<String> getStrings() {
-		return new ArrayList<>();
+		return new ArrayList<String>();
 	}
 
 	public Collection<Integer> getIntegers() {
-		return new ArrayList<>();
+		return new ArrayList<Integer>();
 	}
 
 	public Collection<TestBean> getTestBeans() {
-		return new ArrayList<>();
+		return new ArrayList<TestBean>();
 	}
 
 	public Collection<Employee> getEmployees() {
-		return new ArrayList<>();
+		return new ArrayList<Employee>();
 	}
 }
 

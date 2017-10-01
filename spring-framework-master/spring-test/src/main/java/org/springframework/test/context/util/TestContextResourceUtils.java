@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.springframework.test.context.util;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -100,7 +98,8 @@ public abstract class TestContextResourceUtils {
 	 * @see #convertToClasspathResourcePaths
 	 */
 	public static Resource[] convertToResources(ResourceLoader resourceLoader, String... paths) {
-		return stream(resourceLoader, paths).toArray(Resource[]::new);
+		List<Resource> list = convertToResourceList(resourceLoader, paths);
+		return list.toArray(new Resource[list.size()]);
 	}
 
 	/**
@@ -115,11 +114,11 @@ public abstract class TestContextResourceUtils {
 	 * @see #convertToClasspathResourcePaths
 	 */
 	public static List<Resource> convertToResourceList(ResourceLoader resourceLoader, String... paths) {
-		return stream(resourceLoader, paths).collect(Collectors.toList());
-	}
-
-	private static Stream<Resource> stream(ResourceLoader resourceLoader, String... paths) {
-		return Arrays.stream(paths).map(resourceLoader::getResource);
+		List<Resource> list = new ArrayList<Resource>();
+		for (String path : paths) {
+			list.add(resourceLoader.getResource(path));
+		}
+		return list;
 	}
 
 }

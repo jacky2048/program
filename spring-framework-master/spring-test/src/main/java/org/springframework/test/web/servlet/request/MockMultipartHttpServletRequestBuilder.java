@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,14 @@ package org.springframework.test.web.servlet.request;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.servlet.ServletContext;
-import javax.servlet.http.Part;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.util.Assert;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 /**
  * Default builder for {@link MockMultipartHttpServletRequest}.
@@ -42,9 +36,7 @@ import org.springframework.web.multipart.support.StandardMultipartHttpServletReq
  */
 public class MockMultipartHttpServletRequestBuilder extends MockHttpServletRequestBuilder {
 
-	private final List<MockMultipartFile> files = new ArrayList<>();
-
-	private final MultiValueMap<String, Part> parts = new LinkedMultiValueMap<>();
+	private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 
 
 	/**
@@ -95,19 +87,6 @@ public class MockMultipartHttpServletRequestBuilder extends MockHttpServletReque
 		return this;
 	}
 
-	/**
-	 * Add {@link Part} components to the request.
-	 * @param parts one or more parts to add
-	 * @since 5.0
-	 */
-	public MockMultipartHttpServletRequestBuilder part(Part... parts) {
-		Assert.notEmpty(parts, "'parts' must not be empty");
-		for (Part part : parts) {
-			this.parts.add(part.getName(), part);
-		}
-		return this;
-	}
-
 	@Override
 	public Object merge(Object parent) {
 		if (parent == null) {
@@ -118,10 +97,7 @@ public class MockMultipartHttpServletRequestBuilder extends MockHttpServletReque
 			if (parent instanceof MockMultipartHttpServletRequestBuilder) {
 				MockMultipartHttpServletRequestBuilder parentBuilder = (MockMultipartHttpServletRequestBuilder) parent;
 				this.files.addAll(parentBuilder.files);
-				parentBuilder.parts.keySet().stream().forEach(name ->
-						this.parts.putIfAbsent(name, parentBuilder.parts.get(name)));
 			}
-
 		}
 		else {
 			throw new IllegalArgumentException("Cannot merge with [" + parent.getClass().getName() + "]");
@@ -136,17 +112,10 @@ public class MockMultipartHttpServletRequestBuilder extends MockHttpServletReque
 	 */
 	@Override
 	protected final MockHttpServletRequest createServletRequest(ServletContext servletContext) {
-
 		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest(servletContext);
-		this.files.stream().forEach(request::addFile);
-		this.parts.values().stream().flatMap(Collection::stream).forEach(request::addPart);
-
-		if (!this.parts.isEmpty()) {
-			new StandardMultipartHttpServletRequest(request)
-					.getMultiFileMap().values().stream().flatMap(Collection::stream)
-					.forEach(request::addFile);
+		for (MockMultipartFile file : this.files) {
+			request.addFile(file);
 		}
-
 		return request;
 	}
 

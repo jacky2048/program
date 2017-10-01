@@ -349,18 +349,6 @@ public class ConfigurationClassPostProcessorTests {
 	}
 
 	@Test
-	public void nestedConfigurationClassesProcessedInCorrectOrder() {
-		beanFactory.registerBeanDefinition("config", new RootBeanDefinition(ConfigWithOrderedNestedClasses.class));
-		ConfigurationClassPostProcessor pp = new ConfigurationClassPostProcessor();
-		pp.postProcessBeanFactory(beanFactory);
-
-		Foo foo = beanFactory.getBean(Foo.class);
-		assertTrue(foo instanceof ExtendedFoo);
-		Bar bar = beanFactory.getBean(Bar.class);
-		assertSame(foo, bar.foo);
-	}
-
-	@Test
 	public void scopedProxyTargetMarkedAsNonAutowireCandidate() {
 		AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
 		bpp.setBeanFactory(beanFactory);
@@ -800,6 +788,12 @@ public class ConfigurationClassPostProcessorTests {
 		assertSame(ctx.getBean(TestBean.class), bean.getTestBean());
 	}
 
+	@Test(expected = BeanDefinitionStoreException.class)
+	public void testNameClashBetweenConfigurationClassAndBean() {
+		ApplicationContext ctx = new AnnotationConfigApplicationContext(MyTestBean.class);
+		ctx.getBean("myTestBean", TestBean.class);
+	}
+
 
 	// -------------------------------------------------------------------------
 
@@ -842,36 +836,6 @@ public class ConfigurationClassPostProcessorTests {
 
 		public @Bean Foo foo() {
 			return new Foo();
-		}
-	}
-
-	@Configuration
-	static class ConfigWithOrderedNestedClasses {
-
-		@Configuration
-		@Order(1)
-		static class SingletonBeanConfig {
-
-			public @Bean Foo foo() {
-				return new Foo();
-			}
-
-			public @Bean Bar bar() {
-				return new Bar(foo());
-			}
-		}
-
-		@Configuration
-		@Order(2)
-		static class OverridingSingletonBeanConfig {
-
-			public @Bean ExtendedFoo foo() {
-				return new ExtendedFoo();
-			}
-
-			public @Bean Bar bar() {
-				return new Bar(foo());
-			}
 		}
 	}
 

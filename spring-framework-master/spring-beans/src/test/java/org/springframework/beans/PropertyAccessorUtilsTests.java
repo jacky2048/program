@@ -26,7 +26,7 @@ import static org.junit.Assert.*;
  * @author Juergen Hoeller
  * @author Chris Beams
  */
-public class PropertyAccessorUtilsTests {
+public final class PropertyAccessorUtilsTests {
 
 	@Test
 	public void testCanonicalPropertyName() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,9 +90,9 @@ public class AntPathMatcher implements PathMatcher {
 
 	private volatile Boolean cachePatterns;
 
-	private final Map<String, String[]> tokenizedPatternCache = new ConcurrentHashMap<>(256);
+	private final Map<String, String[]> tokenizedPatternCache = new ConcurrentHashMap<String, String[]>(256);
 
-	final Map<String, AntPathStringMatcher> stringMatcherCache = new ConcurrentHashMap<>(256);
+	final Map<String, AntPathStringMatcher> stringMatcherCache = new ConcurrentHashMap<String, AntPathStringMatcher>(256);
 
 
 	/**
@@ -220,8 +220,7 @@ public class AntPathMatcher implements PathMatcher {
 		if (pathIdxStart > pathIdxEnd) {
 			// Path is exhausted, only match if rest of pattern is * or **'s
 			if (pattIdxStart > pattIdxEnd) {
-				return (pattern.endsWith(this.pathSeparator) ? path.endsWith(this.pathSeparator) :
-						!path.endsWith(this.pathSeparator));
+				return (pattern.endsWith(this.pathSeparator) == path.endsWith(this.pathSeparator));
 			}
 			if (!fullMatch) {
 				return true;
@@ -318,17 +317,13 @@ public class AntPathMatcher implements PathMatcher {
 
 	private boolean isPotentialMatch(String path, String[] pattDirs) {
 		if (!this.trimTokens) {
-			char[] pathChars = path.toCharArray();
 			int pos = 0;
 			for (String pattDir : pattDirs) {
 				int skipped = skipSeparator(path, pos, this.pathSeparator);
 				pos += skipped;
-				skipped = skipSegment(pathChars, pos, pattDir);
+				skipped = skipSegment(path, pos, pattDir);
 				if (skipped < pattDir.length()) {
-					if (skipped > 0) {
-						return true;
-					}
-					return (pattDir.length() > 0) && isWildcardChar(pattDir.charAt(0));
+					return (skipped > 0 || (pattDir.length() > 0 && isWildcardChar(pattDir.charAt(0))));
 				}
 				pos += skipped;
 			}
@@ -336,16 +331,18 @@ public class AntPathMatcher implements PathMatcher {
 		return true;
 	}
 
-	private int skipSegment(char[] chars, int pos, String prefix) {
+	private int skipSegment(String path, int pos, String prefix) {
 		int skipped = 0;
-		for (char c : prefix.toCharArray()) {
+		for (int i = 0; i < prefix.length(); i++) {
+			char c = prefix.charAt(i);
 			if (isWildcardChar(c)) {
 				return skipped;
 			}
-			else if (pos + skipped >= chars.length) {
+			int currPos = pos + skipped;
+			if (currPos >= path.length()) {
 				return 0;
 			}
-			else if (chars[pos + skipped] == c) {
+			if (c == path.charAt(currPos)) {
 				skipped++;
 			}
 		}
@@ -490,7 +487,7 @@ public class AntPathMatcher implements PathMatcher {
 
 	@Override
 	public Map<String, String> extractUriTemplateVariables(String pattern, String path) {
-		Map<String, String> variables = new LinkedHashMap<>();
+		Map<String, String> variables = new LinkedHashMap<String, String>();
 		boolean result = doMatch(pattern, path, true, variables);
 		if (!result) {
 			throw new IllegalStateException("Pattern \"" + pattern + "\" is not a match for \"" + path + "\"");
@@ -626,7 +623,7 @@ public class AntPathMatcher implements PathMatcher {
 
 		private final Pattern pattern;
 
-		private final List<String> variableNames = new LinkedList<>();
+		private final List<String> variableNames = new LinkedList<String>();
 
 		public AntPathStringMatcher(String pattern) {
 			this(pattern, true);

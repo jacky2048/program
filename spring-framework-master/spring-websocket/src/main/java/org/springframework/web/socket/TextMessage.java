@@ -16,7 +16,7 @@
 
 package org.springframework.web.socket;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 /**
  * A text WebSocket message.
@@ -25,6 +25,8 @@ import java.nio.charset.StandardCharsets;
  * @since 4.0
  */
 public final class TextMessage extends AbstractWebSocketMessage<String> {
+
+	private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
 	private final byte[] bytes;
 
@@ -44,7 +46,7 @@ public final class TextMessage extends AbstractWebSocketMessage<String> {
 	 * @param payload the non-null payload
 	 */
 	public TextMessage(byte[] payload) {
-		super(new String(payload, StandardCharsets.UTF_8));
+		super(new String(payload, UTF8_CHARSET));
 		this.bytes = payload;
 	}
 
@@ -68,7 +70,7 @@ public final class TextMessage extends AbstractWebSocketMessage<String> {
 	}
 
 	public byte[] asBytes() {
-		return (this.bytes != null ? this.bytes : getPayload().getBytes(StandardCharsets.UTF_8));
+		return (this.bytes != null ? this.bytes : getPayload().getBytes(UTF8_CHARSET));
 	}
 
 	@Override

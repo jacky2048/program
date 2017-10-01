@@ -17,7 +17,7 @@
 package org.springframework.web.servlet.mvc.method.annotation;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -25,7 +25,6 @@ import java.util.Set;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,9 +37,9 @@ import org.springframework.util.StringUtils;
  */
 public class SseEmitter extends ResponseBodyEmitter {
 
-	static final MediaType TEXT_PLAIN = new MediaType("text", "plain", StandardCharsets.UTF_8);
+	static final MediaType TEXT_PLAIN = new MediaType("text", "plain", Charset.forName("UTF-8"));
 
-	static final MediaType UTF8_TEXT_EVENTSTREAM = new MediaType("text", "event-stream", StandardCharsets.UTF_8);
+	static final MediaType UTF8_TEXT_EVENTSTREAM = new MediaType("text", "event-stream", Charset.forName("UTF-8"));
 
 
 	/**
@@ -129,11 +128,6 @@ public class SseEmitter extends ResponseBodyEmitter {
 		}
 	}
 
-	@Override
-	public String toString() {
-		return "SseEmitter@" + ObjectUtils.getIdentityHexString(this);
-	}
-
 
 	public static SseEventBuilder event() {
 		return new SseEventBuilderImpl();
@@ -189,7 +183,7 @@ public class SseEmitter extends ResponseBodyEmitter {
 	 */
 	private static class SseEventBuilderImpl implements SseEventBuilder {
 
-		private final Set<DataWithMediaType> dataToSend = new LinkedHashSet<>(4);
+		private final Set<DataWithMediaType> dataToSend = new LinkedHashSet<DataWithMediaType>(4);
 
 		private StringBuilder sb;
 
@@ -242,7 +236,7 @@ public class SseEmitter extends ResponseBodyEmitter {
 		@Override
 		public Set<DataWithMediaType> build() {
 			if (!StringUtils.hasLength(this.sb) && this.dataToSend.isEmpty()) {
-				return Collections.emptySet();
+				return Collections.<DataWithMediaType>emptySet();
 			}
 			append("\n");
 			saveAppendedText();

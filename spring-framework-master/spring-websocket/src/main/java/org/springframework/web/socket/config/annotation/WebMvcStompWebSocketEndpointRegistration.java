@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.springframework.web.socket.config.annotation;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -35,7 +33,8 @@ import org.springframework.web.socket.sockjs.SockJsService;
 import org.springframework.web.socket.sockjs.support.SockJsHttpRequestHandler;
 import org.springframework.web.socket.sockjs.transport.handler.WebSocketTransportHandler;
 
-
+import java.util.ArrayList;
+import java.util.List;
 /**
  * An abstract base class for configuring STOMP over WebSocket/SockJS endpoints.
  *
@@ -52,11 +51,11 @@ public class WebMvcStompWebSocketEndpointRegistration implements StompWebSocketE
 
 	private HandshakeHandler handshakeHandler;
 
-	private final List<HandshakeInterceptor> interceptors = new ArrayList<>();
+	private final List<HandshakeInterceptor> interceptors = new ArrayList<HandshakeInterceptor>();
 
-	private final List<String> allowedOrigins = new ArrayList<>();
+	private final List<String> allowedOrigins = new ArrayList<String>();
 
-	private SockJsServiceRegistration registration;
+	private StompSockJsServiceRegistration registration;
 
 
 	public WebMvcStompWebSocketEndpointRegistration(String[] paths, WebSocketHandler webSocketHandler,
@@ -69,7 +68,6 @@ public class WebMvcStompWebSocketEndpointRegistration implements StompWebSocketE
 		this.webSocketHandler = webSocketHandler;
 		this.sockJsTaskScheduler = sockJsTaskScheduler;
 	}
-
 
 	@Override
 	public StompWebSocketEndpointRegistration setHandshakeHandler(HandshakeHandler handshakeHandler) {
@@ -97,32 +95,30 @@ public class WebMvcStompWebSocketEndpointRegistration implements StompWebSocketE
 
 	@Override
 	public SockJsServiceRegistration withSockJS() {
-		this.registration = new SockJsServiceRegistration();
-		this.registration.setTaskScheduler(this.sockJsTaskScheduler);
+		this.registration = new StompSockJsServiceRegistration(this.sockJsTaskScheduler);
 		HandshakeInterceptor[] interceptors = getInterceptors();
 		if (interceptors.length > 0) {
 			this.registration.setInterceptors(interceptors);
 		}
 		if (this.handshakeHandler != null) {
-			WebSocketTransportHandler handler = new WebSocketTransportHandler(this.handshakeHandler);
-			this.registration.setTransportHandlerOverrides(handler);
+			WebSocketTransportHandler transportHandler = new WebSocketTransportHandler(this.handshakeHandler);
+			this.registration.setTransportHandlerOverrides(transportHandler);
 		}
 		if (!this.allowedOrigins.isEmpty()) {
-			this.registration.setAllowedOrigins(
-					this.allowedOrigins.toArray(new String[this.allowedOrigins.size()]));
+			this.registration.setAllowedOrigins(this.allowedOrigins.toArray(new String[this.allowedOrigins.size()]));
 		}
 		return this.registration;
 	}
 
 	protected HandshakeInterceptor[] getInterceptors() {
-		List<HandshakeInterceptor> interceptors = new ArrayList<>();
+		List<HandshakeInterceptor> interceptors = new ArrayList<HandshakeInterceptor>();
 		interceptors.addAll(this.interceptors);
 		interceptors.add(new OriginHandshakeInterceptor(this.allowedOrigins));
 		return interceptors.toArray(new HandshakeInterceptor[interceptors.size()]);
 	}
 
 	public final MultiValueMap<HttpRequestHandler, String> getMappings() {
-		MultiValueMap<HttpRequestHandler, String> mappings = new LinkedMultiValueMap<>();
+		MultiValueMap<HttpRequestHandler, String> mappings = new LinkedMultiValueMap<HttpRequestHandler, String>();
 		if (this.registration != null) {
 			SockJsService sockJsService = this.registration.getSockJsService();
 			for (String path : this.paths) {
@@ -148,6 +144,18 @@ public class WebMvcStompWebSocketEndpointRegistration implements StompWebSocketE
 			}
 		}
 		return mappings;
+	}
+
+
+	private static class StompSockJsServiceRegistration extends SockJsServiceRegistration {
+
+		public StompSockJsServiceRegistration(TaskScheduler defaultTaskScheduler) {
+			super(defaultTaskScheduler);
+		}
+
+		protected SockJsService getSockJsService() {
+			return super.getSockJsService();
+		}
 	}
 
 }

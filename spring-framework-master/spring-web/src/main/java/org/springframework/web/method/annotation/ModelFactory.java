@@ -61,7 +61,7 @@ public final class ModelFactory {
 
 	private static final Log logger = LogFactory.getLog(ModelFactory.class);
 
-	private final List<ModelMethod> modelMethods = new ArrayList<>();
+	private final List<ModelMethod> modelMethods = new ArrayList<ModelMethod>();
 
 	private final WebDataBinderFactory dataBinderFactory;
 
@@ -172,7 +172,7 @@ public final class ModelFactory {
 	 * Find {@code @ModelAttribute} arguments also listed as {@code @SessionAttributes}.
 	 */
 	private List<String> findSessionAttributeArguments(HandlerMethod handlerMethod) {
-		List<String> result = new ArrayList<>();
+		List<String> result = new ArrayList<String>();
 		for (MethodParameter parameter : handlerMethod.getMethodParameters()) {
 			if (parameter.hasParameterAnnotation(ModelAttribute.class)) {
 				String name = getNameForParameter(parameter);
@@ -209,7 +209,7 @@ public final class ModelFactory {
 	 * Add {@link BindingResult} attributes to the model for attributes that require it.
 	 */
 	private void updateBindingResult(NativeWebRequest request, ModelMap model) throws Exception {
-		List<String> keyNames = new ArrayList<>(model.keySet());
+		List<String> keyNames = new ArrayList<String>(model.keySet());
 		for (String name : keyNames) {
 			Object value = model.get(name);
 			if (isBindingCandidate(name, value)) {
@@ -284,7 +284,7 @@ public final class ModelFactory {
 
 		private final InvocableHandlerMethod handlerMethod;
 
-		private final Set<String> dependencies = new HashSet<>();
+		private final Set<String> dependencies = new HashSet<String>();
 
 		public ModelMethod(InvocableHandlerMethod handlerMethod) {
 			this.handlerMethod = handlerMethod;
@@ -309,7 +309,7 @@ public final class ModelFactory {
 		}
 
 		public List<String> getUnresolvedDependencies(ModelAndViewContainer mavContainer) {
-			List<String> result = new ArrayList<>(this.dependencies.size());
+			List<String> result = new ArrayList<String>(this.dependencies.size());
 			for (String name : this.dependencies) {
 				if (!mavContainer.containsAttribute(name)) {
 					result.add(name);

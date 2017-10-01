@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
  * @author Adrian Colyer
  * @author Chris Beams
  */
-public class AopNamespaceHandlerReturningTests {
+public final class AopNamespaceHandlerReturningTests {
 
 	@Test
 	public void testReturningOnReturningAdvice() {

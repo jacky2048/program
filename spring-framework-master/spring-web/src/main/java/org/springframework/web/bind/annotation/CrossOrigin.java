@@ -37,6 +37,9 @@ import org.springframework.web.cors.CorsConfiguration;
  * {@code HandlerMapping}-{@code HandlerAdapter} pair is configured such as the
  * {@code RequestMappingHandlerMapping}-{@code RequestMappingHandlerAdapter}
  * pair which are the default in the MVC Java config and the MVC namespace.
+ * In particular {@code @CrossOrigin} is not supported with the
+ * {@code DefaultAnnotationHandlerMapping}-{@code AnnotationMethodHandlerAdapter}
+ * pair both of which are also deprecated.
  *
  * @author Russell Allen
  * @author Sebastien Deleuze
@@ -49,25 +52,25 @@ import org.springframework.web.cors.CorsConfiguration;
 public @interface CrossOrigin {
 
 	/**
-	 * @deprecated as of Spring 5.0, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
+	 * @deprecated as of Spring 4.3.4, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
 	 */
 	@Deprecated
 	String[] DEFAULT_ORIGINS = { "*" };
 
 	/**
-	 * @deprecated as of Spring 5.0, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
+	 * @deprecated as of Spring 4.3.4, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
 	 */
 	@Deprecated
 	String[] DEFAULT_ALLOWED_HEADERS = { "*" };
 
 	/**
-	 * @deprecated as of Spring 5.0, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
+	 * @deprecated as of Spring 4.3.4, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
 	 */
 	@Deprecated
 	boolean DEFAULT_ALLOW_CREDENTIALS = true;
 
 	/**
-	 * @deprecated as of Spring 5.0, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
+	 * @deprecated as of Spring 4.3.4, in favor of using {@link CorsConfiguration#applyPermitDefaultValues}
 	 */
 	@Deprecated
 	long DEFAULT_MAX_AGE = 1800;

@@ -35,7 +35,7 @@ import static org.springframework.tests.TestResourceUtils.*;
  * @author Chris Beams
  * @since 31.07.2004
  */
-public class FieldRetrievingFactoryBeanTests {
+public final class FieldRetrievingFactoryBeanTests {
 
 	private static final Resource CONTEXT =
 		qualifiedResource(FieldRetrievingFactoryBeanTests.class, "context.xml");

@@ -37,7 +37,6 @@ import org.springframework.dao.DataAccessException;
  * @see JdbcTemplate#query
  * @see JdbcTemplate#update
  */
-@FunctionalInterface
 public interface ConnectionCallback<T> {
 
 	/**

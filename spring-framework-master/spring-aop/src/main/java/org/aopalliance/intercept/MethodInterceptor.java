@@ -39,7 +39,6 @@ package org.aopalliance.intercept;
  *
  * @author Rod Johnson
  */
-@FunctionalInterface
 public interface MethodInterceptor extends Interceptor {
 	
 	/**

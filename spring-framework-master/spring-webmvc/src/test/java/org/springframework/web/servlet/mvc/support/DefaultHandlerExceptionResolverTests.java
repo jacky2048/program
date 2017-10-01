@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import static org.junit.Assert.*;
 
@@ -52,18 +53,29 @@ import static org.junit.Assert.*;
  */
 public class DefaultHandlerExceptionResolverTests {
 
-	private final DefaultHandlerExceptionResolver exceptionResolver = new DefaultHandlerExceptionResolver();
+	private DefaultHandlerExceptionResolver exceptionResolver;
 
-	private final MockHttpServletRequest request = new MockHttpServletRequest("GET", "/");
+	private MockHttpServletRequest request;
 
-	private final MockHttpServletResponse response = new MockHttpServletResponse();
-
+	private MockHttpServletResponse response;
 
 	@Before
-	public void setup() {
+	public void setUp() {
+		exceptionResolver = new DefaultHandlerExceptionResolver();
 		exceptionResolver.setWarnLogCategory(exceptionResolver.getClass().getName());
+		request = new MockHttpServletRequest();
+		response = new MockHttpServletResponse();
+		request.setMethod("GET");
 	}
 
+	@Test
+	public void handleNoSuchRequestHandlingMethod() {
+		NoSuchRequestHandlingMethodException ex = new NoSuchRequestHandlingMethodException(request);
+		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
+		assertNotNull("No ModelAndView returned", mav);
+		assertTrue("No Empty ModelAndView returned", mav.isEmpty());
+		assertEquals("Invalid status code", 404, response.getStatus());
+	}
 
 	@Test
 	public void handleHttpRequestMethodNotSupported() {
@@ -205,7 +217,7 @@ public class DefaultHandlerExceptionResolverTests {
 		assertSame(ex, request.getAttribute("javax.servlet.error.exception"));
 	}
 
-	@Test  // SPR-14669
+	@Test // SPR-14669
 	public void handleAsyncRequestTimeoutException() throws Exception {
 		Exception ex = new AsyncRequestTimeoutException();
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);

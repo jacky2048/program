@@ -59,24 +59,14 @@ import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.handler.TestWebSocketSession;
 import org.springframework.web.socket.sockjs.transport.SockJsSession;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Test fixture for {@link StompSubProtocolHandler} tests.
+ *
  * @author Rossen Stoyanchev
  */
 public class StompSubProtocolHandlerTests {
@@ -545,9 +535,9 @@ public class StompSubProtocolHandlerTests {
 
 	private static class TestMessageHandler implements MessageHandler {
 
-		private final List<Message<?>> messages = new ArrayList<>();
+		private final List<Message> messages = new ArrayList<>();
 
-		public List<Message<?>> getMessages() {
+		public List<Message> getMessages() {
 			return this.messages;
 		}
 
@@ -566,11 +556,11 @@ public class StompSubProtocolHandlerTests {
 			this.name = name;
 		}
 
-		@Override
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
-			TestPrincipal user = new TestPrincipal(name);
-			MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class).setUser(user);
-			return message;
-		}
+@Override
+public Message<?> preSend(Message<?> message, MessageChannel channel) {
+	TestPrincipal user = new TestPrincipal(name);
+	MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class).setUser(user);
+	return message;
+}
 	}
 }

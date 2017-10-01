@@ -57,7 +57,7 @@ public class CorsConfiguration {
 	private static final List<HttpMethod> DEFAULT_METHODS;
 
 	static {
-		List<HttpMethod> rawMethods = new ArrayList<>(2);
+		List<HttpMethod> rawMethods = new ArrayList<HttpMethod>(2);
 		rawMethods.add(HttpMethod.GET);
 		rawMethods.add(HttpMethod.HEAD);
 		DEFAULT_METHODS = Collections.unmodifiableList(rawMethods);
@@ -108,7 +108,7 @@ public class CorsConfiguration {
 	 * <p>By default this is not set.
 	 */
 	public void setAllowedOrigins(List<String> allowedOrigins) {
-		this.allowedOrigins = (allowedOrigins != null ? new ArrayList<>(allowedOrigins) : null);
+		this.allowedOrigins = (allowedOrigins != null ? new ArrayList<String>(allowedOrigins) : null);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class CorsConfiguration {
 	 */
 	public void addAllowedOrigin(String origin) {
 		if (this.allowedOrigins == null) {
-			this.allowedOrigins = new ArrayList<>(4);
+			this.allowedOrigins = new ArrayList<String>(4);
 		}
 		this.allowedOrigins.add(origin);
 	}
@@ -138,9 +138,9 @@ public class CorsConfiguration {
 	 * <p>By default this is not set.
 	 */
 	public void setAllowedMethods(List<String> allowedMethods) {
-		this.allowedMethods = (allowedMethods != null ? new ArrayList<>(allowedMethods) : null);
+		this.allowedMethods = (allowedMethods != null ? new ArrayList<String>(allowedMethods) : null);
 		if (!CollectionUtils.isEmpty(allowedMethods)) {
-			this.resolvedMethods = new ArrayList<>(allowedMethods.size());
+			this.resolvedMethods = new ArrayList<HttpMethod>(allowedMethods.size());
 			for (String method : allowedMethods) {
 				if (ALL.equals(method)) {
 					this.resolvedMethods = null;
@@ -180,8 +180,8 @@ public class CorsConfiguration {
 	public void addAllowedMethod(String method) {
 		if (StringUtils.hasText(method)) {
 			if (this.allowedMethods == null) {
-				this.allowedMethods = new ArrayList<>(4);
-				this.resolvedMethods = new ArrayList<>(4);
+				this.allowedMethods = new ArrayList<String>(4);
+				this.resolvedMethods = new ArrayList<HttpMethod>(4);
 			}
 			this.allowedMethods.add(method);
 			if (ALL.equals(method)) {
@@ -204,7 +204,7 @@ public class CorsConfiguration {
 	 * <p>By default this is not set.
 	 */
 	public void setAllowedHeaders(List<String> allowedHeaders) {
-		this.allowedHeaders = (allowedHeaders != null ? new ArrayList<>(allowedHeaders) : null);
+		this.allowedHeaders = (allowedHeaders != null ? new ArrayList<String>(allowedHeaders) : null);
 	}
 
 	/**
@@ -221,7 +221,7 @@ public class CorsConfiguration {
 	 */
 	public void addAllowedHeader(String allowedHeader) {
 		if (this.allowedHeaders == null) {
-			this.allowedHeaders = new ArrayList<>(4);
+			this.allowedHeaders = new ArrayList<String>(4);
 		}
 		this.allowedHeaders.add(allowedHeader);
 	}
@@ -238,7 +238,7 @@ public class CorsConfiguration {
 		if (exposedHeaders != null && exposedHeaders.contains(ALL)) {
 			throw new IllegalArgumentException("'*' is not a valid exposed header value");
 		}
-		this.exposedHeaders = (exposedHeaders != null ? new ArrayList<>(exposedHeaders) : null);
+		this.exposedHeaders = (exposedHeaders != null ? new ArrayList<String>(exposedHeaders) : null);
 	}
 
 	/**
@@ -259,7 +259,7 @@ public class CorsConfiguration {
 			throw new IllegalArgumentException("'*' is not a valid exposed header value");
 		}
 		if (this.exposedHeaders == null) {
-			this.exposedHeaders = new ArrayList<>(4);
+			this.exposedHeaders = new ArrayList<String>(4);
 		}
 		this.exposedHeaders.add(exposedHeader);
 	}
@@ -370,9 +370,9 @@ public class CorsConfiguration {
 		if (source == null || source.contains(ALL)) {
 			return other;
 		}
-		Set<String> combined = new LinkedHashSet<>(source);
+		Set<String> combined = new LinkedHashSet<String>(source);
 		combined.addAll(other);
-		return new ArrayList<>(combined);
+		return new ArrayList<String>(combined);
 	}
 
 	/**
@@ -444,7 +444,7 @@ public class CorsConfiguration {
 		}
 
 		boolean allowAnyHeader = this.allowedHeaders.contains(ALL);
-		List<String> result = new ArrayList<>(requestHeaders.size());
+		List<String> result = new ArrayList<String>(requestHeaders.size());
 		for (String requestHeader : requestHeaders) {
 			if (StringUtils.hasText(requestHeader)) {
 				requestHeader = requestHeader.trim();

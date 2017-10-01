@@ -20,7 +20,6 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Miscellaneous object utility methods.
@@ -110,7 +109,6 @@ public abstract class ObjectUtils {
 	 * Determine whether the given object is empty.
 	 * <p>This method supports the following object types.
 	 * <ul>
-	 * <li>{@code Optional}: considered empty if {@link Optional#empty()}</li>
 	 * <li>{@code Array}: considered empty if its length is zero</li>
 	 * <li>{@link CharSequence}: considered empty if its length is zero</li>
 	 * <li>{@link Collection}: delegates to {@link Collection#isEmpty()}</li>
@@ -121,7 +119,6 @@ public abstract class ObjectUtils {
 	 * @param obj the object to check
 	 * @return {@code true} if the object is {@code null} or <em>empty</em>
 	 * @since 4.2
-	 * @see Optional#isPresent()
 	 * @see ObjectUtils#isEmpty(Object[])
 	 * @see StringUtils#hasLength(CharSequence)
 	 * @see StringUtils#isEmpty(Object)
@@ -134,9 +131,6 @@ public abstract class ObjectUtils {
 			return true;
 		}
 
-		if (obj instanceof Optional) {
-			return !((Optional) obj).isPresent();
-		}
 		if (obj.getClass().isArray()) {
 			return Array.getLength(obj) == 0;
 		}
@@ -152,26 +146,6 @@ public abstract class ObjectUtils {
 
 		// else
 		return false;
-	}
-
-	/**
-	 * Unwrap the given object which is potentially a {@link java.util.Optional}.
-	 * @param obj the candidate object
-	 * @return either the value held within the {@code Optional}, {@code null}
-	 * if the {@code Optional} is empty, or simply the given object as-is
-	 * @since 5.0
-	 */
-	public static Object unwrapOptional(Object obj) {
-		if (obj instanceof Optional) {
-			Optional<?> optional = (Optional<?>) obj;
-			if (!optional.isPresent()) {
-				return null;
-			}
-			Object result = optional.get();
-			Assert.isTrue(!(result instanceof Optional), "Multi-level Optional usage not supported");
-			return result;
-		}
-		return obj;
 	}
 
 	/**
@@ -447,7 +421,7 @@ public abstract class ObjectUtils {
 		}
 		int hash = INITIAL_HASH;
 		for (boolean element : array) {
-			hash = MULTIPLIER * hash + Boolean.hashCode(element);
+			hash = MULTIPLIER * hash + hashCode(element);
 		}
 		return hash;
 	}
@@ -492,7 +466,7 @@ public abstract class ObjectUtils {
 		}
 		int hash = INITIAL_HASH;
 		for (double element : array) {
-			hash = MULTIPLIER * hash + Double.hashCode(element);
+			hash = MULTIPLIER * hash + hashCode(element);
 		}
 		return hash;
 	}
@@ -507,7 +481,7 @@ public abstract class ObjectUtils {
 		}
 		int hash = INITIAL_HASH;
 		for (float element : array) {
-			hash = MULTIPLIER * hash + Float.hashCode(element);
+			hash = MULTIPLIER * hash + hashCode(element);
 		}
 		return hash;
 	}
@@ -537,7 +511,7 @@ public abstract class ObjectUtils {
 		}
 		int hash = INITIAL_HASH;
 		for (long element : array) {
-			hash = MULTIPLIER * hash + Long.hashCode(element);
+			hash = MULTIPLIER * hash + hashCode(element);
 		}
 		return hash;
 	}
@@ -558,39 +532,35 @@ public abstract class ObjectUtils {
 	}
 
 	/**
-	 * Return the same value as {@link Boolean#hashCode(boolean)}}.
-	 * @deprecated as of Spring Framework 5.0, in favor of the native JDK 8 variant
+	 * Return the same value as {@link Boolean#hashCode()}}.
+	 * @see Boolean#hashCode()
 	 */
-	@Deprecated
 	public static int hashCode(boolean bool) {
-		return Boolean.hashCode(bool);
+		return (bool ? 1231 : 1237);
 	}
 
 	/**
-	 * Return the same value as {@link Double#hashCode(double)}}.
-	 * @deprecated as of Spring Framework 5.0, in favor of the native JDK 8 variant
+	 * Return the same value as {@link Double#hashCode()}}.
+	 * @see Double#hashCode()
 	 */
-	@Deprecated
 	public static int hashCode(double dbl) {
-		return Double.hashCode(dbl);
+		return hashCode(Double.doubleToLongBits(dbl));
 	}
 
 	/**
-	 * Return the same value as {@link Float#hashCode(float)}}.
-	 * @deprecated as of Spring Framework 5.0, in favor of the native JDK 8 variant
+	 * Return the same value as {@link Float#hashCode()}}.
+	 * @see Float#hashCode()
 	 */
-	@Deprecated
 	public static int hashCode(float flt) {
-		return Float.hashCode(flt);
+		return Float.floatToIntBits(flt);
 	}
 
 	/**
-	 * Return the same value as {@link Long#hashCode(long)}}.
-	 * @deprecated as of Spring Framework 5.0, in favor of the native JDK 8 variant
+	 * Return the same value as {@link Long#hashCode()}}.
+	 * @see Long#hashCode()
 	 */
-	@Deprecated
 	public static int hashCode(long lng) {
-		return Long.hashCode(lng);
+		return (int) (lng ^ (lng >>> 32));
 	}
 
 

@@ -93,17 +93,16 @@ public class SchedulerFactoryBean extends SchedulerAccessor implements FactoryBe
 
 
 	private static final ThreadLocal<ResourceLoader> configTimeResourceLoaderHolder =
-			new ThreadLocal<>();
+			new ThreadLocal<ResourceLoader>();
 
 	private static final ThreadLocal<Executor> configTimeTaskExecutorHolder =
-			new ThreadLocal<>();
+			new ThreadLocal<Executor>();
 
 	private static final ThreadLocal<DataSource> configTimeDataSourceHolder =
-			new ThreadLocal<>();
+			new ThreadLocal<DataSource>();
 
 	private static final ThreadLocal<DataSource> configTimeNonTransactionalDataSourceHolder =
-			new ThreadLocal<>();
-
+			new ThreadLocal<DataSource>();
 
 	/**
 	 * Return the ResourceLoader for the currently configured Quartz Scheduler,

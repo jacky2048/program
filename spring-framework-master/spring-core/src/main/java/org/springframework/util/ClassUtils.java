@@ -76,25 +76,25 @@ public abstract class ClassUtils {
 	 * Map with primitive wrapper type as key and corresponding primitive
 	 * type as value, for example: Integer.class -> int.class.
 	 */
-	private static final Map<Class<?>, Class<?>> primitiveWrapperTypeMap = new IdentityHashMap<>(8);
+	private static final Map<Class<?>, Class<?>> primitiveWrapperTypeMap = new IdentityHashMap<Class<?>, Class<?>>(8);
 
 	/**
 	 * Map with primitive type as key and corresponding wrapper
 	 * type as value, for example: int.class -> Integer.class.
 	 */
-	private static final Map<Class<?>, Class<?>> primitiveTypeToWrapperMap = new IdentityHashMap<>(8);
+	private static final Map<Class<?>, Class<?>> primitiveTypeToWrapperMap = new IdentityHashMap<Class<?>, Class<?>>(8);
 
 	/**
 	 * Map with primitive type name as key and corresponding primitive
 	 * type as value, for example: "int" -> "int.class".
 	 */
-	private static final Map<String, Class<?>> primitiveTypeNameMap = new HashMap<>(32);
+	private static final Map<String, Class<?>> primitiveTypeNameMap = new HashMap<String, Class<?>>(32);
 
 	/**
 	 * Map with common "java.lang" class name as key and corresponding Class as value.
 	 * Primarily for efficient deserialization of remote invocations.
 	 */
-	private static final Map<String, Class<?>> commonClassCache = new HashMap<>(32);
+	private static final Map<String, Class<?>> commonClassCache = new HashMap<String, Class<?>>(32);
 
 
 	static {
@@ -112,7 +112,7 @@ public abstract class ClassUtils {
 			registerCommonClasses(entry.getKey());
 		}
 
-		Set<Class<?>> primitiveTypes = new HashSet<>(32);
+		Set<Class<?>> primitiveTypes = new HashSet<Class<?>>(32);
 		primitiveTypes.addAll(primitiveWrapperTypeMap.values());
 		primitiveTypes.addAll(Arrays.asList(new Class<?>[] {
 				boolean[].class, byte[].class, char[].class, double[].class,
@@ -480,7 +480,28 @@ public abstract class ClassUtils {
 	 */
 	public static String getQualifiedName(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
-		return clazz.getTypeName();
+		if (clazz.isArray()) {
+			return getQualifiedNameForArray(clazz);
+		}
+		else {
+			return clazz.getName();
+		}
+	}
+
+	/**
+	 * Build a nice qualified name for an array:
+	 * component type class name + "[]".
+	 * @param clazz the array class
+	 * @return a qualified name for the array class
+	 */
+	private static String getQualifiedNameForArray(Class<?> clazz) {
+		StringBuilder result = new StringBuilder();
+		while (clazz.isArray()) {
+			clazz = clazz.getComponentType();
+			result.append(ARRAY_SUFFIX);
+		}
+		result.insert(0, clazz.getName());
+		return result.toString();
 	}
 
 	/**
@@ -531,8 +552,11 @@ public abstract class ClassUtils {
 			}
 			return result.toString();
 		}
+		else if (clazz.isArray()) {
+			return getQualifiedNameForArray(clazz);
+		}
 		else {
-			return clazz.getTypeName();
+			return clazz.getName();
 		}
 	}
 
@@ -543,7 +567,8 @@ public abstract class ClassUtils {
 	 */
 	public static boolean matchesTypeName(Class<?> clazz, String typeName) {
 		return (typeName != null &&
-				(typeName.equals(clazz.getTypeName()) || typeName.equals(clazz.getSimpleName())));
+				(typeName.equals(clazz.getName()) || typeName.equals(clazz.getSimpleName()) ||
+				(clazz.isArray() && typeName.equals(getQualifiedNameForArray(clazz)))));
 	}
 
 
@@ -617,7 +642,7 @@ public abstract class ClassUtils {
 			}
 		}
 		else {
-			Set<Method> candidates = new HashSet<>(1);
+			Set<Method> candidates = new HashSet<Method>(1);
 			Method[] methods = clazz.getMethods();
 			for (Method method : methods) {
 				if (methodName.equals(method.getName())) {
@@ -661,7 +686,7 @@ public abstract class ClassUtils {
 			}
 		}
 		else {
-			Set<Method> candidates = new HashSet<>(1);
+			Set<Method> candidates = new HashSet<Method>(1);
 			Method[] methods = clazz.getMethods();
 			for (Method method : methods) {
 				if (methodName.equals(method.getName())) {
@@ -1124,7 +1149,7 @@ public abstract class ClassUtils {
 		if (clazz.isInterface() && isVisible(clazz, classLoader)) {
 			return Collections.<Class<?>>singleton(clazz);
 		}
-		Set<Class<?>> interfaces = new LinkedHashSet<>();
+		Set<Class<?>> interfaces = new LinkedHashSet<Class<?>>();
 		while (clazz != null) {
 			Class<?>[] ifcs = clazz.getInterfaces();
 			for (Class<?> ifc : ifcs) {
@@ -1144,7 +1169,6 @@ public abstract class ClassUtils {
 	 * @return the merged interface as Class
 	 * @see java.lang.reflect.Proxy#getProxyClass
 	 */
-	@SuppressWarnings("deprecation")
 	public static Class<?> createCompositeInterface(Class<?>[] interfaces, ClassLoader classLoader) {
 		Assert.notEmpty(interfaces, "Interfaces must not be empty");
 		return Proxy.getProxyClass(classLoader, interfaces);

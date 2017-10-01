@@ -56,7 +56,7 @@ public abstract class AbstractClientSockJsSession implements WebSocketSession {
 
 	private final SettableListenableFuture<WebSocketSession> connectFuture;
 
-	private final Map<String, Object> attributes = new ConcurrentHashMap<>();
+	private final Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
 	private volatile State state = State.NEW;
 

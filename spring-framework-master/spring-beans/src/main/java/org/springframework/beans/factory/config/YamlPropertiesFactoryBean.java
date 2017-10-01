@@ -16,6 +16,7 @@
 
 package org.springframework.beans.factory.config;
 
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -126,8 +127,13 @@ public class YamlPropertiesFactoryBean extends YamlProcessor implements FactoryB
 	 * @see #process(MatchCallback) ()
 	 */
 	protected Properties createProperties() {
-		Properties result = CollectionFactory.createStringAdaptingProperties();
-		process((properties, map) -> result.putAll(properties));
+		final Properties result = CollectionFactory.createStringAdaptingProperties();
+		process(new MatchCallback() {
+			@Override
+			public void process(Properties properties, Map<String, Object> map) {
+				result.putAll(properties);
+			}
+		});
 		return result;
 	}
 

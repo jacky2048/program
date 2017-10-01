@@ -44,7 +44,7 @@ public class SettableListenableFuture<T> implements ListenableFuture<T> {
 	};
 
 
-	private final SettableTask<T> settableTask = new SettableTask<>();
+	private final SettableTask<T> settableTask = new SettableTask<T>();
 
 
 	/**

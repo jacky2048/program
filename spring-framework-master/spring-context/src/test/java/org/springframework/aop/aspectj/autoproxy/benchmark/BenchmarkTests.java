@@ -45,7 +45,7 @@ import static org.junit.Assert.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class BenchmarkTests {
+public final class BenchmarkTests {
 
 	private static final Class<?> CLASS = BenchmarkTests.class;
 
@@ -231,7 +231,7 @@ class TraceAfterReturningAdvice implements AfterReturningAdvice {
 			new StaticMethodMatcherPointcut() {
 				@Override
 				public boolean matches(Method method, Class<?> targetClass) {
-					return method.getParameterCount() == 1 &&
+					return method.getParameterTypes().length == 1 &&
 						method.getParameterTypes()[0].equals(Integer.class);
 				}
 			},

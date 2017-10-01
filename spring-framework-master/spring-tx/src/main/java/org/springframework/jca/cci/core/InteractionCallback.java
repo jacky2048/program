@@ -41,7 +41,6 @@ import org.springframework.dao.DataAccessException;
  * @see CciTemplate#execute(javax.resource.cci.InteractionSpec, javax.resource.cci.Record)
  * @see CciTemplate#execute(javax.resource.cci.InteractionSpec, RecordCreator, RecordExtractor)
  */
-@FunctionalInterface
 public interface InteractionCallback<T> {
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,9 +67,10 @@ import org.springframework.util.ClassUtils;
  * plus the {@link EntityManagerFactoryInfo} interface which exposes additional
  * metadata as assembled by this FactoryBean.
  *
- * <p><b>NOTE: Spring's JPA support requires JPA 2.1 or higher, as of Spring 5.0.</b>
- * JPA 1.0/2.0 based applications are still supported; however, a JPA 2.1 compliant
- * persistence provider is needed at runtime.
+ * <p><b>NOTE: Spring's JPA support requires JPA 2.0 or higher, as of Spring 4.0.</b>
+ * JPA 1.0 based applications are still supported; however, a JPA 2.0/2.1 compliant
+ * persistence provider is needed at runtime. Spring's persistence unit bootstrapping
+ * automatically detects JPA 2.0 vs 2.1 through checking the JPA API on the classpath.
  *
  * @author Juergen Hoeller
  * @author Rod Johnson
@@ -293,7 +294,7 @@ public class LocalContainerEntityManagerFactoryBean extends AbstractEntityManage
 	 * InstrumentationLoadTimeWeaver, which requires a Spring-specific (but very general)
 	 * VM agent specified on JVM startup, and ReflectiveLoadTimeWeaver, which interacts
 	 * with an underlying ClassLoader based on specific extended methods being available
-	 * on it.
+	 * on it (for example, interacting with Spring's TomcatInstrumentableClassLoader).
 	 * <p><b>NOTE:</b> As of Spring 2.5, the context's default LoadTimeWeaver (defined
 	 * as bean with name "loadTimeWeaver") will be picked up automatically, if available,
 	 * removing the need for LoadTimeWeaver configuration on each affected target bean.</b>
@@ -304,6 +305,7 @@ public class LocalContainerEntityManagerFactoryBean extends AbstractEntityManage
 	 * is responsible for the weaving configuration.
 	 * @see org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver
 	 * @see org.springframework.instrument.classloading.ReflectiveLoadTimeWeaver
+	 * @see org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader
 	 */
 	@Override
 	public void setLoadTimeWeaver(LoadTimeWeaver loadTimeWeaver) {

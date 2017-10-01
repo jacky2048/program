@@ -27,7 +27,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -55,7 +54,7 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 
 	protected static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
-	protected static final Charset FORM_CHARSET = StandardCharsets.UTF_8;
+	protected static final String FORM_CHARSET = "UTF-8";
 
 
 	private final HttpServletRequest servletRequest;
@@ -130,7 +129,7 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 					String requestEncoding = this.servletRequest.getCharacterEncoding();
 					if (StringUtils.hasLength(requestEncoding)) {
 						Charset charSet = Charset.forName(requestEncoding);
-						Map<String, String> params = new LinkedCaseInsensitiveMap<>();
+						Map<String, String> params = new LinkedCaseInsensitiveMap<String>();
 						params.putAll(contentType.getParameters());
 						params.put("charset", charSet.toString());
 						MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
@@ -213,10 +212,10 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 			List<String> values = Arrays.asList(form.get(name));
 			for (Iterator<String> valueIterator = values.iterator(); valueIterator.hasNext();) {
 				String value = valueIterator.next();
-				writer.write(URLEncoder.encode(name, FORM_CHARSET.name()));
+				writer.write(URLEncoder.encode(name, FORM_CHARSET));
 				if (value != null) {
 					writer.write('=');
-					writer.write(URLEncoder.encode(value, FORM_CHARSET.name()));
+					writer.write(URLEncoder.encode(value, FORM_CHARSET));
 					if (valueIterator.hasNext()) {
 						writer.write('&');
 					}

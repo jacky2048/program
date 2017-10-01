@@ -27,7 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * @author Adrian Colyer
  * @author Chris Beams
  */
-public class SharedPointcutWithArgsMismatchTests {
+public final class SharedPointcutWithArgsMismatchTests {
 
 	private ToBeAdvised toBeAdvised;
 

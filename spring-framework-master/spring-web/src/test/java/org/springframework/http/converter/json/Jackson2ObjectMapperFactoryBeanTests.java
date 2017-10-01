@@ -28,7 +28,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -284,7 +283,7 @@ public class Jackson2ObjectMapperFactoryBeanTests {
 	public void setMixIns() {
 		Class<?> target = String.class;
 		Class<?> mixinSource = Object.class;
-		Map<Class<?>, Class<?>> mixIns = new HashMap<>();
+		Map<Class<?>, Class<?>> mixIns = new HashMap<Class<?>, Class<?>>();
 		mixIns.put(target, mixinSource);
 
 		this.factory.setModules(Collections.emptyList());
@@ -317,7 +316,7 @@ public class Jackson2ObjectMapperFactoryBeanTests {
 		assertTrue(this.factory.isSingleton());
 		assertEquals(ObjectMapper.class, this.factory.getObjectType());
 
-		Map<Class<?>, JsonDeserializer<?>> deserializers = new HashMap<>();
+		Map<Class<?>, JsonDeserializer<?>> deserializers = new HashMap<Class<?>, JsonDeserializer<?>>();
 		deserializers.put(Date.class, new DateDeserializer());
 
 		JsonSerializer<Class<?>> serializer1 = new ClassSerializer();
@@ -390,16 +389,6 @@ public class Jackson2ObjectMapperFactoryBeanTests {
 		assertNotNull(this.factory.getObject());
 		assertTrue(this.factory.isSingleton());
 		assertEquals(XmlMapper.class, this.factory.getObjectType());
-	}
-
-	@Test  // SPR-14435
-	public void setFactory() {
-		this.factory.setFactory(new SmileFactory());
-		this.factory.afterPropertiesSet();
-
-		assertNotNull(this.factory.getObject());
-		assertTrue(this.factory.isSingleton());
-		assertEquals(SmileFactory.class, this.factory.getObject().getFactory().getClass());
 	}
 
 

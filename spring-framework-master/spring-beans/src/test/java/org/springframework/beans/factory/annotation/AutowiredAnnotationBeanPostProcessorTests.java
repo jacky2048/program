@@ -699,8 +699,7 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 		AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
 		bpp.setBeanFactory(bf);
 		bf.addBeanPostProcessor(bpp);
-		bf.registerBeanDefinition("annotatedBean", new RootBeanDefinition(
-				ConstructorsCollectionResourceInjectionBean.class));
+		bf.registerBeanDefinition("annotatedBean", new RootBeanDefinition(ConstructorsCollectionResourceInjectionBean.class));
 		TestBean tb = new TestBean();
 		bf.registerSingleton("testBean", tb);
 		FixedOrder2NestedTestBean ntb1 = new FixedOrder2NestedTestBean();
@@ -714,6 +713,46 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 		assertEquals(2, bean.getNestedTestBeans().size());
 		assertSame(ntb2, bean.getNestedTestBeans().get(0));
 		assertSame(ntb1, bean.getNestedTestBeans().get(1));
+		bf.destroySingletons();
+	}
+
+	@Test
+	public void testSingleConstructorInjectionWithMultipleCandidatesAsOrderedCollection() {
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
+		AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
+		bpp.setBeanFactory(bf);
+		bf.addBeanPostProcessor(bpp);
+		bf.registerBeanDefinition("annotatedBean", new RootBeanDefinition(SingleConstructorCollectionInjectionBean.class));
+		TestBean tb = new TestBean();
+		bf.registerSingleton("testBean", tb);
+		FixedOrder2NestedTestBean ntb1 = new FixedOrder2NestedTestBean();
+		bf.registerSingleton("nestedTestBean1", ntb1);
+		FixedOrder1NestedTestBean ntb2 = new FixedOrder1NestedTestBean();
+		bf.registerSingleton("nestedTestBean2", ntb2);
+
+		SingleConstructorCollectionInjectionBean bean = (SingleConstructorCollectionInjectionBean) bf.getBean("annotatedBean");
+		assertSame(tb, bean.getTestBean());
+		assertEquals(2, bean.getNestedTestBeans().size());
+		assertSame(ntb2, bean.getNestedTestBeans().get(0));
+		assertSame(ntb1, bean.getNestedTestBeans().get(1));
+		bf.destroySingletons();
+	}
+
+	@Test
+	public void testSingleConstructorInjectionWithEmptyCollection() {
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.setAutowireCandidateResolver(new QualifierAnnotationAutowireCandidateResolver());
+		AutowiredAnnotationBeanPostProcessor bpp = new AutowiredAnnotationBeanPostProcessor();
+		bpp.setBeanFactory(bf);
+		bf.addBeanPostProcessor(bpp);
+		bf.registerBeanDefinition("annotatedBean", new RootBeanDefinition(SingleConstructorCollectionInjectionBean.class));
+		TestBean tb = new TestBean();
+		bf.registerSingleton("testBean", tb);
+
+		SingleConstructorCollectionInjectionBean bean = (SingleConstructorCollectionInjectionBean) bf.getBean("annotatedBean");
+		assertSame(tb, bean.getTestBean());
+		assertNull(bean.getNestedTestBeans());
 		bf.destroySingletons();
 	}
 
@@ -1193,9 +1232,7 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 		assertEquals(bf.getBean("testBean"), bean.getTestBean());
 		assertEquals(bf.getBean("testBean", "myName"), bean.getTestBean("myName"));
 		assertEquals(bf.getBean("testBean"), bean.getOptionalTestBean());
-		assertEquals(bf.getBean("testBean"), bean.getOptionalTestBeanWithDefault());
 		assertEquals(bf.getBean("testBean"), bean.getUniqueTestBean());
-		assertEquals(bf.getBean("testBean"), bean.getUniqueTestBeanWithDefault());
 		bf.destroySingletons();
 	}
 
@@ -1211,9 +1248,7 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 		SmartObjectFactoryInjectionBean bean = (SmartObjectFactoryInjectionBean) bf.getBean("annotatedBean");
 		assertSame(bf.getBean("testBean"), bean.getTestBean());
 		assertSame(bf.getBean("testBean"), bean.getOptionalTestBean());
-		assertSame(bf.getBean("testBean"), bean.getOptionalTestBeanWithDefault());
 		assertSame(bf.getBean("testBean"), bean.getUniqueTestBean());
-		assertSame(bf.getBean("testBean"), bean.getUniqueTestBeanWithDefault());
 		bf.destroySingletons();
 	}
 
@@ -1234,8 +1269,6 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 			// expected
 		}
 		assertNull(bean.getOptionalTestBean());
-		assertEquals(new TestBean("default"), bean.getOptionalTestBeanWithDefault());
-		assertEquals(new TestBean("default"), bean.getUniqueTestBeanWithDefault());
 		assertNull(bean.getUniqueTestBean());
 		bf.destroySingletons();
 	}
@@ -2757,6 +2790,28 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 	}
 
 
+	public static class SingleConstructorCollectionInjectionBean {
+
+		private ITestBean testBean;
+
+		private List<NestedTestBean> nestedTestBeans;
+
+		public SingleConstructorCollectionInjectionBean(ITestBean testBean,
+				@Autowired(required = false) List<NestedTestBean> nestedTestBeans) {
+			this.testBean = testBean;
+			this.nestedTestBeans = nestedTestBeans;
+		}
+
+		public ITestBean getTestBean() {
+			return this.testBean;
+		}
+
+		public List<NestedTestBean> getNestedTestBeans() {
+			return this.nestedTestBeans;
+		}
+	}
+
+
 	@SuppressWarnings("serial")
 	public static class MyTestBeanMap extends LinkedHashMap<String, TestBean> {
 	}
@@ -2907,16 +2962,8 @@ public class AutowiredAnnotationBeanPostProcessorTests {
 			return this.testBeanFactory.getIfAvailable();
 		}
 
-		public TestBean getOptionalTestBeanWithDefault() {
-			return this.testBeanFactory.getIfAvailable(() -> new TestBean("default"));
-		}
-
 		public TestBean getUniqueTestBean() {
 			return this.testBeanFactory.getIfUnique();
-		}
-
-		public TestBean getUniqueTestBeanWithDefault() {
-			return this.testBeanFactory.getIfUnique(() -> new TestBean("default"));
 		}
 	}
 

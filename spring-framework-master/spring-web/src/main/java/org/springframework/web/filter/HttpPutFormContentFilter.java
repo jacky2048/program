@@ -129,7 +129,7 @@ public class HttpPutFormContentFilter extends OncePerRequestFilter {
 
 		public HttpPutFormContentRequestWrapper(HttpServletRequest request, MultiValueMap<String, String> parameters) {
 			super(request);
-			this.formParameters = (parameters != null ? parameters : new LinkedMultiValueMap<>());
+			this.formParameters = (parameters != null ? parameters : new LinkedMultiValueMap<String, String>());
 		}
 
 		@Override
@@ -141,7 +141,7 @@ public class HttpPutFormContentFilter extends OncePerRequestFilter {
 
 		@Override
 		public Map<String, String[]> getParameterMap() {
-			Map<String, String[]> result = new LinkedHashMap<>();
+			Map<String, String[]> result = new LinkedHashMap<String, String[]>();
 			Enumeration<String> names = getParameterNames();
 			while (names.hasMoreElements()) {
 				String name = names.nextElement();
@@ -152,7 +152,7 @@ public class HttpPutFormContentFilter extends OncePerRequestFilter {
 
 		@Override
 		public Enumeration<String> getParameterNames() {
-			Set<String> names = new LinkedHashSet<>();
+			Set<String> names = new LinkedHashSet<String>();
 			names.addAll(Collections.list(super.getParameterNames()));
 			names.addAll(this.formParameters.keySet());
 			return Collections.enumeration(names);
@@ -160,18 +160,18 @@ public class HttpPutFormContentFilter extends OncePerRequestFilter {
 
 		@Override
 		public String[] getParameterValues(String name) {
-			String[] queryStringValues = super.getParameterValues(name);
-			List<String> formValues = this.formParameters.get(name);
-			if (formValues == null) {
-				return queryStringValues;
+			String[] queryParam = (super.getQueryString() != null ? super.getParameterValues(name) : null);
+			List<String> formParam = this.formParameters.get(name);
+			if (formParam == null) {
+				return queryParam;
 			}
-			else if (queryStringValues == null) {
-				return formValues.toArray(new String[formValues.size()]);
+			else if (queryParam == null) {
+				return formParam.toArray(new String[formParam.size()]);
 			}
 			else {
-				List<String> result = new ArrayList<>(queryStringValues.length + formValues.size());
-				result.addAll(Arrays.asList(queryStringValues));
-				result.addAll(formValues);
+				List<String> result = new ArrayList<String>(queryParam.length + formParam.size());
+				result.addAll(Arrays.asList(queryParam));
+				result.addAll(formParam);
 				return result.toArray(new String[result.size()]);
 			}
 		}

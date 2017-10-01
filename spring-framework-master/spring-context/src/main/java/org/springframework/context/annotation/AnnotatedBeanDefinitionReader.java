@@ -17,11 +17,8 @@
 package org.springframework.context.annotation;
 
 import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -140,35 +137,9 @@ public class AnnotatedBeanDefinitionReader {
 	 * class-declared annotations.
 	 * @param annotatedClass the class of the bean
 	 */
+	@SuppressWarnings("unchecked")
 	public void registerBean(Class<?> annotatedClass) {
-		doRegisterBean(annotatedClass, null, null, null);
-	}
-
-	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations, using the given supplier for obtaining a new
-	 * instance (possibly declared as a lambda expression or method reference).
-	 * @param annotatedClass the class of the bean
-	 * @param instanceSupplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @since 5.0
-	 */
-	public <T> void registerBean(Class<T> annotatedClass, Supplier<T> instanceSupplier) {
-		doRegisterBean(annotatedClass, instanceSupplier, null, null);
-	}
-
-	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations, using the given supplier for obtaining a new
-	 * instance (possibly declared as a lambda expression or method reference).
-	 * @param annotatedClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * @param instanceSupplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @since 5.0
-	 */
-	public <T> void registerBean(Class<T> annotatedClass, String name, Supplier<T> instanceSupplier) {
-		doRegisterBean(annotatedClass, instanceSupplier, name, null);
+		registerBean(annotatedClass, null, (Class<? extends Annotation>[]) null);
 	}
 
 	/**
@@ -180,7 +151,7 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	@SuppressWarnings("unchecked")
 	public void registerBean(Class<?> annotatedClass, Class<? extends Annotation>... qualifiers) {
-		doRegisterBean(annotatedClass, null, null, qualifiers);
+		registerBean(annotatedClass, null, qualifiers);
 	}
 
 	/**
@@ -193,35 +164,14 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	@SuppressWarnings("unchecked")
 	public void registerBean(Class<?> annotatedClass, String name, Class<? extends Annotation>... qualifiers) {
-		doRegisterBean(annotatedClass, null, name, qualifiers);
-	}
-
-	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
-	 * @param annotatedClass the class of the bean
-	 * @param instanceSupplier a callback for creating an instance of the bean
-	 * (may be {@code null})
-	 * @param name an explicit name for the bean
-	 * @param qualifiers specific qualifier annotations to consider, if any,
-	 * in addition to qualifiers at the bean class level
-	 * @param definitionCustomizers one or more callbacks for customizing the
-	 * factory's {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
-	 * @since 5.0
-	 */
-	<T> void doRegisterBean(Class<T> annotatedClass, Supplier<T> instanceSupplier, String name,
-			Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
-
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
-		abd.setInstanceSupplier(instanceSupplier);
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
-
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
@@ -234,11 +184,6 @@ public class AnnotatedBeanDefinitionReader {
 				else {
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
 				}
-			}
-		}
-		if (definitionCustomizers != null) {
-			for (BeanDefinitionCustomizer customizer : definitionCustomizers) {
-				customizer.customize(abd);
 			}
 		}
 

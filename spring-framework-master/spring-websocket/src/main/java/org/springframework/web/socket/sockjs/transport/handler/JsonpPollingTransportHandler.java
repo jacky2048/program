@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.web.socket.sockjs.transport.handler;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -51,7 +50,7 @@ public class JsonpPollingTransportHandler extends AbstractHttpSendingTransportHa
 
 	@Override
 	protected MediaType getContentType() {
-		return new MediaType("application", "javascript", StandardCharsets.UTF_8);
+		return new MediaType("application", "javascript", UTF8_CHARSET);
 	}
 
 	@Override
@@ -74,7 +73,7 @@ public class JsonpPollingTransportHandler extends AbstractHttpSendingTransportHa
 			String callback = getCallbackParam(request);
 			if (!StringUtils.hasText(callback)) {
 				response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-				response.getBody().write("\"callback\" parameter required".getBytes(StandardCharsets.UTF_8));
+				response.getBody().write("\"callback\" parameter required".getBytes(UTF8_CHARSET));
 				return;
 			}
 		}

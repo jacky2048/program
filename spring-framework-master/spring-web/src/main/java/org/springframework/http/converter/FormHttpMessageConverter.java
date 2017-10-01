@@ -22,7 +22,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -89,12 +88,12 @@ import org.springframework.util.StringUtils;
  */
 public class FormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
-	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
 
-	private List<MediaType> supportedMediaTypes = new ArrayList<>();
+	private List<MediaType> supportedMediaTypes = new ArrayList<MediaType>();
 
-	private List<HttpMessageConverter<?>> partConverters = new ArrayList<>();
+	private List<HttpMessageConverter<?>> partConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private Charset charset = DEFAULT_CHARSET;
 
@@ -180,12 +179,11 @@ public class FormHttpMessageConverter implements HttpMessageConverter<MultiValue
 	 * names. Encoding is based on the encoded-word syntax defined in RFC 2047
 	 * and relies on {@code MimeUtility} from "javax.mail".
 	 * <p>If not set file names will be encoded as US-ASCII.
-	 * @param multipartCharset the charset to use
 	 * @since 4.1.1
 	 * @see <a href="http://en.wikipedia.org/wiki/MIME#Encoded-Word">Encoded-Word</a>
 	 */
-	public void setMultipartCharset(Charset multipartCharset) {
-		this.multipartCharset = multipartCharset;
+	public void setMultipartCharset(Charset charset) {
+		this.multipartCharset = charset;
 	}
 
 
@@ -231,7 +229,7 @@ public class FormHttpMessageConverter implements HttpMessageConverter<MultiValue
 		String body = StreamUtils.copyToString(inputMessage.getBody(), charset);
 
 		String[] pairs = StringUtils.tokenizeToStringArray(body, "&");
-		MultiValueMap<String, String> result = new LinkedMultiValueMap<>(pairs.length);
+		MultiValueMap<String, String> result = new LinkedMultiValueMap<String, String>(pairs.length);
 		for (String pair : pairs) {
 			int idx = pair.indexOf('=');
 			if (idx == -1) {
@@ -304,7 +302,7 @@ public class FormHttpMessageConverter implements HttpMessageConverter<MultiValue
 				builder.append('&');
 			}
 		}
-		final byte[] bytes = builder.toString().getBytes(charset);
+		final byte[] bytes = builder.toString().getBytes(charset.name());
 		outputMessage.getHeaders().setContentLength(bytes.length);
 
 		if (outputMessage instanceof StreamingHttpOutputMessage) {
@@ -396,7 +394,7 @@ public class FormHttpMessageConverter implements HttpMessageConverter<MultiValue
 	 * or a newly built {@link HttpEntity} wrapper for that part
 	 */
 	protected HttpEntity<?> getHttpEntity(Object part) {
-		return (part instanceof HttpEntity ? (HttpEntity<?>) part : new HttpEntity<>(part));
+		return (part instanceof HttpEntity ? (HttpEntity<?>) part : new HttpEntity<Object>(part));
 	}
 
 	/**
@@ -490,7 +488,13 @@ public class FormHttpMessageConverter implements HttpMessageConverter<MultiValue
 		}
 
 		private byte[] getAsciiBytes(String name) {
-			return name.getBytes(StandardCharsets.US_ASCII);
+			try {
+				return name.getBytes("US-ASCII");
+			}
+			catch (UnsupportedEncodingException ex) {
+				// Should not happen - US-ASCII is always supported.
+				throw new IllegalStateException(ex);
+			}
 		}
 	}
 

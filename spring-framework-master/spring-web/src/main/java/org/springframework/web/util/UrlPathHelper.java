@@ -35,7 +35,8 @@ import org.springframework.util.StringUtils;
  * Helper class for URL path matching. Provides support for URL paths in
  * RequestDispatcher includes and support for consistent URL decoding.
  *
- * <p>Used by {@link org.springframework.web.servlet.handler.AbstractUrlHandlerMapping}
+ * <p>Used by {@link org.springframework.web.servlet.handler.AbstractUrlHandlerMapping},
+ * {@link org.springframework.web.servlet.mvc.multiaction.AbstractUrlMethodNameResolver}
  * and {@link org.springframework.web.servlet.support.RequestContext} for path matching
  * and/or URI determination.
  *
@@ -525,7 +526,7 @@ public class UrlPathHelper {
 			return vars;
 		}
 		else {
-			Map<String, String> decodedVars = new LinkedHashMap<>(vars.size());
+			Map<String, String> decodedVars = new LinkedHashMap<String, String>(vars.size());
 			for (Entry<String, String> entry : vars.entrySet()) {
 				decodedVars.put(entry.getKey(), decodeInternal(request, entry.getValue()));
 			}
@@ -549,7 +550,7 @@ public class UrlPathHelper {
 			return vars;
 		}
 		else {
-			MultiValueMap<String, String> decodedVars = new LinkedMultiValueMap<>(vars.size());
+			MultiValueMap<String, String> decodedVars = new LinkedMultiValueMap	<String, String>(vars.size());
 			for (String key : vars.keySet()) {
 				for (String value : vars.get(key)) {
 					decodedVars.add(key, decodeInternal(request, value));

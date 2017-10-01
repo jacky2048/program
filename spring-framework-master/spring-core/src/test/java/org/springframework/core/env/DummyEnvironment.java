@@ -44,6 +44,12 @@ public class DummyEnvironment implements Environment {
 	}
 
 	@Override
+	@Deprecated
+	public <T> Class<T> getPropertyAsClass(String key, Class<T> targetType) {
+		return null;
+	}
+
+	@Override
 	public String getRequiredProperty(String key) throws IllegalStateException {
 		return null;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpOutputMessage;
@@ -34,7 +33,7 @@ import org.springframework.http.HttpOutputMessage;
  */
 public class MockHttpOutputMessage implements HttpOutputMessage {
 
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
 	private final HttpHeaders headers = new HttpHeaders();
 

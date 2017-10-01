@@ -237,22 +237,22 @@ public class JsonPathExpectationsHelper {
 	}
 
 	private Object evaluateJsonPath(String content) {
-		String message = "No value at JSON path \"" + this.expression + "\"";
+		String message = "No value at JSON path \"" + this.expression + "\", exception: ";
 		try {
 			return this.jsonPath.read(content);
 		}
 		catch (Throwable ex) {
-			throw new AssertionError(message, ex);
+			throw new AssertionError(message + ex.getMessage());
 		}
 	}
 
 	private Object evaluateJsonPath(String content, Class<?> targetType) {
-		String message = "No value at JSON path \"" + this.expression + "\"";
+		String message = "No value at JSON path \"" + this.expression + "\", exception: ";
 		try {
 			return JsonPath.parse(content).read(this.expression, targetType);
 		}
 		catch (Throwable ex) {
-			throw new AssertionError(message, ex);
+			throw new AssertionError(message + ex.getMessage());
 		}
 	}
 

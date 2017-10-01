@@ -211,7 +211,7 @@ public class ControllerAdviceBean implements Ordered {
 	 * ApplicationContext and wrap them as {@code ControllerAdviceBean} instances.
 	 */
 	public static List<ControllerAdviceBean> findAnnotatedBeans(ApplicationContext applicationContext) {
-		List<ControllerAdviceBean> beans = new ArrayList<>();
+		List<ControllerAdviceBean> beans = new ArrayList<ControllerAdviceBean>();
 		for (String name : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, Object.class)) {
 			if (applicationContext.findAnnotationOnBean(name, ControllerAdvice.class) != null) {
 				beans.add(new ControllerAdviceBean(name, applicationContext));
@@ -229,7 +229,7 @@ public class ControllerAdviceBean implements Ordered {
 	}
 
 	private static Set<String> initBasePackages(ControllerAdvice annotation) {
-		Set<String> basePackages = new LinkedHashSet<>();
+		Set<String> basePackages = new LinkedHashSet<String>();
 		for (String basePackage : annotation.basePackages()) {
 			if (StringUtils.hasText(basePackage)) {
 				basePackages.add(adaptBasePackage(basePackage));

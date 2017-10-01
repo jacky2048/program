@@ -28,7 +28,6 @@ import org.springframework.core.io.Resource;
  * @author Rossen Stoyanchev
  * @since 4.1
  */
-@FunctionalInterface
 public interface ResourceTransformer {
 
 	/**

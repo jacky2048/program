@@ -84,7 +84,7 @@ public class MethodBasedEvaluationContext extends StandardEvaluationContext {
 
 		// Expose indexed variables as well as parameter names (if discoverable)
 		String[] paramNames = this.parameterNameDiscoverer.getParameterNames(this.method);
-		int paramCount = (paramNames != null ? paramNames.length : this.method.getParameterCount());
+		int paramCount = (paramNames != null ? paramNames.length : this.method.getParameterTypes().length);
 		int argsCount = this.arguments.length;
 
 		for (int i = 0; i < paramCount; i++) {

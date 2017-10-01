@@ -43,6 +43,7 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompDecoder;
 import org.springframework.messaging.simp.stomp.StompEncoder;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.user.DestinationUserNameProvider;
 import org.springframework.messaging.support.AbstractMessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ImmutableMessageChannelInterceptor;
@@ -93,11 +94,14 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 
 	private int messageSizeLimit = 64 * 1024;
 
+	@SuppressWarnings("deprecation")
+	private org.springframework.messaging.simp.user.UserSessionRegistry userSessionRegistry;
+
 	private StompEncoder stompEncoder = new StompEncoder();
 
 	private StompDecoder stompDecoder = new StompDecoder();
 
-	private final Map<String, BufferingStompDecoder> decoders = new ConcurrentHashMap<>();
+	private final Map<String, BufferingStompDecoder> decoders = new ConcurrentHashMap<String, BufferingStompDecoder>();
 
 	private MessageHeaderInitializer headerInitializer;
 
@@ -146,6 +150,27 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 	 */
 	public int getMessageSizeLimit() {
 		return this.messageSizeLimit;
+	}
+
+	/**
+	 * Provide a registry with which to register active user session ids.
+	 * @see org.springframework.messaging.simp.user.UserDestinationMessageHandler
+	 * @deprecated as of 4.2 in favor of {@link DefaultSimpUserRegistry} which relies
+	 * on the ApplicationContext events published by this class and is created via
+	 * {@link org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport#createLocalUserRegistry
+	 * WebSocketMessageBrokerConfigurationSupport.createLocalUserRegistry}
+	 */
+	@Deprecated
+	public void setUserSessionRegistry(org.springframework.messaging.simp.user.UserSessionRegistry registry) {
+		this.userSessionRegistry = registry;
+	}
+
+	/**
+	 * @deprecated as of 4.2
+	 */
+	@Deprecated
+	public org.springframework.messaging.simp.user.UserSessionRegistry getUserSessionRegistry() {
+		return this.userSessionRegistry;
 	}
 
 	/**
@@ -311,6 +336,7 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 		return user != null ? user : session.getPrincipal();
 	}
 
+	@SuppressWarnings("deprecation")
 	private void handleError(WebSocketSession session, Throwable ex, Message<byte[]> clientMessage) {
 		if (getErrorHandler() == null) {
 			sendErrorMessage(session, ex);
@@ -331,8 +357,12 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 	 * Invoked when no
 	 * {@link #setErrorHandler(StompSubProtocolErrorHandler) errorHandler}
 	 * is configured to send an ERROR frame to the client.
+	 * @deprecated as of Spring 4.2, in favor of
+	 * {@link #setErrorHandler(StompSubProtocolErrorHandler) configuring}
+	 * a {@code StompSubProtocolErrorHandler}
 	 */
-	private void sendErrorMessage(WebSocketSession session, Throwable error) {
+	@Deprecated
+	protected void sendErrorMessage(WebSocketSession session, Throwable error) {
 		StompHeaderAccessor headerAccessor = StompHeaderAccessor.create(StompCommand.ERROR);
 		headerAccessor.setMessage(error.getMessage());
 
@@ -545,6 +575,7 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 		return (headerAccessor.isMutable() ? headerAccessor : StompHeaderAccessor.wrap(message));
 	}
 
+	@SuppressWarnings("deprecation")
 	private StompHeaderAccessor afterStompSessionConnected(Message<?> message, StompHeaderAccessor accessor,
 			WebSocketSession session) {
 
@@ -552,6 +583,10 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 		if (principal != null) {
 			accessor = toMutableAccessor(accessor, message);
 			accessor.setNativeHeader(CONNECTED_USER_HEADER, principal.getName());
+			if (this.userSessionRegistry != null) {
+				String userName = getSessionRegistryUserName(principal);
+				this.userSessionRegistry.registerSessionId(userName, session.getId());
+			}
 		}
 
 		long[] heartbeat = accessor.getHeartbeat();
@@ -563,6 +598,14 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 		}
 
 		return accessor;
+	}
+
+	private String getSessionRegistryUserName(Principal principal) {
+		String userName = principal.getName();
+		if (principal instanceof DestinationUserNameProvider) {
+			userName = ((DestinationUserNameProvider) principal).getDestinationUserName();
+		}
+		return userName;
 	}
 
 	@Override
@@ -579,8 +622,15 @@ public class StompSubProtocolHandler implements SubProtocolHandler, ApplicationE
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void afterSessionEnded(WebSocketSession session, CloseStatus closeStatus, MessageChannel outputChannel) {
 		this.decoders.remove(session.getId());
+
+		Principal principal = getUser(session);
+		if (principal != null && this.userSessionRegistry != null) {
+			String userName = getSessionRegistryUserName(principal);
+			this.userSessionRegistry.unregisterSessionId(userName, session.getId());
+		}
 
 		Message<byte[]> message = createDisconnectMessage(session);
 		SimpAttributes simpAttributes = SimpAttributes.fromMessage(message);

@@ -521,6 +521,14 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 		private ContentNegotiationManager contentNegotiationManager;
 
 		/**
+		 * @deprecated as of Spring 4.2.8, in favor of {@link #setUrlPathHelper}
+		 */
+		@Deprecated
+		public void setPathHelper(UrlPathHelper pathHelper) {
+			this.urlPathHelper = pathHelper;
+		}
+
+		/**
 		 * Set a custom UrlPathHelper to use for the PatternsRequestCondition.
 		 * <p>By default this is not set.
 		 * @since 4.2.8

@@ -83,7 +83,7 @@ public abstract class TestPropertySourceUtils {
 
 	private static List<TestPropertySourceAttributes> resolveTestPropertySourceAttributes(Class<?> testClass) {
 		Assert.notNull(testClass, "Class must not be null");
-		List<TestPropertySourceAttributes> attributesList = new ArrayList<>();
+		List<TestPropertySourceAttributes> attributesList = new ArrayList<TestPropertySourceAttributes>();
 		Class<TestPropertySource> annotationType = TestPropertySource.class;
 
 		AnnotationDescriptor<TestPropertySource> descriptor = findAnnotationDescriptor(testClass, annotationType);
@@ -111,14 +111,14 @@ public abstract class TestPropertySourceUtils {
 	}
 
 	private static String[] mergeLocations(List<TestPropertySourceAttributes> attributesList) {
-		List<String> locations = new ArrayList<>();
+		final List<String> locations = new ArrayList<String>();
 		for (TestPropertySourceAttributes attrs : attributesList) {
 			if (logger.isTraceEnabled()) {
 				logger.trace(String.format("Processing locations for TestPropertySource attributes %s", attrs));
 			}
 			String[] locationsArray = TestContextResourceUtils.convertToClasspathResourcePaths(
 					attrs.getDeclaringClass(), attrs.getLocations());
-			locations.addAll(0, Arrays.asList(locationsArray));
+			locations.addAll(0, Arrays.<String> asList(locationsArray));
 			if (!attrs.isInheritLocations()) {
 				break;
 			}
@@ -127,12 +127,12 @@ public abstract class TestPropertySourceUtils {
 	}
 
 	private static String[] mergeProperties(List<TestPropertySourceAttributes> attributesList) {
-		List<String> properties = new ArrayList<>();
+		final List<String> properties = new ArrayList<String>();
 		for (TestPropertySourceAttributes attrs : attributesList) {
 			if (logger.isTraceEnabled()) {
 				logger.trace(String.format("Processing inlined properties for TestPropertySource attributes %s", attrs));
 			}
-			properties.addAll(0, Arrays.asList(attrs.getProperties()));
+			properties.addAll(0, Arrays.<String>asList(attrs.getProperties()));
 			if (!attrs.isInheritProperties()) {
 				break;
 			}
@@ -245,7 +245,8 @@ public abstract class TestPropertySourceUtils {
 			MapPropertySource ps = (MapPropertySource)
 					environment.getPropertySources().get(INLINED_PROPERTIES_PROPERTY_SOURCE_NAME);
 			if (ps == null) {
-				ps = new MapPropertySource(INLINED_PROPERTIES_PROPERTY_SOURCE_NAME, new LinkedHashMap<>());
+				ps = new MapPropertySource(INLINED_PROPERTIES_PROPERTY_SOURCE_NAME,
+						new LinkedHashMap<String, Object>());
 				environment.getPropertySources().addFirst(ps);
 			}
 			ps.getSource().putAll(convertInlinedPropertiesToMap(inlinedProperties));
@@ -271,7 +272,7 @@ public abstract class TestPropertySourceUtils {
 	 */
 	public static Map<String, Object> convertInlinedPropertiesToMap(String... inlinedProperties) {
 		Assert.notNull(inlinedProperties, "'inlinedProperties' must not be null");
-		Map<String, Object> map = new LinkedHashMap<>();
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		Properties props = new Properties();
 
 		for (String pair : inlinedProperties) {
@@ -284,7 +285,7 @@ public abstract class TestPropertySourceUtils {
 			catch (Exception ex) {
 				throw new IllegalStateException("Failed to load test environment property from [" + pair + "]", ex);
 			}
-			Assert.state(props.size() == 1, () -> "Failed to load exactly one test environment property from [" + pair + "]");
+			Assert.state(props.size() == 1, "Failed to load exactly one test environment property from [" + pair + "]");
 			for (String name : props.stringPropertyNames()) {
 				map.put(name, props.getProperty(name));
 			}

@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
  * @author Chris Beams
  * @author Phillip Webb
  */
-@Deprecated
 public class CompoundComparatorTests {
 
 	@Rule

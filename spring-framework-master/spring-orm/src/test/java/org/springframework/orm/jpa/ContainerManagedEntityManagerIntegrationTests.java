@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,37 +23,32 @@ import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.TransactionRequiredException;
 
-import org.junit.Test;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 import org.springframework.orm.jpa.domain.Person;
-
-import static org.junit.Assert.*;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests using in-memory database for container-managed JPA
  *
  * @author Rod Johnson
- * @author Juergen Hoeller
  * @since 2.0
  */
+@SuppressWarnings("deprecation")
 public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntityManagerFactoryIntegrationTests {
 
-	@Autowired
-	private AbstractEntityManagerFactoryBean entityManagerFactoryBean;
-
-
-	@Test
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void testExceptionTranslationWithDialectFoundOnIntroducedEntityManagerInfo() throws Exception {
 		doTestExceptionTranslationWithDialectFound(((EntityManagerFactoryInfo) entityManagerFactory).getJpaDialect());
 	}
 
-	@Test
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void testExceptionTranslationWithDialectFoundOnEntityManagerFactoryBean() throws Exception {
-		assertNotNull("Dialect must have been set", entityManagerFactoryBean.getJpaDialect());
-		doTestExceptionTranslationWithDialectFound(entityManagerFactoryBean);
+		AbstractEntityManagerFactoryBean aefb =
+				(AbstractEntityManagerFactoryBean) applicationContext.getBean("&entityManagerFactory");
+		assertNotNull("Dialect must have been set", aefb.getJpaDialect());
+		doTestExceptionTranslationWithDialectFound(aefb);
 	}
 
 	protected void doTestExceptionTranslationWithDialectFound(PersistenceExceptionTranslator pet) throws Exception {
@@ -65,7 +60,6 @@ public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntit
 		assertSame(in2, dex.getCause());
 	}
 
-	@Test
 	@SuppressWarnings("unchecked")
 	public void testEntityManagerProxyIsProxy() {
 		EntityManager em = createContainerManagedEntityManager();
@@ -80,20 +74,19 @@ public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntit
 			fail("Close should not work on container managed EM");
 		}
 		catch (IllegalStateException ex) {
-			// OK
+			// Ok
 		}
 		assertTrue(em.isOpen());
 	}
 
 	// This would be legal, at least if not actually _starting_ a tx
-	@Test
 	public void testEntityManagerProxyRejectsProgrammaticTxManagement() {
 		try {
 			createContainerManagedEntityManager().getTransaction();
 			fail("Should have thrown an IllegalStateException");
 		}
-		catch (IllegalStateException ex) {
-			// expected
+		catch (IllegalStateException e) {
+			/* expected */
 		}
 	}
 
@@ -101,31 +94,27 @@ public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntit
 	 * See comments in spec on EntityManager.joinTransaction().
 	 * We take the view that this is a valid no op.
 	 */
-	@Test
 	public void testContainerEntityManagerProxyAllowsJoinTransactionInTransaction() {
 		createContainerManagedEntityManager().joinTransaction();
 	}
 
-	@Test
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void testContainerEntityManagerProxyRejectsJoinTransactionWithoutTransaction() {
-		endTransaction();
-
 		try {
 			createContainerManagedEntityManager().joinTransaction();
 			fail("Should have thrown a TransactionRequiredException");
 		}
-		catch (TransactionRequiredException ex) {
-			// expected
+		catch (TransactionRequiredException e) {
+			/* expected */
 		}
 	}
 
-	@Test
 	public void testInstantiateAndSave() {
 		EntityManager em = createContainerManagedEntityManager();
 		doInstantiateAndSave(em);
 	}
 
-	protected void doInstantiateAndSave(EntityManager em) {
+	public void doInstantiateAndSave(EntityManager em) {
 		assertEquals("Should be no people from previous transactions", 0, countRowsInTable(em, "person"));
 		Person p = new Person();
 
@@ -137,7 +126,6 @@ public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntit
 		assertEquals("1 row must have been inserted", 1, countRowsInTable(em, "person"));
 	}
 
-	@Test
 	public void testReuseInNewTransaction() {
 		EntityManager em = createContainerManagedEntityManager();
 		doInstantiateAndSave(em);
@@ -159,7 +147,6 @@ public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntit
 		deleteFromTables("person");
 	}
 
-	@Test
 	public void testRollbackOccurs() {
 		EntityManager em = createContainerManagedEntityManager();
 		doInstantiateAndSave(em);
@@ -167,7 +154,6 @@ public class ContainerManagedEntityManagerIntegrationTests extends AbstractEntit
 		assertEquals("Tx must have been rolled back", 0, countRowsInTable(em, "person"));
 	}
 
-	@Test
 	public void testCommitOccurs() {
 		EntityManager em = createContainerManagedEntityManager();
 		doInstantiateAndSave(em);

@@ -19,7 +19,7 @@ package org.springframework.test.web.client.response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +38,9 @@ import org.springframework.util.Assert;
  * @since 3.2
  */
 public class DefaultResponseCreator implements ResponseCreator {
+
+	private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
 
 	private HttpStatus statusCode;
 
@@ -62,7 +65,7 @@ public class DefaultResponseCreator implements ResponseCreator {
 	 * Set the body as a UTF-8 String.
 	 */
 	public DefaultResponseCreator body(String content) {
-		this.content = content.getBytes(StandardCharsets.UTF_8);
+		this.content = content.getBytes(UTF8_CHARSET);
 		return this;
 	}
 

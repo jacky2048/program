@@ -33,14 +33,12 @@ import org.springframework.util.Assert;
  *
  * @author Rossen Stoyanchev
  * @since 4.3
- * @deprecated as of 5.0 in favor of {@link DefaultUriBuilderFactory}
  */
-@Deprecated
 public abstract class AbstractUriTemplateHandler implements UriTemplateHandler {
 
 	private String baseUrl;
 
-	private final Map<String, Object> defaultUriVariables = new HashMap<>();
+	private final Map<String, Object> defaultUriVariables = new HashMap<String, Object>();
 
 
 	/**
@@ -94,7 +92,7 @@ public abstract class AbstractUriTemplateHandler implements UriTemplateHandler {
 	@Override
 	public URI expand(String uriTemplate, Map<String, ?> uriVariables) {
 		if (!getDefaultUriVariables().isEmpty()) {
-			Map<String, Object> map = new HashMap<>();
+			Map<String, Object> map = new HashMap<String, Object>();
 			map.putAll(getDefaultUriVariables());
 			map.putAll(uriVariables);
 			uriVariables = map;

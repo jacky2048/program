@@ -43,7 +43,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public abstract class AbstractWebSocketClient implements WebSocketClient {
 
-	private static final Set<String> specialHeaders = new HashSet<>();
+	private static final Set<String> specialHeaders = new HashSet<String>();
 
 	static {
 		specialHeaders.add("cache-control");
@@ -91,13 +91,13 @@ public abstract class AbstractWebSocketClient implements WebSocketClient {
 		}
 
 		List<String> subProtocols = (headers != null && headers.getSecWebSocketProtocol() != null ?
-				headers.getSecWebSocketProtocol() : Collections.emptyList());
+				headers.getSecWebSocketProtocol() : Collections.<String>emptyList());
 
 		List<WebSocketExtension> extensions = (headers != null && headers.getSecWebSocketExtensions() != null ?
-				headers.getSecWebSocketExtensions() : Collections.emptyList());
+				headers.getSecWebSocketExtensions() : Collections.<WebSocketExtension>emptyList());
 
 		return doHandshakeInternal(webSocketHandler, headersToUse, uri, subProtocols, extensions,
-				Collections.emptyMap());
+				Collections.<String, Object>emptyMap());
 	}
 
 	protected void assertUri(URI uri) {

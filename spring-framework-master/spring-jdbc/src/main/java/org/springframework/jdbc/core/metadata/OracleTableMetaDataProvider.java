@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractor;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -112,13 +113,32 @@ public class OracleTableMetaDataProvider extends GenericTableMetaDataProvider {
 		}
 
 		Connection con = databaseMetaData.getConnection();
+		NativeJdbcExtractor nativeJdbcExtractor = getNativeJdbcExtractor();
+		if (nativeJdbcExtractor != null) {
+			con = nativeJdbcExtractor.getNativeConnection(con);
+		}
+
+		boolean isOracleCon = false;
 		try {
 			Class<?> oracleConClass = con.getClass().getClassLoader().loadClass("oracle.jdbc.OracleConnection");
-			con = (Connection) con.unwrap(oracleConClass);
+			isOracleCon = oracleConClass.isInstance(con);
+			if (!isOracleCon) {
+				con = (Connection) con.unwrap(oracleConClass);
+				isOracleCon = oracleConClass.isInstance(con);
+			}
 		}
-		catch (ClassNotFoundException | SQLException ex) {
+		catch (ClassNotFoundException ex) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Could not find Oracle JDBC API: " + ex);
+			}
+		}
+		catch (SQLException ex) {
+			// No OracleConnection found by unwrap
+		}
+
+		if (!isOracleCon) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("Unable to include synonyms in table metadata lookup - no Oracle Connection: " + ex);
+				logger.warn("Unable to include synonyms in table metadata lookup - no Oracle Connection: " + con);
 			}
 			super.initializeWithTableColumnMetaData(databaseMetaData, catalogName, schemaName, tableName);
 			return;

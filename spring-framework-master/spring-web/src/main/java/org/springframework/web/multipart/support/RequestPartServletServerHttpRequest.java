@@ -95,21 +95,21 @@ public class RequestPartServletServerHttpRequest extends ServletServerHttpReques
 			}
 			else {
 				String paramValue = this.multipartRequest.getParameter(this.partName);
-				return new ByteArrayInputStream(paramValue.getBytes(determineCharset()));
+				return new ByteArrayInputStream(paramValue.getBytes(determineEncoding()));
 			}
 		}
 	}
 
-	private Charset determineCharset() {
+	private String determineEncoding() {
 		MediaType contentType = getHeaders().getContentType();
 		if (contentType != null) {
 			Charset charset = contentType.getCharset();
 			if (charset != null) {
-				return charset;
+				return charset.name();
 			}
 		}
 		String encoding = this.multipartRequest.getCharacterEncoding();
-		return (encoding != null ? Charset.forName(encoding) : FORM_CHARSET);
+		return (encoding != null ? encoding : FORM_CHARSET);
 	}
 
 }

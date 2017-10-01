@@ -79,10 +79,10 @@ public final class WebAsyncManager {
 	private Object[] concurrentResultContext;
 
 	private final Map<Object, CallableProcessingInterceptor> callableInterceptors =
-			new LinkedHashMap<>();
+			new LinkedHashMap<Object, CallableProcessingInterceptor>();
 
 	private final Map<Object, DeferredResultProcessingInterceptor> deferredResultInterceptors =
-			new LinkedHashMap<>();
+			new LinkedHashMap<Object, DeferredResultProcessingInterceptor>();
 
 
 	/**
@@ -278,7 +278,7 @@ public final class WebAsyncManager {
 			this.taskExecutor = executor;
 		}
 
-		List<CallableProcessingInterceptor> interceptors = new ArrayList<>();
+		List<CallableProcessingInterceptor> interceptors = new ArrayList<CallableProcessingInterceptor>();
 		interceptors.add(webAsyncTask.getInterceptor());
 		interceptors.addAll(this.callableInterceptors.values());
 		interceptors.add(timeoutCallableInterceptor);
@@ -378,7 +378,7 @@ public final class WebAsyncManager {
 			this.asyncWebRequest.setTimeout(timeout);
 		}
 
-		List<DeferredResultProcessingInterceptor> interceptors = new ArrayList<>();
+		List<DeferredResultProcessingInterceptor> interceptors = new ArrayList<DeferredResultProcessingInterceptor>();
 		interceptors.add(deferredResult.getInterceptor());
 		interceptors.addAll(this.deferredResultInterceptors.values());
 		interceptors.add(timeoutDeferredResultInterceptor);

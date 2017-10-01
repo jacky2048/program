@@ -107,7 +107,8 @@ public class JmsListenerAnnotationBeanPostProcessor
 
 	private final AtomicInteger counter = new AtomicInteger();
 
-	private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
+	private final Set<Class<?>> nonAnnotatedClasses =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(64));
 
 
 	@Override

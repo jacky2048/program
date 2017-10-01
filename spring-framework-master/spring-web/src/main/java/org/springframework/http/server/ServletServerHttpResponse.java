@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -37,6 +38,11 @@ import org.springframework.util.CollectionUtils;
  * @since 3.0
  */
 public class ServletServerHttpResponse implements ServerHttpResponse {
+
+	/** Checking for Servlet 3.0+ HttpServletResponse.getHeader(String) */
+	private static final boolean servlet3Present =
+			ClassUtils.hasMethod(HttpServletResponse.class, "getHeader", String.class);
+
 
 	private final HttpServletResponse servletResponse;
 
@@ -54,7 +60,7 @@ public class ServletServerHttpResponse implements ServerHttpResponse {
 	public ServletServerHttpResponse(HttpServletResponse servletResponse) {
 		Assert.notNull(servletResponse, "HttpServletResponse must not be null");
 		this.servletResponse = servletResponse;
-		this.headers = new ServletResponseHttpHeaders();
+		this.headers = (servlet3Present ? new ServletResponseHttpHeaders() : new HttpHeaders());
 	}
 
 
@@ -162,7 +168,7 @@ public class ServletServerHttpResponse implements ServerHttpResponse {
 				return null;
 			}
 
-			List<String> values = new ArrayList<>();
+			List<String> values = new ArrayList<String>();
 			if (!isEmpty1) {
 				values.addAll(values1);
 			}

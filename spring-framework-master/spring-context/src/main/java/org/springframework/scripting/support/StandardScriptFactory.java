@@ -17,7 +17,6 @@
 package org.springframework.scripting.support;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -29,7 +28,6 @@ import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -152,11 +150,7 @@ public class StandardScriptFactory implements ScriptFactory, BeanClassLoaderAwar
 		if (script instanceof Class) {
 			Class<?> scriptClass = (Class<?>) script;
 			try {
-				return ReflectionUtils.accessibleConstructor(scriptClass).newInstance();
-			}
-			catch (NoSuchMethodException ex) {
-				throw new ScriptCompilationException(
-						"No default constructor on script class: " + scriptClass.getName(), ex);
+				return scriptClass.newInstance();
 			}
 			catch (InstantiationException ex) {
 				throw new ScriptCompilationException(
@@ -165,10 +159,6 @@ public class StandardScriptFactory implements ScriptFactory, BeanClassLoaderAwar
 			catch (IllegalAccessException ex) {
 				throw new ScriptCompilationException(
 						scriptSource, "Could not access script constructor: " + scriptClass.getName(), ex);
-			}
-			catch (InvocationTargetException ex) {
-				throw new ScriptCompilationException(
-						"Failed to invoke script constructor: " + scriptClass.getName(), ex.getTargetException());
 			}
 		}
 

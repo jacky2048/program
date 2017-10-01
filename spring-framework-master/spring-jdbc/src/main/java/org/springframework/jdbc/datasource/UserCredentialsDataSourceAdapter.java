@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.springframework.core.NamedThreadLocal;
+import org.springframework.lang.UsesJava7;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -70,7 +71,7 @@ public class UserCredentialsDataSourceAdapter extends DelegatingDataSource {
 	private String schema;
 
 	private final ThreadLocal<JdbcUserCredentials> threadBoundCredentials =
-			new NamedThreadLocal<>("Current JDBC user credentials");
+			new NamedThreadLocal<JdbcUserCredentials>("Current JDBC user credentials");
 
 
 	/**
@@ -148,6 +149,7 @@ public class UserCredentialsDataSourceAdapter extends DelegatingDataSource {
 	 * determined credentials as parameters.
 	 */
 	@Override
+	@UsesJava7
 	public Connection getConnection() throws SQLException {
 		JdbcUserCredentials threadCredentials = this.threadBoundCredentials.get();
 		Connection con = (threadCredentials != null ?

@@ -457,7 +457,7 @@ public abstract class ScriptUtils {
 				separator = FALLBACK_STATEMENT_SEPARATOR;
 			}
 
-			List<String> statements = new LinkedList<>();
+			List<String> statements = new LinkedList<String>();
 			splitSqlScript(resource, script, separator, commentPrefix, blockCommentStartDelimiter,
 					blockCommentEndDelimiter, statements);
 

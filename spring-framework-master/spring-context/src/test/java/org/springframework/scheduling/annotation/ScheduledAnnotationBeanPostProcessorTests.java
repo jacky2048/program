@@ -486,7 +486,7 @@ public class ScheduledAnnotationBeanPostProcessorTests {
 		BeanDefinition targetDefinition = new RootBeanDefinition(ExpressionWithCronTestBean.class);
 		context.registerBeanDefinition("postProcessor", processorDefinition);
 		context.registerBeanDefinition("target", targetDefinition);
-		Map<String, String> schedules = new HashMap<>();
+		Map<String, String> schedules = new HashMap<String, String>();
 		schedules.put("businessHours", businessHoursCronExpression);
 		context.getBeanFactory().registerSingleton("schedules", schedules);
 		context.refresh();

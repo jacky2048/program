@@ -285,7 +285,7 @@ class ConfigurationClassEnhancer {
 		@Override
 		public boolean isMatch(Method candidateMethod) {
 			return (candidateMethod.getName().equals("setBeanFactory") &&
-					candidateMethod.getParameterCount() == 1 &&
+					candidateMethod.getParameterTypes().length == 1 &&
 					BeanFactory.class == candidateMethod.getParameterTypes()[0] &&
 					BeanFactoryAware.class.isAssignableFrom(candidateMethod.getDeclaringClass()));
 		}
@@ -543,7 +543,7 @@ class ConfigurationClassEnhancer {
 
 			if (fbProxy == null) {
 				try {
-					fbProxy = ReflectionUtils.accessibleConstructor(fbClass).newInstance();
+					fbProxy = fbClass.newInstance();
 				}
 				catch (Throwable ex) {
 					throw new IllegalStateException("Unable to instantiate enhanced FactoryBean using Objenesis, " +

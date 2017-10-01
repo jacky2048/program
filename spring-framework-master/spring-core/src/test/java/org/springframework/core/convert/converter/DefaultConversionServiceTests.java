@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -277,12 +276,12 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void testStringToCharset() {
-		assertEquals(StandardCharsets.UTF_8, conversionService.convert("UTF-8", Charset.class));
+		assertEquals(Charset.forName("UTF-8"), conversionService.convert("UTF-8", Charset.class));
 	}
 
 	@Test
 	public void testCharsetToString() {
-		assertEquals("UTF-8", conversionService.convert(StandardCharsets.UTF_8, String.class));
+		assertEquals("UTF-8", conversionService.convert(Charset.forName("UTF-8"), String.class));
 	}
 
 	@Test
@@ -477,7 +476,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void convertCollectionToArray() {
-		List<String> list = new ArrayList<>();
+		List<String> list = new ArrayList<String>();
 		list.add("1");
 		list.add("2");
 		list.add("3");
@@ -489,7 +488,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void convertCollectionToArrayWithElementConversion() {
-		List<String> list = new ArrayList<>();
+		List<String> list = new ArrayList<String>();
 		list.add("1");
 		list.add("2");
 		list.add("3");
@@ -558,7 +557,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void convertCollectionToObjectAssignableTarget() throws Exception {
-		Collection<String> source = new ArrayList<>();
+		Collection<String> source = new ArrayList<String>();
 		source.add("foo");
 		Object result = conversionService.convert(source, new TypeDescriptor(getClass().getField("assignableTarget")));
 		assertEquals(source, result);
@@ -567,7 +566,7 @@ public class DefaultConversionServiceTests {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void convertCollectionToObjectWithCustomConverter() throws Exception {
-		List<String> source = new ArrayList<>();
+		List<String> source = new ArrayList<String>();
 		source.add("A");
 		source.add("B");
 		conversionService.addConverter(new Converter<List, ListWrapper>() {
@@ -662,7 +661,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void convertCollectionToCollection() throws Exception {
-		Set<String> foo = new LinkedHashSet<>();
+		Set<String> foo = new LinkedHashSet<String>();
 		foo.add("1");
 		foo.add("2");
 		foo.add("3");
@@ -685,7 +684,7 @@ public class DefaultConversionServiceTests {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void convertCollectionToCollectionNotGeneric() throws Exception {
-		Set<String> foo = new LinkedHashSet<>();
+		Set<String> foo = new LinkedHashSet<String>();
 		foo.add("1");
 		foo.add("2");
 		foo.add("3");
@@ -714,7 +713,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void collection() {
-		List<String> strings = new ArrayList<>();
+		List<String> strings = new ArrayList<String>();
 		strings.add("3");
 		strings.add("9");
 		@SuppressWarnings("unchecked")
@@ -726,7 +725,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void convertMapToMap() throws Exception {
-		Map<String, String> foo = new HashMap<>();
+		Map<String, String> foo = new HashMap<String, String>();
 		foo.put("1", "BAR");
 		foo.put("2", "BAZ");
 		@SuppressWarnings("unchecked")
@@ -739,7 +738,7 @@ public class DefaultConversionServiceTests {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void convertHashMapValuesToList() {
-		Map<String, Integer> hashMap = new LinkedHashMap<>();
+		Map<String, Integer> hashMap = new LinkedHashMap<String, Integer>();
 		hashMap.put("1", 1);
 		hashMap.put("2", 2);
 		List converted = conversionService.convert(hashMap.values(), List.class);
@@ -748,7 +747,7 @@ public class DefaultConversionServiceTests {
 
 	@Test
 	public void map() {
-		Map<String, String> strings = new HashMap<>();
+		Map<String, String> strings = new HashMap<String, String>();
 		strings.put("3", "9");
 		strings.put("6", "31");
 		@SuppressWarnings("unchecked")
@@ -963,11 +962,11 @@ public class DefaultConversionServiceTests {
 
 	// test fields and helpers
 
-	public List<Integer> genericList = new ArrayList<>();
+	public List<Integer> genericList = new ArrayList<Integer>();
 
 	public Stream<Integer> genericStream;
 
-	public Map<Integer, FooEnum> genericMap = new HashMap<>();
+	public Map<Integer, FooEnum> genericMap = new HashMap<Integer, FooEnum>();
 
 	public EnumSet<Foo> enumSet;
 

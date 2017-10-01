@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 
 /**
  * Represents a URI template. A URI template is a URI-like String that contains variables
- * enclosed by braces ({@code {}}) which can be expanded to produce an actual URI.
+ * enclosed by braces ({@code {}}), which can be expanded to produce an actual URI.
  *
  * <p>See {@link #expand(Map)}, {@link #expand(Object[])}, and {@link #match(String)}
  * for example usages.
@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
  * @since 3.0
+ * @see <a href="http://bitworking.org/projects/URI-Templates/">URI Templates</a>
  */
 @SuppressWarnings("serial")
 public class UriTemplate implements Serializable {
@@ -145,7 +146,7 @@ public class UriTemplate implements Serializable {
 	 */
 	public Map<String, String> match(String uri) {
 		Assert.notNull(uri, "'uri' must not be null");
-		Map<String, String> result = new LinkedHashMap<>(this.variableNames.size());
+		Map<String, String> result = new LinkedHashMap<String, String>(this.variableNames.size());
 		Matcher matcher = this.matchPattern.matcher(uri);
 		if (matcher.find()) {
 			for (int i = 1; i <= matcher.groupCount(); i++) {
@@ -187,7 +188,7 @@ public class UriTemplate implements Serializable {
 
 		public static TemplateInfo parse(String uriTemplate) {
 			int level = 0;
-			List<String> variableNames = new ArrayList<>();
+			List<String> variableNames = new ArrayList<String>();
 			StringBuilder pattern = new StringBuilder();
 			StringBuilder builder = new StringBuilder();
 			for (int i = 0 ; i < uriTemplate.length(); i++) {

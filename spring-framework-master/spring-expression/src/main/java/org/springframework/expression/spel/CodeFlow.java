@@ -133,7 +133,7 @@ public class CodeFlow implements Opcodes {
 	 * each argument will be evaluated in a new scope.
 	 */
 	public void enterCompilationScope() {
-		this.compilationScopes.push(new ArrayList<>());
+		this.compilationScopes.push(new ArrayList<String>());
 	}
 
 	/**
@@ -197,7 +197,7 @@ public class CodeFlow implements Opcodes {
 	 */
 	public void registerNewField(FieldAdder fieldAdder) {
 		if (this.fieldAdders == null) {
-			this.fieldAdders = new ArrayList<>();
+			this.fieldAdders = new ArrayList<FieldAdder>();
 		}
 		this.fieldAdders.add(fieldAdder);
 	}
@@ -209,7 +209,7 @@ public class CodeFlow implements Opcodes {
 	 */
 	public void registerNewClinit(ClinitAdder clinitAdder) {
 		if (this.clinitAdders == null) {
-			this.clinitAdders = new ArrayList<>();
+			this.clinitAdders = new ArrayList<ClinitAdder>();
 		}
 		this.clinitAdders.add(clinitAdder);
 	}
@@ -223,6 +223,11 @@ public class CodeFlow implements Opcodes {
 	}
 
 	public String getClassName() {
+		return this.className;
+	}
+
+	@Deprecated
+	public String getClassname() {
 		return this.className;
 	}
 
@@ -989,14 +994,12 @@ public class CodeFlow implements Opcodes {
 	}
 
 
-	@FunctionalInterface
 	public interface FieldAdder {
 
 		void generateField(ClassWriter cw, CodeFlow codeflow);
 	}
 
 
-	@FunctionalInterface
 	public interface ClinitAdder {
 
 		void generateCode(MethodVisitor mv, CodeFlow codeflow);

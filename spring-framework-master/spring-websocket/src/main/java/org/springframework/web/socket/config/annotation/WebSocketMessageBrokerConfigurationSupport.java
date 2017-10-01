@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.messaging.simp.broker.AbstractBrokerMessageHandler;
 import org.springframework.messaging.simp.config.AbstractMessageBrokerConfiguration;
 import org.springframework.messaging.simp.stomp.StompBrokerRelayMessageHandler;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
+import org.springframework.messaging.simp.user.UserSessionRegistryAdapter;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
@@ -58,15 +59,21 @@ public abstract class WebSocketMessageBrokerConfigurationSupport extends Abstrac
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected SimpUserRegistry createLocalUserRegistry() {
+		org.springframework.messaging.simp.user.UserSessionRegistry sessionRegistry = userSessionRegistry();
+		if (sessionRegistry != null) {
+			return new UserSessionRegistryAdapter(sessionRegistry);
+		}
 		return new DefaultSimpUserRegistry();
 	}
 
 	@Bean
+	@SuppressWarnings("deprecation")
 	public HandlerMapping stompWebSocketHandlerMapping() {
 		WebSocketHandler handler = decorateWebSocketHandler(subProtocolWebSocketHandler());
 		WebMvcStompEndpointRegistry registry = new WebMvcStompEndpointRegistry(handler,
-				getTransportRegistration(), messageBrokerTaskScheduler());
+				getTransportRegistration(), userSessionRegistry(), messageBrokerTaskScheduler());
 		registry.setApplicationContext(getApplicationContext());
 		registerStompEndpoints(registry);
 		return registry.getHandlerMapping();

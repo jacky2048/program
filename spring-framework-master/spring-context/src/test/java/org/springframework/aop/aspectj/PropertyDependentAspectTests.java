@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
  * @author Chris Beams
  */
 @SuppressWarnings("resource")
-public class PropertyDependentAspectTests {
+public final class PropertyDependentAspectTests {
 
 	@Test
 	public void propertyDependentAspectWithPropertyDeclaredBeforeAdvice()

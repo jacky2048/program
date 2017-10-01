@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.springframework.util.ReflectionUtils;
-
 /**
  * Property editor for Maps, converting any source Map
  * to a given target Map type.
@@ -132,7 +130,7 @@ public class CustomMapEditor extends PropertyEditorSupport {
 	protected Map<Object, Object> createMap(Class<? extends Map> mapType, int initialCapacity) {
 		if (!mapType.isInterface()) {
 			try {
-				return ReflectionUtils.accessibleConstructor(mapType).newInstance();
+				return mapType.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalArgumentException(
@@ -140,10 +138,10 @@ public class CustomMapEditor extends PropertyEditorSupport {
 			}
 		}
 		else if (SortedMap.class == mapType) {
-			return new TreeMap<>();
+			return new TreeMap<Object, Object>();
 		}
 		else {
-			return new LinkedHashMap<>(initialCapacity);
+			return new LinkedHashMap<Object, Object>(initialCapacity);
 		}
 	}
 

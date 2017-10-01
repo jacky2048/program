@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ public abstract class HttpRange {
 		ranges = ranges.substring(BYTE_RANGE_PREFIX.length());
 
 		String[] tokens = StringUtils.tokenizeToStringArray(ranges, ",");
-		List<HttpRange> result = new ArrayList<>(tokens.length);
+		List<HttpRange> result = new ArrayList<HttpRange>(tokens.length);
 		for (String token : tokens) {
 			result.add(parseRange(token));
 		}
@@ -174,7 +174,7 @@ public abstract class HttpRange {
 		if (CollectionUtils.isEmpty(ranges)) {
 			return Collections.emptyList();
 		}
-		List<ResourceRegion> regions = new ArrayList<>(ranges.size());
+		List<ResourceRegion> regions = new ArrayList<ResourceRegion>(ranges.size());
 		for (HttpRange range : ranges) {
 			regions.add(range.toResourceRegion(resource));
 		}
@@ -321,7 +321,7 @@ public abstract class HttpRange {
 
 		@Override
 		public int hashCode() {
-			return Long.hashCode(this.suffixLength);
+			return ObjectUtils.hashCode(this.suffixLength);
 		}
 
 		@Override

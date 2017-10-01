@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class NameMatchMethodPointcutTests {
+public final class NameMatchMethodPointcutTests {
 
 	protected NameMatchMethodPointcut pc;
 

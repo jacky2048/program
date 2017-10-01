@@ -54,9 +54,9 @@ public class ShadowingClassLoader extends DecoratingClassLoader {
 
 	private final ClassLoader enclosingClassLoader;
 
-	private final List<ClassFileTransformer> classFileTransformers = new LinkedList<>();
+	private final List<ClassFileTransformer> classFileTransformers = new LinkedList<ClassFileTransformer>();
 
-	private final Map<String, Class<?>> classCache = new HashMap<>();
+	private final Map<String, Class<?>> classCache = new HashMap<String, Class<?>>();
 
 
 	/**

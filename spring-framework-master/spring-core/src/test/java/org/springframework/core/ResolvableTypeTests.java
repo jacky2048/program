@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import org.springframework.core.ResolvableType.VariableResolver;
 import org.springframework.util.MultiValueMap;
@@ -223,7 +223,7 @@ public class ResolvableTypeTests {
 	@Test
 	public void forMethodParameter() throws Exception {
 		Method method = Methods.class.getMethod("charSequenceParameter", List.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		ResolvableType type = ResolvableType.forMethodParameter(methodParameter);
 		assertThat(type.getType(), equalTo(method.getGenericParameterTypes()[0]));
 	}
@@ -231,7 +231,7 @@ public class ResolvableTypeTests {
 	@Test
 	public void forMethodParameterWithNesting() throws Exception {
 		Method method = Methods.class.getMethod("nested", Map.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		methodParameter.increaseNestingLevel();
 		ResolvableType type = ResolvableType.forMethodParameter(methodParameter);
 		assertThat(type.resolve(), equalTo((Class) Map.class));
@@ -242,7 +242,7 @@ public class ResolvableTypeTests {
 	@Test
 	public void forMethodParameterWithNestingAndLevels() throws Exception {
 		Method method = Methods.class.getMethod("nested", Map.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		methodParameter.increaseNestingLevel();
 		methodParameter.setTypeIndexForCurrentLevel(0);
 		ResolvableType type = ResolvableType.forMethodParameter(methodParameter);
@@ -791,7 +791,7 @@ public class ResolvableTypeTests {
 	@Test
 	public void resolveTypeVariableFromMethodParameterType() throws Exception {
 		Method method = Methods.class.getMethod("typedParameter", Object.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		ResolvableType type = ResolvableType.forMethodParameter(methodParameter);
 		assertThat(type.resolve(), nullValue());
 		assertThat(type.getType().toString(), equalTo("T"));
@@ -800,7 +800,7 @@ public class ResolvableTypeTests {
 	@Test
 	public void resolveTypeVariableFromMethodParameterTypeWithImplementsClass() throws Exception {
 		Method method = Methods.class.getMethod("typedParameter", Object.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		methodParameter.setContainingClass(TypedMethods.class);
 		ResolvableType type = ResolvableType.forMethodParameter(methodParameter);
 		assertThat(type.resolve(), equalTo((Class) String.class));
@@ -810,7 +810,7 @@ public class ResolvableTypeTests {
 	@Test
 	public void resolveTypeVariableFromMethodParameterTypeWithImplementsType() throws Exception {
 		Method method = Methods.class.getMethod("typedParameter", Object.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		ResolvableType implementationType = ResolvableType.forClassWithGenerics(Methods.class, Integer.class);
 		ResolvableType type = ResolvableType.forMethodParameter(methodParameter, implementationType);
 		assertThat(type.resolve(), equalTo((Class) Integer.class));
@@ -855,7 +855,7 @@ public class ResolvableTypeTests {
 		VariableResolver variableResolver = mock(VariableResolver.class);
 		given(variableResolver.getSource()).willReturn(this);
 		ResolvableType longType = ResolvableType.forClass(Long.class);
-		given(variableResolver.resolveVariable(any())).willReturn(longType);
+		given(variableResolver.resolveVariable((TypeVariable<?>) anyObject())).willReturn(longType);
 
 		ResolvableType variable = ResolvableType.forType(
 				Fields.class.getField("typeVariableType").getGenericType(), variableResolver);
@@ -902,7 +902,7 @@ public class ResolvableTypeTests {
 		Field basicField = Fields.class.getField("classType");
 		Field field = Fields.class.getField("charSequenceList");
 		Method method = Methods.class.getMethod("charSequenceParameter", List.class);
-		MethodParameter methodParameter = MethodParameter.forExecutable(method, 0);
+		MethodParameter methodParameter = MethodParameter.forMethodOrConstructor(method, 0);
 		assertThat(ResolvableType.forField(basicField).getSource(), equalTo((Object) basicField));
 		assertThat(ResolvableType.forField(field).getSource(), equalTo((Object) field));
 		assertThat(ResolvableType.forMethodParameter(methodParameter).getSource(), equalTo((Object) methodParameter));

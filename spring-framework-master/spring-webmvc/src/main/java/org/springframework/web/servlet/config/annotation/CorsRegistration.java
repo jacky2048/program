@@ -16,6 +16,7 @@
 
 package org.springframework.web.servlet.config.annotation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.springframework.web.cors.CorsConfiguration;

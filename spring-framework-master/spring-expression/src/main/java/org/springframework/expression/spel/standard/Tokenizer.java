@@ -72,7 +72,7 @@ class Tokenizer {
 
 	int max;
 
-	List<Token> tokens = new ArrayList<>();
+	List<Token> tokens = new ArrayList<Token>();
 
 
 	public Tokenizer(String inputData) {

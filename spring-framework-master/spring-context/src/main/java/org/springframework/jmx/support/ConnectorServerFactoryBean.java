@@ -61,7 +61,7 @@ public class ConnectorServerFactoryBean extends MBeanRegistrationSupport
 
 	private String serviceUrl = DEFAULT_SERVICE_URL;
 
-	private Map<String, Object> environment = new HashMap<>();
+	private Map<String, Object> environment = new HashMap<String, Object>();
 
 	private MBeanServerForwarder forwarder;
 

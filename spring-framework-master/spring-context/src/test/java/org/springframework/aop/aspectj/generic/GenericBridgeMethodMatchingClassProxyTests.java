@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
  * @author Ramnivas Laddad
  * @author Chris Beams
  */
-public class GenericBridgeMethodMatchingClassProxyTests extends GenericBridgeMethodMatchingTests {
+public final class GenericBridgeMethodMatchingClassProxyTests extends GenericBridgeMethodMatchingTests {
 
 	@Test
 	public void testGenericDerivedInterfaceMethodThroughClass() {

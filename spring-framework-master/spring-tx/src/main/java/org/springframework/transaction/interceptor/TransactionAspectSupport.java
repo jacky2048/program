@@ -85,7 +85,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * single method (as will be the case for around advice).
 	 */
 	private static final ThreadLocal<TransactionInfo> transactionInfoHolder =
-			new NamedThreadLocal<>("Current aspect-driven transaction");
+			new NamedThreadLocal<TransactionInfo>("Current aspect-driven transaction");
 
 
 	/**
@@ -136,7 +136,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	private BeanFactory beanFactory;
 
 	private final ConcurrentMap<Object, PlatformTransactionManager> transactionManagerCache =
-			new ConcurrentReferenceHashMap<>(4);
+			new ConcurrentReferenceHashMap<Object, PlatformTransactionManager>(4);
 
 
 	/**
@@ -650,7 +650,6 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * Simple callback interface for proceeding with the target invocation.
 	 * Concrete interceptors/aspects adapt this to their invocation mechanism.
 	 */
-	@FunctionalInterface
 	protected interface InvocationCallback {
 
 		Object proceedWithInvocation() throws Throwable;

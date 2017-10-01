@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
+import org.springframework.web.HttpMediaTypeException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.mvc.condition.HeadersRequestCondition.HeaderExpression;
@@ -78,13 +80,13 @@ public final class ConsumesRequestCondition extends AbstractRequestCondition<Con
 	 * Private constructor accepting parsed media type expressions.
 	 */
 	private ConsumesRequestCondition(Collection<ConsumeMediaTypeExpression> expressions) {
-		this.expressions = new ArrayList<>(expressions);
+		this.expressions = new ArrayList<ConsumeMediaTypeExpression>(expressions);
 		Collections.sort(this.expressions);
 	}
 
 
 	private static Set<ConsumeMediaTypeExpression> parseExpressions(String[] consumes, String[] headers) {
-		Set<ConsumeMediaTypeExpression> result = new LinkedHashSet<>();
+		Set<ConsumeMediaTypeExpression> result = new LinkedHashSet<ConsumeMediaTypeExpression>();
 		if (headers != null) {
 			for (String header : headers) {
 				HeaderExpression expr = new HeaderExpression(header);
@@ -108,14 +110,14 @@ public final class ConsumesRequestCondition extends AbstractRequestCondition<Con
 	 * Return the contained MediaType expressions.
 	 */
 	public Set<MediaTypeExpression> getExpressions() {
-		return new LinkedHashSet<>(this.expressions);
+		return new LinkedHashSet<MediaTypeExpression>(this.expressions);
 	}
 
 	/**
 	 * Returns the media types for this condition excluding negated expressions.
 	 */
 	public Set<MediaType> getConsumableMediaTypes() {
-		Set<MediaType> result = new LinkedHashSet<>();
+		Set<MediaType> result = new LinkedHashSet<MediaType>();
 		for (ConsumeMediaTypeExpression expression : this.expressions) {
 			if (!expression.isNegated()) {
 				result.add(expression.getMediaType());
@@ -178,7 +180,7 @@ public final class ConsumesRequestCondition extends AbstractRequestCondition<Con
 		catch (InvalidMediaTypeException ex) {
 			return null;
 		}
-		Set<ConsumeMediaTypeExpression> result = new LinkedHashSet<>(this.expressions);
+		Set<ConsumeMediaTypeExpression> result = new LinkedHashSet<ConsumeMediaTypeExpression>(this.expressions);
 		for (Iterator<ConsumeMediaTypeExpression> iterator = result.iterator(); iterator.hasNext();) {
 			ConsumeMediaTypeExpression expression = iterator.next();
 			if (!expression.match(contentType)) {

@@ -62,7 +62,7 @@ public class ReflectivePropertyAccessor implements PropertyAccessor {
 	private static final Set<Class<?>> BOOLEAN_TYPES;
 
 	static {
-		Set<Class<?>> booleanTypes = new HashSet<>();
+		Set<Class<?>> booleanTypes = new HashSet<Class<?>>();
 		booleanTypes.add(Boolean.class);
 		booleanTypes.add(Boolean.TYPE);
 		BOOLEAN_TYPES = Collections.unmodifiableSet(booleanTypes);
@@ -70,13 +70,13 @@ public class ReflectivePropertyAccessor implements PropertyAccessor {
 
 
 	private final Map<PropertyCacheKey, InvokerPair> readerCache =
-			new ConcurrentHashMap<>(64);
+			new ConcurrentHashMap<PropertyCacheKey, InvokerPair>(64);
 
 	private final Map<PropertyCacheKey, Member> writerCache =
-			new ConcurrentHashMap<>(64);
+			new ConcurrentHashMap<PropertyCacheKey, Member>(64);
 
 	private final Map<PropertyCacheKey, TypeDescriptor> typeDescriptorCache =
-			new ConcurrentHashMap<>(64);
+			new ConcurrentHashMap<PropertyCacheKey, TypeDescriptor>(64);
 
 	private InvokerPair lastReadInvokerPair;
 
@@ -374,7 +374,7 @@ public class ReflectivePropertyAccessor implements PropertyAccessor {
 		for (String methodSuffix : methodSuffixes) {
 			for (Method method : methods) {
 				if (method.getName().equals(prefix + methodSuffix) &&
-						method.getParameterCount() == numberOfParams &&
+						method.getParameterTypes().length == numberOfParams &&
 						(!mustBeStatic || Modifier.isStatic(method.getModifiers())) &&
 						(requiredReturnTypes.isEmpty() || requiredReturnTypes.contains(method.getReturnType()))) {
 					return method;

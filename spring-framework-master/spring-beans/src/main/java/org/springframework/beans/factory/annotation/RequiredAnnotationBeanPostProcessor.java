@@ -93,7 +93,8 @@ public class RequiredAnnotationBeanPostProcessor extends InstantiationAwareBeanP
 	/**
 	 * Cache for validated bean names, skipping re-validation for the same bean
 	 */
-	private final Set<String> validatedBeanNames = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
+	private final Set<String> validatedBeanNames =
+			Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(64));
 
 
 	/**
@@ -144,7 +145,7 @@ public class RequiredAnnotationBeanPostProcessor extends InstantiationAwareBeanP
 
 		if (!this.validatedBeanNames.contains(beanName)) {
 			if (!shouldSkip(this.beanFactory, beanName)) {
-				List<String> invalidProperties = new ArrayList<>();
+				List<String> invalidProperties = new ArrayList<String>();
 				for (PropertyDescriptor pd : pds) {
 					if (isRequiredProperty(pd) && !pvs.contains(pd.getName())) {
 						invalidProperties.add(pd.getName());

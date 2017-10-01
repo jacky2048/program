@@ -22,7 +22,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
@@ -56,7 +55,7 @@ public class ResourceUrlProvider implements ApplicationListener<ContextRefreshed
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
-	private final Map<String, ResourceHttpRequestHandler> handlerMap = new LinkedHashMap<>();
+	private final Map<String, ResourceHttpRequestHandler> handlerMap = new LinkedHashMap<String, ResourceHttpRequestHandler>();
 
 	private boolean autodetect = true;
 
@@ -75,6 +74,14 @@ public class ResourceUrlProvider implements ApplicationListener<ContextRefreshed
 	 * @since 4.2.8
 	 */
 	public UrlPathHelper getUrlPathHelper() {
+		return this.urlPathHelper;
+	}
+
+	/**
+	 * @deprecated as of Spring 4.2.8, in favor of {@link #getUrlPathHelper}
+	 */
+	@Deprecated
+	public UrlPathHelper getPathHelper() {
 		return this.urlPathHelper;
 	}
 
@@ -142,7 +149,7 @@ public class ResourceUrlProvider implements ApplicationListener<ContextRefreshed
 		logger.debug("Looking for resource handler mappings");
 
 		Map<String, SimpleUrlHandlerMapping> map = appContext.getBeansOfType(SimpleUrlHandlerMapping.class);
-		List<SimpleUrlHandlerMapping> handlerMappings = new ArrayList<>(map.values());
+		List<SimpleUrlHandlerMapping> handlerMappings = new ArrayList<SimpleUrlHandlerMapping>(map.values());
 		AnnotationAwareOrderComparator.sort(handlerMappings);
 
 		for (SimpleUrlHandlerMapping hm : handlerMappings) {
@@ -219,7 +226,7 @@ public class ResourceUrlProvider implements ApplicationListener<ContextRefreshed
 			logger.trace("Getting resource URL for lookup path \"" + lookupPath + "\"");
 		}
 
-		List<String> matchingPatterns = new ArrayList<>();
+		List<String> matchingPatterns = new ArrayList<String>();
 		for (String pattern : this.handlerMap.keySet()) {
 			if (getPathMatcher().match(pattern, lookupPath)) {
 				matchingPatterns.add(pattern);

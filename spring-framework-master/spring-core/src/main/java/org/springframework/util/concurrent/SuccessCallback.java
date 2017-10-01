@@ -22,7 +22,6 @@ package org.springframework.util.concurrent;
  * @author Sebastien Deleuze
  * @since 4.1
  */
-@FunctionalInterface
 public interface SuccessCallback<T> {
 
 	/**

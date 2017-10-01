@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -447,7 +447,7 @@ public class StoredProcedureTests {
 		}
 
 		public int execute(int intIn) {
-			Map<String, Integer> in = new HashMap<>();
+			Map<String, Integer> in = new HashMap<String, Integer>();
 			in.put("intIn", intIn);
 			Map<String, Object> out = execute(in);
 			return ((Number) out.get("intOut")).intValue();
@@ -468,7 +468,7 @@ public class StoredProcedureTests {
 		}
 
 		public int execute(int amount, int custid) {
-			Map<String, Integer> in = new HashMap<>();
+			Map<String, Integer> in = new HashMap<String, Integer>();
 			in.put("amount", amount);
 			in.put("custid", custid);
 			Map<String, Object> out = execute(in);
@@ -507,7 +507,7 @@ public class StoredProcedureTests {
 		}
 
 		public void execute(String s) {
-			Map<String, String> in = new HashMap<>();
+			Map<String, String> in = new HashMap<String, String>();
 			in.put("ptest", s);
 			execute(in);
 		}
@@ -524,7 +524,7 @@ public class StoredProcedureTests {
 		}
 
 		public void execute() {
-			execute(new HashMap<>());
+			execute(new HashMap<String, Object>());
 		}
 	}
 
@@ -548,7 +548,7 @@ public class StoredProcedureTests {
 		}
 
 		public void execute() {
-			execute(new HashMap<>());
+			execute(new HashMap<String, Object>());
 		}
 	}
 
@@ -566,7 +566,7 @@ public class StoredProcedureTests {
 		}
 
 		public void execute() {
-			execute(new HashMap<>());
+			execute(new HashMap<String, Object>());
 		}
 
 		public int getCount() {
@@ -593,7 +593,7 @@ public class StoredProcedureTests {
 		}
 
 		public Map<String, Object> execute() {
-			return execute(new HashMap<>());
+			return execute(new HashMap<String, Object>());
 		}
 
 		private static class RowMapperImpl implements RowMapper<String> {
@@ -628,7 +628,7 @@ public class StoredProcedureTests {
 
 			@Override
 			public Map<String, ?> createMap(Connection con) throws SQLException {
-				Map<String, Object> inParms = new HashMap<>();
+				Map<String, Object> inParms = new HashMap<String, Object>();
 				String testValue = con.toString();
 				inParms.put("in", testValue);
 				return inParms;
@@ -649,7 +649,7 @@ public class StoredProcedureTests {
 		}
 
 		public Map<String, Object> executeTest(final int[] inValue) {
-			Map<String, AbstractSqlTypeValue> in = new HashMap<>();
+			Map<String, AbstractSqlTypeValue> in = new HashMap<String, AbstractSqlTypeValue>();
 			in.put("in", new AbstractSqlTypeValue() {
 				@Override
 				public Object createTypeValue(Connection con, int type, String typeName) {
@@ -675,7 +675,7 @@ public class StoredProcedureTests {
 		}
 
 		public Map<String, Object> executeTest() {
-			return execute(new HashMap<>());
+			return execute(new HashMap<String, Object>());
 		}
 	}
 
@@ -699,7 +699,7 @@ public class StoredProcedureTests {
 		}
 
 		public void execute() {
-			execute(new HashMap<>());
+			execute(new HashMap<String, Object>());
 		}
 	}
 

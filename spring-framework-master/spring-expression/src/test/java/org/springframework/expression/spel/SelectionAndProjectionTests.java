@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -292,7 +292,7 @@ public class SelectionAndProjectionTests {
 
 	static class ListTestBean {
 
-		private final List<Integer> integers = new ArrayList<>();
+		private final List<Integer> integers = new ArrayList<Integer>();
 
 		ListTestBean() {
 			for (int i = 0; i < 10; i++) {
@@ -308,7 +308,7 @@ public class SelectionAndProjectionTests {
 
 	static class SetTestBean {
 
-		private final Set<Integer> integers = new LinkedHashSet<>();
+		private final Set<Integer> integers = new LinkedHashSet<Integer>();
 
 		SetTestBean() {
 			for (int i = 0; i < 10; i++) {
@@ -324,7 +324,7 @@ public class SelectionAndProjectionTests {
 
 	static class IterableTestBean {
 
-		private final Set<Integer> integers = new LinkedHashSet<>();
+		private final Set<Integer> integers = new LinkedHashSet<Integer>();
 
 		IterableTestBean() {
 			for (int i = 0; i < 10; i++) {
@@ -368,7 +368,7 @@ public class SelectionAndProjectionTests {
 
 	static class MapTestBean {
 
-		private final Map<String, String> colors = new TreeMap<>();
+		private final Map<String, String> colors = new TreeMap<String, String>();
 
 		MapTestBean() {
 			// colors.put("black", "schwarz");
@@ -398,7 +398,7 @@ public class SelectionAndProjectionTests {
 		}
 
 		static List<IntegerTestBean> createList() {
-			List<IntegerTestBean> list = new ArrayList<>();
+			List<IntegerTestBean> list = new ArrayList<IntegerTestBean>();
 			for (int i = 0; i < 3; i++) {
 				list.add(new IntegerTestBean(i + 5));
 			}
@@ -406,7 +406,7 @@ public class SelectionAndProjectionTests {
 		}
 
 		static Set<IntegerTestBean> createSet() {
-			Set<IntegerTestBean> set = new LinkedHashSet<>();
+			Set<IntegerTestBean> set = new LinkedHashSet<IntegerTestBean>();
 			for (int i = 0; i < 3; i++) {
 				set.add(new IntegerTestBean(i + 5));
 			}

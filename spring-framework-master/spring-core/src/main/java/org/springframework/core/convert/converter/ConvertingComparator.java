@@ -21,12 +21,12 @@ import java.util.Map;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.util.Assert;
-import org.springframework.util.comparator.Comparators;
+import org.springframework.util.comparator.ComparableComparator;
 
 /**
- * A {@link Comparator} that converts values before they are compared.
- * The specified {@link Converter} will be used to convert each value
- * before it passed to the underlying {@code Comparator}.
+ * A {@link Comparator} that converts values before they are compared. The specified
+ * {@link Converter} will be used to convert each value before it passed to the underlying
+ * {@code Comparator}.
  *
  * @author Phillip Webb
  * @since 3.2
@@ -44,8 +44,9 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 	 * Create a new {@link ConvertingComparator} instance.
 	 * @param converter the converter
 	 */
+	@SuppressWarnings("unchecked")
 	public ConvertingComparator(Converter<S, T> converter) {
-		this(Comparators.comparable(), converter);
+		this(ComparableComparator.INSTANCE, converter);
 	}
 
 	/**
@@ -61,7 +62,7 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 	}
 
 	/**
-	 * Create a new {@code ConvertingComparator} instance.
+	 * Create a new {@link ComparableComparator} instance.
 	 * @param comparator the underlying comparator
 	 * @param conversionService the conversion service
 	 * @param targetType the target type
@@ -69,7 +70,7 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 	public ConvertingComparator(
 			Comparator<T> comparator, ConversionService conversionService, Class<? extends T> targetType) {
 
-		this(comparator, new ConversionServiceConverter<>(conversionService, targetType));
+		this(comparator, new ConversionServiceConverter<S, T>(conversionService, targetType));
 	}
 
 
@@ -87,7 +88,7 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 	 * @return a new {@link ConvertingComparator} instance
 	 */
 	public static <K, V> ConvertingComparator<Map.Entry<K, V>, K> mapEntryKeys(Comparator<K> comparator) {
-		return new ConvertingComparator<>(comparator, new Converter<Map.Entry<K, V>, K>() {
+		return new ConvertingComparator<Map.Entry<K,V>, K>(comparator, new Converter<Map.Entry<K, V>, K>() {
 			@Override
 			public K convert(Map.Entry<K, V> source) {
 				return source.getKey();
@@ -102,7 +103,7 @@ public class ConvertingComparator<S, T> implements Comparator<S> {
 	 * @return a new {@link ConvertingComparator} instance
 	 */
 	public static <K, V> ConvertingComparator<Map.Entry<K, V>, V> mapEntryValues(Comparator<V> comparator) {
-		return new ConvertingComparator<>(comparator, new Converter<Map.Entry<K, V>, V>() {
+		return new ConvertingComparator<Map.Entry<K,V>, V>(comparator, new Converter<Map.Entry<K, V>, V>() {
 			@Override
 			public V convert(Map.Entry<K, V> source) {
 				return source.getValue();

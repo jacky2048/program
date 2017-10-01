@@ -34,9 +34,9 @@ import org.springframework.util.Assert;
  */
 public class ListenableFutureCallbackRegistry<T> {
 
-	private final Queue<SuccessCallback<? super T>> successCallbacks = new LinkedList<>();
+	private final Queue<SuccessCallback<? super T>> successCallbacks = new LinkedList<SuccessCallback<? super T>>();
 
-	private final Queue<FailureCallback> failureCallbacks = new LinkedList<>();
+	private final Queue<FailureCallback> failureCallbacks = new LinkedList<FailureCallback>();
 
 	private State state = State.NEW;
 
@@ -91,6 +91,7 @@ public class ListenableFutureCallbackRegistry<T> {
 	 * @param callback the success callback to add
 	 * @since 4.1
 	 */
+	@SuppressWarnings("unchecked")
 	public void addSuccessCallback(SuccessCallback<? super T> callback) {
 		Assert.notNull(callback, "'callback' must not be null");
 		synchronized (this.mutex) {

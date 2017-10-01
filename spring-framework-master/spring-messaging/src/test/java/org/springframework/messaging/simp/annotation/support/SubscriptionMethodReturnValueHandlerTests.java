@@ -17,7 +17,7 @@
 package org.springframework.messaging.simp.annotation.support;
 
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.security.Principal;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -56,7 +56,7 @@ import static org.mockito.BDDMockito.*;
  */
 public class SubscriptionMethodReturnValueHandlerTests {
 
-	public static final MimeType MIME_TYPE = new MimeType("text", "plain", StandardCharsets.UTF_8);
+	public static final MimeType MIME_TYPE = new MimeType("text", "plain", Charset.forName("UTF-8"));
 
 	private static final String PAYLOAD = "payload";
 
@@ -178,7 +178,7 @@ public class SubscriptionMethodReturnValueHandlerTests {
 		Message<?> message = this.messageCaptor.getValue();
 		assertNotNull(message);
 
-		assertEquals("{\"withView1\":\"with\"}", new String((byte[]) message.getPayload(), StandardCharsets.UTF_8));
+		assertEquals("{\"withView1\":\"with\"}", new String((byte[]) message.getPayload(), Charset.forName("UTF-8")));
 	}
 
 

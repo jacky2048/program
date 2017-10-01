@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class AspectJExpressionPointcutTests {
+public final class AspectJExpressionPointcutTests {
 
 	public static final String MATCH_ALL_METHODS = "execution(* *(..))";
 

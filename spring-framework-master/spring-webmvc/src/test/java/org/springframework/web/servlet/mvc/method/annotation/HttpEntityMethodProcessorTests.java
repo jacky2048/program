@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,10 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test fixture with {@link HttpEntityMethodProcessor} delegating to
@@ -75,7 +78,7 @@ public class HttpEntityMethodProcessorTests {
 
 
 	@Before
-	public void setup() throws Exception {
+	public void setUp() throws Exception {
 		Method method = getClass().getDeclaredMethod("handle", HttpEntity.class, HttpEntity.class);
 		paramList = new MethodParameter(method, 0);
 		paramSimpleBean = new MethodParameter(method, 1);
@@ -107,7 +110,9 @@ public class HttpEntityMethodProcessorTests {
 		assertEquals("Jad", result.getBody().getName());
 	}
 
-	@Test  // SPR-12861
+	// SPR-12861
+
+	@Test
 	public void resolveArgumentWithEmptyBody() throws Exception {
 		this.servletRequest.setContent(new byte[0]);
 		this.servletRequest.setContentType("application/json");
@@ -182,7 +187,9 @@ public class HttpEntityMethodProcessorTests {
 		assertTrue(content.contains("\"type\":\"bar\""));
 	}
 
-	@Test  // SPR-13423
+	// SPR-13423
+
+	@Test
 	public void handleReturnValueCharSequence() throws Exception {
 		List<HttpMessageConverter<?>>converters = new ArrayList<>();
 		converters.add(new ByteArrayHttpMessageConverter());
@@ -200,6 +207,7 @@ public class HttpEntityMethodProcessorTests {
 	}
 
 
+
 	@SuppressWarnings("unused")
 	private void handle(HttpEntity<List<SimpleBean>> arg1, HttpEntity<SimpleBean> arg2) {
 	}
@@ -208,7 +216,6 @@ public class HttpEntityMethodProcessorTests {
 		return null;
 	}
 
-
 	@SuppressWarnings("unused")
 	private static abstract class MyParameterizedController<DTO extends Identifiable> {
 
@@ -216,11 +223,9 @@ public class HttpEntityMethodProcessorTests {
 		}
 	}
 
-
 	@SuppressWarnings("unused")
 	private static class MySimpleParameterizedController extends MyParameterizedController<SimpleBean> {
 	}
-
 
 	private interface Identifiable extends Serializable {
 
@@ -270,7 +275,6 @@ public class HttpEntityMethodProcessorTests {
 		}
 	}
 
-
 	@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 	private static class ParentClass {
 
@@ -292,7 +296,6 @@ public class HttpEntityMethodProcessorTests {
 		}
 	}
 
-
 	@JsonTypeName("foo")
 	private static class Foo extends ParentClass {
 
@@ -304,7 +307,6 @@ public class HttpEntityMethodProcessorTests {
 		}
 	}
 
-
 	@JsonTypeName("bar")
 	private static class Bar extends ParentClass {
 
@@ -315,7 +317,6 @@ public class HttpEntityMethodProcessorTests {
 			super(parentProperty);
 		}
 	}
-
 
 	private static class JacksonController {
 

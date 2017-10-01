@@ -16,8 +16,6 @@
 
 package org.springframework.util;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -678,7 +676,7 @@ public abstract class StringUtils {
 		}
 
 		String[] pathArray = delimitedListToStringArray(pathToUse, FOLDER_SEPARATOR);
-		List<String> pathElements = new LinkedList<>();
+		List<String> pathElements = new LinkedList<String>();
 		int tops = 0;
 
 		for (int i = pathArray.length - 1; i >= 0; i--) {
@@ -718,59 +716,6 @@ public abstract class StringUtils {
 	 */
 	public static boolean pathEquals(String path1, String path2) {
 		return cleanPath(path1).equals(cleanPath(path2));
-	}
-
-	/**
-	 * Decode the given encoded URI component value. Based on the following rules:
-	 * <ul>
-	 * <li>Alphanumeric characters {@code "a"} through {@code "z"}, {@code "A"} through {@code "Z"},
-	 * and {@code "0"} through {@code "9"} stay the same.</li>
-	 * <li>Special characters {@code "-"}, {@code "_"}, {@code "."}, and {@code "*"} stay the same.</li>
-	 * <li>A sequence "{@code %<i>xy</i>}" is interpreted as a hexadecimal representation of the character.</li>
-	 * </ul>
-	 * @param source the encoded String (may be {@code null})
-	 * @param charset the character set
-	 * @return the decoded value
-	 * @throws IllegalArgumentException when the given source contains invalid encoded sequences
-	 * @since 5.0
-	 * @see java.net.URLDecoder#decode(String, String)
-	 */
-	public static String uriDecode(String source, Charset charset) {
-		if (source == null) {
-			return null;
-		}
-		int length = source.length();
-		if (length == 0) {
-			return source;
-		}
-		Assert.notNull(charset, "Charset must not be null");
-
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
-		boolean changed = false;
-		for (int i = 0; i < length; i++) {
-			int ch = source.charAt(i);
-			if (ch == '%') {
-				if (i + 2 < length) {
-					char hex1 = source.charAt(i + 1);
-					char hex2 = source.charAt(i + 2);
-					int u = Character.digit(hex1, 16);
-					int l = Character.digit(hex2, 16);
-					if (u == -1 || l == -1) {
-						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
-					}
-					bos.write((char) ((u << 4) + l));
-					i += 2;
-					changed = true;
-				}
-				else {
-					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
-				}
-			}
-			else {
-				bos.write(ch);
-			}
-		}
-		return (changed ? new String(bos.toByteArray(), charset) : source);
 	}
 
 	/**
@@ -904,7 +849,7 @@ public abstract class StringUtils {
 			return array1;
 		}
 
-		List<String> result = new ArrayList<>();
+		List<String> result = new ArrayList<String>();
 		result.addAll(Arrays.asList(array1));
 		for (String str : array2) {
 			if (!result.contains(str)) {
@@ -989,7 +934,7 @@ public abstract class StringUtils {
 			return array;
 		}
 
-		Set<String> set = new LinkedHashSet<>();
+		Set<String> set = new LinkedHashSet<String>();
 		for (String element : array) {
 			set.add(element);
 		}
@@ -1117,7 +1062,7 @@ public abstract class StringUtils {
 		}
 
 		StringTokenizer st = new StringTokenizer(str, delimiters);
-		List<String> tokens = new ArrayList<>();
+		List<String> tokens = new ArrayList<String>();
 		while (st.hasMoreTokens()) {
 			String token = st.nextToken();
 			if (trimTokens) {
@@ -1170,7 +1115,7 @@ public abstract class StringUtils {
 			return new String[] {str};
 		}
 
-		List<String> result = new ArrayList<>();
+		List<String> result = new ArrayList<String>();
 		if ("".equals(delimiter)) {
 			for (int i = 0; i < str.length(); i++) {
 				result.add(deleteAny(str.substring(i, i + 1), charsToDelete));
@@ -1210,7 +1155,7 @@ public abstract class StringUtils {
 	 * @see #removeDuplicateStrings(String[])
 	 */
 	public static Set<String> commaDelimitedListToSet(String str) {
-		Set<String> set = new LinkedHashSet<>();
+		Set<String> set = new LinkedHashSet<String>();
 		String[] tokens = commaDelimitedListToStringArray(str);
 		for (String token : tokens) {
 			set.add(token);

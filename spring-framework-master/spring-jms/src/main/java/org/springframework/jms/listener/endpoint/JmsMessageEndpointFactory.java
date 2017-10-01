@@ -24,7 +24,7 @@ import javax.resource.spi.UnavailableException;
 import org.springframework.jca.endpoint.AbstractMessageEndpointFactory;
 
 /**
- * JMS-specific implementation of the JCA 1.7
+ * JMS-specific implementation of the JCA 1.5
  * {@link javax.resource.spi.endpoint.MessageEndpointFactory} interface,
  * providing transaction management capabilities for a JMS listener object
  * (e.g. a {@link javax.jms.MessageListener} object).

@@ -20,12 +20,14 @@ import java.sql.Connection;
 
 /**
  * Simple interface to be implemented by handles for a JDBC Connection.
- * Used by JpaDialect, for example.
+ * Used by JpaDialect and JdoDialect, for example.
  *
  * @author Juergen Hoeller
  * @since 1.1
  * @see SimpleConnectionHandle
  * @see ConnectionHolder
+ * @see org.springframework.orm.jpa.JpaDialect#getJdbcConnection
+ * @see org.springframework.orm.jdo.JdoDialect#getJdbcConnection
  */
 public interface ConnectionHandle {
 

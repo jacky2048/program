@@ -88,7 +88,10 @@ class InterceptingClientHttpRequest extends AbstractBufferingClientHttpRequest {
 			else {
 				ClientHttpRequest delegate = requestFactory.createRequest(request.getURI(), request.getMethod());
 				for (Map.Entry<String, List<String>> entry : request.getHeaders().entrySet()) {
-					delegate.getHeaders().addAll(entry.getKey(), entry.getValue());
+					List<String> values = entry.getValue();
+					for (String value : values) {
+						delegate.getHeaders().add(entry.getKey(), value);
+					}
 				}
 				if (body.length > 0) {
 					StreamUtils.copy(body, delegate.getBody());

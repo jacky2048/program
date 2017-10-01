@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 
 package org.springframework.web.socket.config.annotation;
 
-import java.util.Date;
-import java.util.concurrent.ScheduledFuture;
-
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.servlet.HandlerMapping;
 
@@ -33,26 +28,11 @@ import org.springframework.web.servlet.HandlerMapping;
  */
 public class WebSocketConfigurationSupport {
 
-	private ServletWebSocketHandlerRegistry handlerRegistry;
-
-	private TaskScheduler scheduler;
-
-
 	@Bean
 	public HandlerMapping webSocketHandlerMapping() {
-		ServletWebSocketHandlerRegistry registry = initHandlerRegistry();
-		if (registry.requiresTaskScheduler()) {
-			registry.setTaskScheduler(initTaskScheduler());
-		}
+		ServletWebSocketHandlerRegistry registry = new ServletWebSocketHandlerRegistry(defaultSockJsTaskScheduler());
+		registerWebSocketHandlers(registry);
 		return registry.getHandlerMapping();
-	}
-
-	private ServletWebSocketHandlerRegistry initHandlerRegistry() {
-		if (this.handlerRegistry == null) {
-			this.handlerRegistry = new ServletWebSocketHandlerRegistry();
-			registerWebSocketHandlers(this.handlerRegistry);
-		}
-		return this.handlerRegistry;
 	}
 
 	protected void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -75,58 +55,12 @@ public class WebSocketConfigurationSupport {
 	 * </pre>
 	 */
 	@Bean
-	public TaskScheduler defaultSockJsTaskScheduler() {
-		return initTaskScheduler();
-	}
-
-	private TaskScheduler initTaskScheduler() {
-		if (this.scheduler == null) {
-			ServletWebSocketHandlerRegistry registry = initHandlerRegistry();
-			if (registry.requiresTaskScheduler()) {
-				ThreadPoolTaskScheduler threadPoolScheduler = new ThreadPoolTaskScheduler();
-				threadPoolScheduler.setThreadNamePrefix("SockJS-");
-				threadPoolScheduler.setPoolSize(Runtime.getRuntime().availableProcessors());
-				threadPoolScheduler.setRemoveOnCancelPolicy(true);
-				this.scheduler = threadPoolScheduler;
-			}
-			else {
-				this.scheduler = new NoOpScheduler();
-			}
-		}
+	public ThreadPoolTaskScheduler defaultSockJsTaskScheduler() {
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setThreadNamePrefix("SockJS-");
+		scheduler.setPoolSize(Runtime.getRuntime().availableProcessors());
+		scheduler.setRemoveOnCancelPolicy(true);
 		return scheduler;
 	}
 
-
-	private static class NoOpScheduler implements TaskScheduler {
-
-		@Override
-		public ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
-			throw new IllegalStateException("Unexpected use of scheduler.");
-		}
-
-		@Override
-		public ScheduledFuture<?> schedule(Runnable task, Date startTime) {
-			throw new IllegalStateException("Unexpected use of scheduler.");
-		}
-
-		@Override
-		public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Date startTime, long period) {
-			throw new IllegalStateException("Unexpected use of scheduler.");
-		}
-
-		@Override
-		public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long period) {
-			throw new IllegalStateException("Unexpected use of scheduler.");
-		}
-
-		@Override
-		public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Date startTime, long delay) {
-			throw new IllegalStateException("Unexpected use of scheduler.");
-		}
-
-		@Override
-		public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long delay) {
-			throw new IllegalStateException("Unexpected use of scheduler.");
-		}
-	}
 }

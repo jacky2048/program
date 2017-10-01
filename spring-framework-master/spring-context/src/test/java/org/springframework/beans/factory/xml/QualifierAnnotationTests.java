@@ -43,7 +43,7 @@ import static org.springframework.util.ClassUtils.*;
  * @author Juergen Hoeller
  * @author Chris Beams
  */
-public class QualifierAnnotationTests {
+public final class QualifierAnnotationTests {
 
 	private static final String CLASSNAME = QualifierAnnotationTests.class.getName();
 	private static final String CONFIG_LOCATION =

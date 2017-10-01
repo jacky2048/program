@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ class ExtendedBeanInfo implements BeanInfo {
 	private final BeanInfo delegate;
 
 	private final Set<PropertyDescriptor> propertyDescriptors =
-			new TreeSet<>(new PropertyDescriptorComparator());
+			new TreeSet<PropertyDescriptor>(new PropertyDescriptorComparator());
 
 
 	/**
@@ -128,7 +128,7 @@ class ExtendedBeanInfo implements BeanInfo {
 
 
 	private List<Method> findCandidateWriteMethods(MethodDescriptor[] methodDescriptors) {
-		List<Method> matches = new ArrayList<>();
+		List<Method> matches = new ArrayList<Method>();
 		for (MethodDescriptor methodDescriptor : methodDescriptors) {
 			Method method = methodDescriptor.getMethod();
 			if (isCandidateWriteMethod(method)) {
@@ -157,7 +157,7 @@ class ExtendedBeanInfo implements BeanInfo {
 	}
 
 	private void handleCandidateWriteMethod(Method method) throws IntrospectionException {
-		int nParams = method.getParameterCount();
+		int nParams = method.getParameterTypes().length;
 		String propertyName = propertyNameFor(method);
 		Class<?> propertyType = method.getParameterTypes()[nParams - 1];
 		PropertyDescriptor existingPd = findExistingPropertyDescriptor(propertyName, propertyType);

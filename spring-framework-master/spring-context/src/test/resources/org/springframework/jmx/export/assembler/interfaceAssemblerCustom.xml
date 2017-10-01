@@ -7,7 +7,7 @@
 		<property name="beans">
 			<map>
 				<entry key="bean:name=testBean5">
-					<ref bean="testBean"/>
+					<ref local="testBean"/>
 				</entry>
 			</map>
 		</property>

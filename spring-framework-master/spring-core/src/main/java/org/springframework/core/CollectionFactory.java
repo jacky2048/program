@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import java.util.TreeSet;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Factory for collections that is aware of Java 5, Java 6, and Spring collection types.
@@ -54,9 +53,9 @@ import org.springframework.util.ReflectionUtils;
  */
 public abstract class CollectionFactory {
 
-	private static final Set<Class<?>> approximableCollectionTypes = new HashSet<>();
+	private static final Set<Class<?>> approximableCollectionTypes = new HashSet<Class<?>>();
 
-	private static final Set<Class<?>> approximableMapTypes = new HashSet<>();
+	private static final Set<Class<?>> approximableMapTypes = new HashSet<Class<?>>();
 
 
 	static {
@@ -117,10 +116,10 @@ public abstract class CollectionFactory {
 	@SuppressWarnings({ "unchecked", "cast", "rawtypes" })
 	public static <E> Collection<E> createApproximateCollection(Object collection, int capacity) {
 		if (collection instanceof LinkedList) {
-			return new LinkedList<>();
+			return new LinkedList<E>();
 		}
 		else if (collection instanceof List) {
-			return new ArrayList<>(capacity);
+			return new ArrayList<E>(capacity);
 		}
 		else if (collection instanceof EnumSet) {
 			// Cast is necessary for compilation in Eclipse 4.4.1.
@@ -129,10 +128,10 @@ public abstract class CollectionFactory {
 			return enumSet;
 		}
 		else if (collection instanceof SortedSet) {
-			return new TreeSet<>(((SortedSet<E>) collection).comparator());
+			return new TreeSet<E>(((SortedSet<E>) collection).comparator());
 		}
 		else {
-			return new LinkedHashSet<>(capacity);
+			return new LinkedHashSet<E>(capacity);
 		}
 	}
 
@@ -178,13 +177,13 @@ public abstract class CollectionFactory {
 		Assert.notNull(collectionType, "Collection type must not be null");
 		if (collectionType.isInterface()) {
 			if (Set.class == collectionType || Collection.class == collectionType) {
-				return new LinkedHashSet<>(capacity);
+				return new LinkedHashSet<E>(capacity);
 			}
 			else if (List.class == collectionType) {
-				return new ArrayList<>(capacity);
+				return new ArrayList<E>(capacity);
 			}
 			else if (SortedSet.class == collectionType || NavigableSet.class == collectionType) {
-				return new TreeSet<>();
+				return new TreeSet<E>();
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported Collection interface: " + collectionType.getName());
@@ -200,7 +199,7 @@ public abstract class CollectionFactory {
 				throw new IllegalArgumentException("Unsupported Collection type: " + collectionType.getName());
 			}
 			try {
-				return (Collection<E>) ReflectionUtils.accessibleConstructor(collectionType).newInstance();
+				return (Collection<E>) collectionType.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalArgumentException(
@@ -244,10 +243,10 @@ public abstract class CollectionFactory {
 			return enumMap;
 		}
 		else if (map instanceof SortedMap) {
-			return new TreeMap<>(((SortedMap<K, V>) map).comparator());
+			return new TreeMap<K, V>(((SortedMap<K, V>) map).comparator());
 		}
 		else {
-			return new LinkedHashMap<>(capacity);
+			return new LinkedHashMap<K, V>(capacity);
 		}
 	}
 
@@ -294,10 +293,10 @@ public abstract class CollectionFactory {
 		Assert.notNull(mapType, "Map type must not be null");
 		if (mapType.isInterface()) {
 			if (Map.class == mapType) {
-				return new LinkedHashMap<>(capacity);
+				return new LinkedHashMap<K, V>(capacity);
 			}
 			else if (SortedMap.class == mapType || NavigableMap.class == mapType) {
-				return new TreeMap<>();
+				return new TreeMap<K, V>();
 			}
 			else if (MultiValueMap.class == mapType) {
 				return new LinkedMultiValueMap();
@@ -315,7 +314,7 @@ public abstract class CollectionFactory {
 				throw new IllegalArgumentException("Unsupported Map type: " + mapType.getName());
 			}
 			try {
-				return (Map<K, V>) ReflectionUtils.accessibleConstructor(mapType).newInstance();
+				return (Map<K, V>) mapType.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalArgumentException("Could not instantiate Map type: " + mapType.getName(), ex);

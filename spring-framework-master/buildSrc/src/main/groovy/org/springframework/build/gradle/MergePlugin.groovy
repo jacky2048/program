@@ -64,7 +64,6 @@ class MergePlugin implements Plugin<Project> {
 		project.plugins.apply(IdeaPlugin)
 
 		MergeModel model = project.extensions.create("merge", MergeModel)
-		model.project = project
 		project.configurations.create("merging")
 		Configuration runtimeMerge = project.configurations.create("runtimeMerge")
 
@@ -77,7 +76,6 @@ class MergePlugin implements Plugin<Project> {
 			if (it.merge.into != null) {
 				setup(it)
 			}
-			setupIdeDependencies(it)
 		}
 
 		// Hook to build runtimeMerge dependencies
@@ -113,16 +111,6 @@ class MergePlugin implements Plugin<Project> {
 		project.merge.into.javadoc {
 			source += project.javadoc.source
 			classpath += project.javadoc.classpath
-		}
-	}
-
-	private void setupIdeDependencies(Project project) {
-		project.configurations.each { c ->
-			c.dependencies.findAll( { it instanceof org.gradle.api.artifacts.ProjectDependency } ).each { d ->
-				d.dependencyProject.merge.from.each { from ->
-					project.dependencies.add("runtimeMerge", from)
-				}
-			}
 		}
 	}
 
@@ -166,12 +154,5 @@ class MergePlugin implements Plugin<Project> {
 }
 
 class MergeModel {
-	Project project;
 	Project into;
-	List<Project> from = [];
-	
-	public void setInto(Project into) {
-		this.into = into;
-		into.merge.from.add(project);
-	}
 }

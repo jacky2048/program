@@ -52,7 +52,8 @@ public abstract class MessageSourceSupport {
 	 * Used for passed-in default messages. MessageFormats for resolved
 	 * codes are cached on a specific basis in subclasses.
 	 */
-	private final Map<String, Map<Locale, MessageFormat>> messageFormatsPerMessage = new HashMap<>();
+	private final Map<String, Map<Locale, MessageFormat>> messageFormatsPerMessage =
+			new HashMap<String, Map<Locale, MessageFormat>>();
 
 
 	/**
@@ -121,7 +122,7 @@ public abstract class MessageSourceSupport {
 				messageFormat = messageFormatsPerLocale.get(locale);
 			}
 			else {
-				messageFormatsPerLocale = new HashMap<>();
+				messageFormatsPerLocale = new HashMap<Locale, MessageFormat>();
 				this.messageFormatsPerMessage.put(msg, messageFormatsPerLocale);
 			}
 			if (messageFormat == null) {

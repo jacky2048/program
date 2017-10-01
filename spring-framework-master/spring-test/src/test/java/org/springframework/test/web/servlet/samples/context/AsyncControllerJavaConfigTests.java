@@ -42,14 +42,12 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.mockito.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Tests with Java configuration.
@@ -102,7 +100,7 @@ public class AsyncControllerJavaConfigTests {
 
 	@Configuration
 	@EnableWebMvc
-	static class WebConfig implements WebMvcConfigurer {
+	static class WebConfig extends WebMvcConfigurerAdapter {
 
 		@Override
 		public void configureAsyncSupport(AsyncSupportConfigurer configurer) {

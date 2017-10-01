@@ -22,7 +22,6 @@ package org.springframework.messaging;
  * @author Mark Fisher
  * @since 4.0
  */
-@FunctionalInterface
 public interface MessageChannel {
 
 	/**
@@ -41,9 +40,7 @@ public interface MessageChannel {
 	 * @param message the message to send
 	 * @return whether or not the message was sent
 	 */
-	default boolean send(Message<?> message) {
-		return send(message, INDEFINITE_TIMEOUT);
-	}
+	boolean send(Message<?> message);
 
 	/**
 	 * Send a message, blocking until either the message is accepted or the

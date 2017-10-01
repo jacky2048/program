@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Path;
 
 import org.xml.sax.InputSource;
 
@@ -45,6 +44,7 @@ import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourceArrayPropertyEditor;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.ClassUtils;
 
 /**
  * PropertyEditorRegistrar implementation that populates a given
@@ -59,6 +59,19 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @since 2.0
  */
 public class ResourceEditorRegistrar implements PropertyEditorRegistrar {
+
+	private static Class<?> pathClass;
+
+	static {
+		try {
+			pathClass = ClassUtils.forName("java.nio.file.Path", ResourceEditorRegistrar.class.getClassLoader());
+		}
+		catch (ClassNotFoundException ex) {
+			// Java 7 Path class not available
+			pathClass = null;
+		}
+	}
+
 
 	private final PropertyResolver propertyResolver;
 
@@ -105,7 +118,9 @@ public class ResourceEditorRegistrar implements PropertyEditorRegistrar {
 		doRegisterEditor(registry, InputStream.class, new InputStreamEditor(baseEditor));
 		doRegisterEditor(registry, InputSource.class, new InputSourceEditor(baseEditor));
 		doRegisterEditor(registry, File.class, new FileEditor(baseEditor));
-		doRegisterEditor(registry, Path.class, new PathEditor(baseEditor));
+		if (pathClass != null) {
+			doRegisterEditor(registry, pathClass, new PathEditor(baseEditor));
+		}
 		doRegisterEditor(registry, Reader.class, new ReaderEditor(baseEditor));
 		doRegisterEditor(registry, URL.class, new URLEditor(baseEditor));
 

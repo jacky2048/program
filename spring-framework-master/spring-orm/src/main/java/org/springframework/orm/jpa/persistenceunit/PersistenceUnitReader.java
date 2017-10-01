@@ -121,7 +121,7 @@ final class PersistenceUnitReader {
 	 */
 	public SpringPersistenceUnitInfo[] readPersistenceUnitInfos(String[] persistenceXmlLocations) {
 		ErrorHandler handler = new SimpleSaxErrorHandler(logger);
-		List<SpringPersistenceUnitInfo> infos = new LinkedList<>();
+		List<SpringPersistenceUnitInfo> infos = new LinkedList<SpringPersistenceUnitInfo>();
 		String resourceLocation = null;
 		try {
 			for (String location : persistenceXmlLocations) {

@@ -42,7 +42,7 @@ public abstract class AbstractWebSocketSession<T> implements NativeWebSocketSess
 
 	protected static final Log logger = LogFactory.getLog(NativeWebSocketSession.class);
 
-	private final Map<String, Object> attributes = new ConcurrentHashMap<>();
+	private final Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
 	private T nativeSession;
 

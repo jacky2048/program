@@ -43,7 +43,7 @@ import static org.springframework.tests.TestResourceUtils.*;
  * @author Chris Beams
  * @since 04.07.2003
  */
-public class BeanFactoryUtilsTests {
+public final class BeanFactoryUtilsTests {
 
 	private static final Class<?> CLASS = BeanFactoryUtilsTests.class;
 	private static final Resource ROOT_CONTEXT = qualifiedResource(CLASS, "root.xml");

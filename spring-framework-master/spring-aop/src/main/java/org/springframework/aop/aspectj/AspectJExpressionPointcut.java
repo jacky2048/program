@@ -54,7 +54,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -82,7 +81,7 @@ import org.springframework.util.StringUtils;
 public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		implements ClassFilter, IntroductionAwareMethodMatcher, BeanFactoryAware {
 
-	private static final Set<PointcutPrimitive> SUPPORTED_PRIMITIVES = new HashSet<>();
+	private static final Set<PointcutPrimitive> SUPPORTED_PRIMITIVES = new HashSet<PointcutPrimitive>();
 
 	static {
 		SUPPORTED_PRIMITIVES.add(PointcutPrimitive.EXECUTION);
@@ -112,7 +111,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 
 	private transient PointcutExpression pointcutExpression;
 
-	private transient Map<Method, ShadowMatch> shadowMatchCache = new ConcurrentHashMap<>(32);
+	private transient Map<Method, ShadowMatch> shadowMatchCache = new ConcurrentHashMap<Method, ShadowMatch>(32);
 
 
 	/**
@@ -222,11 +221,11 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	/**
 	 * Initialize the underlying AspectJ pointcut parser.
 	 */
-	private PointcutParser initializePointcutParser(ClassLoader classLoader) {
+	private PointcutParser initializePointcutParser(ClassLoader cl) {
 		PointcutParser parser = PointcutParser
 				.getPointcutParserSupportingSpecifiedPrimitivesAndUsingSpecifiedClassLoaderForResolution(
-						SUPPORTED_PRIMITIVES, classLoader);
-		parser.registerPointcutDesignatorHandler(new BeanPointcutDesignatorHandler());
+						SUPPORTED_PRIMITIVES, cl);
+		parser.registerPointcutDesignatorHandler(new BeanNamePointcutDesignatorHandler());
 		return parser;
 	}
 
@@ -538,7 +537,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	 * automatically by examining a thread local variable and therefore a matching
 	 * context need not be set on the pointcut.
 	 */
-	private class BeanPointcutDesignatorHandler implements PointcutDesignatorHandler {
+	private class BeanNamePointcutDesignatorHandler implements PointcutDesignatorHandler {
 
 		private static final String BEAN_DESIGNATOR_NAME = "bean";
 
@@ -549,7 +548,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 
 		@Override
 		public ContextBasedMatcher parse(String expression) {
-			return new BeanContextMatcher(expression);
+			return new BeanNameContextMatcher(expression);
 		}
 	}
 
@@ -561,11 +560,11 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	 * For static match tests, this matcher abstains to allow the overall
 	 * pointcut to match even when negation is used with the bean() pointcut.
 	 */
-	private class BeanContextMatcher implements ContextBasedMatcher {
+	private class BeanNameContextMatcher implements ContextBasedMatcher {
 
 		private final NamePattern expressionPattern;
 
-		public BeanContextMatcher(String expression) {
+		public BeanNameContextMatcher(String expression) {
 			this.expressionPattern = new NamePattern(expression);
 		}
 
@@ -610,17 +609,27 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 			if (targetType != null) {
 				boolean isFactory = FactoryBean.class.isAssignableFrom(targetType);
 				return FuzzyBoolean.fromBoolean(
-						matchesBean(isFactory ? BeanFactory.FACTORY_BEAN_PREFIX + advisedBeanName : advisedBeanName));
+						matchesBeanName(isFactory ? BeanFactory.FACTORY_BEAN_PREFIX + advisedBeanName : advisedBeanName));
 			}
 			else {
-				return FuzzyBoolean.fromBoolean(matchesBean(advisedBeanName) ||
-						matchesBean(BeanFactory.FACTORY_BEAN_PREFIX + advisedBeanName));
+				return FuzzyBoolean.fromBoolean(matchesBeanName(advisedBeanName) ||
+						matchesBeanName(BeanFactory.FACTORY_BEAN_PREFIX + advisedBeanName));
 			}
 		}
 
-		private boolean matchesBean(String advisedBeanName) {
-			return BeanFactoryAnnotationUtils.isQualifierMatch(
-					this.expressionPattern::matches, advisedBeanName, beanFactory);
+		private boolean matchesBeanName(String advisedBeanName) {
+			if (this.expressionPattern.matches(advisedBeanName)) {
+				return true;
+			}
+			if (beanFactory != null) {
+				String[] aliases = beanFactory.getAliases(advisedBeanName);
+				for (String alias : aliases) {
+					if (this.expressionPattern.matches(alias)) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 	}
 
@@ -635,7 +644,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 
 		// Initialize transient fields.
 		// pointcutExpression will be initialized lazily by checkReadyToMatch()
-		this.shadowMatchCache = new ConcurrentHashMap<>(32);
+		this.shadowMatchCache = new ConcurrentHashMap<Method, ShadowMatch>(32);
 	}
 
 

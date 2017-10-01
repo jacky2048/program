@@ -47,10 +47,10 @@ public class DateFormatter implements Formatter<Date> {
 	private static final Map<ISO, String> ISO_PATTERNS;
 
 	static {
-		Map<ISO, String> formats = new HashMap<>(4);
+		Map<ISO, String> formats = new HashMap<ISO, String>(4);
 		formats.put(ISO.DATE, "yyyy-MM-dd");
-		formats.put(ISO.TIME, "HH:mm:ss.SSSXXX");
-		formats.put(ISO.DATE_TIME, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		formats.put(ISO.TIME, "HH:mm:ss.SSSZ");
+		formats.put(ISO.DATE_TIME, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 		ISO_PATTERNS = Collections.unmodifiableMap(formats);
 	}
 

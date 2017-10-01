@@ -23,6 +23,7 @@ import java.util.Set;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import org.springframework.lang.UsesJava8;
 
 /**
  * Convert an Object to {@code java.util.Optional<T>} if necessary using the
@@ -33,6 +34,7 @@ import org.springframework.core.convert.converter.ConditionalGenericConverter;
  * @author Juergen Hoeller
  * @since 4.1
  */
+@UsesJava8
 final class ObjectToOptionalConverter implements ConditionalGenericConverter {
 
 	private final ConversionService conversionService;

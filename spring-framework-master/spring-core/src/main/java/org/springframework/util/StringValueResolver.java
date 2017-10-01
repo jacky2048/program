@@ -26,7 +26,6 @@ package org.springframework.util;
  * @see org.springframework.beans.factory.config.BeanDefinitionVisitor#BeanDefinitionVisitor(StringValueResolver)
  * @see org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
  */
-@FunctionalInterface
 public interface StringValueResolver {
 
 	/**

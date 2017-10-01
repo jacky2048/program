@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,16 +33,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.test.web.servlet.MockMvcBuilder;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
- * Abstract implementation of {@link MockMvcBuilder} with common methods for
- * configuring filters, default request properties, global expectations and
- * global result actions.
- *
- * <p>Sub-classes can use different strategies to prepare the Spring
- * {@code WebApplicationContext} that will be passed to the
- * {@code DispatcherServlet}.
+ * An abstract implementation of {@link org.springframework.test.web.servlet.MockMvcBuilder}
+ * with common methods for configuring filters, default request properties, global
+ * expectations and global result actions.
+ * <p>
+ * Sub-classes can use different strategies to prepare a WebApplicationContext to
+ * pass to the DispatcherServlet.
  *
  * @author Rossen Stoyanchev
  * @author Stephane Nicoll
@@ -51,71 +50,81 @@ import org.springframework.test.web.servlet.MockMvcBuilder;
 public abstract class AbstractMockMvcBuilder<B extends AbstractMockMvcBuilder<B>>
 		extends MockMvcBuilderSupport implements ConfigurableMockMvcBuilder<B> {
 
-	private List<Filter> filters = new ArrayList<>();
+	private List<Filter> filters = new ArrayList<Filter>();
 
 	private RequestBuilder defaultRequestBuilder;
 
-	private final List<ResultMatcher> globalResultMatchers = new ArrayList<>();
+	private final List<ResultMatcher> globalResultMatchers = new ArrayList<ResultMatcher>();
 
-	private final List<ResultHandler> globalResultHandlers = new ArrayList<>();
+	private final List<ResultHandler> globalResultHandlers = new ArrayList<ResultHandler>();
 
-	private final List<DispatcherServletCustomizer> dispatcherServletCustomizers = new ArrayList<>();
+	private final List<DispatcherServletCustomizer> dispatcherServletCustomizers = new ArrayList<DispatcherServletCustomizer>();
 
-	private final List<MockMvcConfigurer> configurers = new ArrayList<>(4);
+	private final List<MockMvcConfigurer> configurers = new ArrayList<MockMvcConfigurer>(4);
 
 
+	@SuppressWarnings("unchecked")
 	public final <T extends B> T addFilters(Filter... filters) {
 		Assert.notNull(filters, "filters cannot be null");
+
 		for (Filter f : filters) {
 			Assert.notNull(f, "filters cannot contain null values");
 			this.filters.add(f);
 		}
-		return self();
-	}
-
-	public final <T extends B> T addFilter(Filter filter, String... urlPatterns) {
-		Assert.notNull(filter, "filter cannot be null");
-		Assert.notNull(urlPatterns, "urlPatterns cannot be null");
-		if (urlPatterns.length > 0) {
-			filter = new PatternMappingFilterProxy(filter, urlPatterns);
-		}
-		this.filters.add(filter);
-		return self();
-	}
-
-	public final <T extends B> T defaultRequest(RequestBuilder requestBuilder) {
-		this.defaultRequestBuilder = requestBuilder;
-		return self();
-	}
-
-	public final <T extends B> T alwaysExpect(ResultMatcher resultMatcher) {
-		this.globalResultMatchers.add(resultMatcher);
-		return self();
-	}
-
-	public final <T extends B> T alwaysDo(ResultHandler resultHandler) {
-		this.globalResultHandlers.add(resultHandler);
-		return self();
-	}
-
-	public final <T extends B> T addDispatcherServletCustomizer(DispatcherServletCustomizer customizer) {
-		this.dispatcherServletCustomizers.add(customizer);
-		return self();
-	}
-
-	public final <T extends B> T dispatchOptions(boolean dispatchOptions) {
-		return addDispatcherServletCustomizer(
-				dispatcherServlet -> dispatcherServlet.setDispatchOptionsRequest(dispatchOptions));
-	}
-
-	public final <T extends B> T apply(MockMvcConfigurer configurer) {
-		configurer.afterConfigurerAdded(this);
-		this.configurers.add(configurer);
-		return self();
+		return (T) this;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T extends B> T self() {
+	public final <T extends B> T addFilter(Filter filter, String... urlPatterns) {
+
+		Assert.notNull(filter, "filter cannot be null");
+		Assert.notNull(urlPatterns, "urlPatterns cannot be null");
+
+		if (urlPatterns.length > 0) {
+			filter = new PatternMappingFilterProxy(filter, urlPatterns);
+		}
+
+		this.filters.add(filter);
+		return (T) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T extends B> T defaultRequest(RequestBuilder requestBuilder) {
+		this.defaultRequestBuilder = requestBuilder;
+		return (T) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T extends B> T alwaysExpect(ResultMatcher resultMatcher) {
+		this.globalResultMatchers.add(resultMatcher);
+		return (T) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T extends B> T alwaysDo(ResultHandler resultHandler) {
+		this.globalResultHandlers.add(resultHandler);
+		return (T) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T extends B> T addDispatcherServletCustomizer(DispatcherServletCustomizer customizer) {
+		this.dispatcherServletCustomizers.add(customizer);
+		return (T) this;
+	}
+
+	public final <T extends B> T dispatchOptions(final boolean dispatchOptions) {
+		return addDispatcherServletCustomizer(new DispatcherServletCustomizer() {
+			@Override
+			public void customize(DispatcherServlet dispatcherServlet) {
+				dispatcherServlet.setDispatchOptionsRequest(dispatchOptions);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T extends B> T apply(MockMvcConfigurer configurer) {
+		configurer.afterConfigurerAdded(this);
+		this.configurers.add(configurer);
 		return (T) this;
 	}
 
@@ -151,9 +160,9 @@ public abstract class AbstractMockMvcBuilder<B extends AbstractMockMvcBuilder<B>
 	}
 
 	/**
-	 * A method to obtain the {@code WebApplicationContext} to be passed to the
-	 * {@code DispatcherServlet}. Invoked from {@link #build()} before the
-	 * {@link MockMvc} instance is created.
+	 * A method to obtain the WebApplicationContext to be passed to the DispatcherServlet.
+	 * Invoked from {@link #build()} before the
+	 * {@link org.springframework.test.web.servlet.MockMvc} instance is created.
 	 */
 	protected abstract WebApplicationContext initWebAppContext();
 

@@ -16,7 +16,6 @@
 
 package org.springframework.jdbc.support;
 
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -191,8 +190,7 @@ public class SQLErrorCodes {
 	public void setCustomSqlExceptionTranslatorClass(Class<? extends SQLExceptionTranslator> customTranslatorClass) {
 		if (customTranslatorClass != null) {
 			try {
-				this.customSqlExceptionTranslator =
-						ReflectionUtils.accessibleConstructor(customTranslatorClass).newInstance();
+				this.customSqlExceptionTranslator = customTranslatorClass.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalStateException("Unable to instantiate custom translator", ex);

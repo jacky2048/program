@@ -18,11 +18,8 @@ package org.springframework.core.io;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 
 /**
  * Interface for a resource descriptor that abstracts from the actual
@@ -66,9 +63,7 @@ public interface Resource extends InputStreamSource {
 	 * that the resource content cannot be read.
 	 * @see #getInputStream()
 	 */
-	default boolean isReadable() {
-		return true;
-	}
+	boolean isReadable();
 
 	/**
 	 * Indicate whether this resource represents a handle with an open stream.
@@ -76,21 +71,7 @@ public interface Resource extends InputStreamSource {
 	 * and must be read and closed to avoid resource leaks.
 	 * <p>Will be {@code false} for typical resource descriptors.
 	 */
-	default boolean isOpen() {
-		return false;
-	}
-
-	/**
-	 * Determine whether this resource represents a file in a file system.
-	 * A value of {@code true} strongly suggests (but does not guarantee)
-	 * that a {@link #getFile()} call will succeed.
-	 * <p>This is conservatively {@code false} by default.
-	 * @since 5.0
-	 * @see #getFile()
-	 */
-	default boolean isFile() {
-		return false;
-	}
+	boolean isOpen();
 
 	/**
 	 * Return a URL handle for this resource.
@@ -115,21 +96,6 @@ public interface Resource extends InputStreamSource {
 	 * @see #getInputStream()
 	 */
 	File getFile() throws IOException;
-
-	/**
-	 * Return a {@link ReadableByteChannel}.
-	 * <p>It is expected that each call creates a <i>fresh</i> channel.
-	 * <p>The default implementation returns {@link Channels#newChannel(InputStream)}
-	 * with the result of {@link #getInputStream()}.
-	 * @return the byte channel for the underlying resource (must not be {@code null})
-	 * @throws java.io.FileNotFoundException if the underlying resource doesn't exist
-	 * @throws IOException if the content channel could not be opened
-	 * @since 5.0
-	 * @see #getInputStream()
-	 */
-	default ReadableByteChannel readableChannel() throws IOException {
-		return Channels.newChannel(getInputStream());
-	}
 
 	/**
 	 * Determine the content length for this resource.

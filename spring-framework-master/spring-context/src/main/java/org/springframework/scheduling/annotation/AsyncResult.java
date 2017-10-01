@@ -125,7 +125,7 @@ public class AsyncResult<V> implements ListenableFuture<V> {
 	 * @see Future#get()
 	 */
 	public static <V> ListenableFuture<V> forValue(V value) {
-		return new AsyncResult<>(value, null);
+		return new AsyncResult<V>(value, null);
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class AsyncResult<V> implements ListenableFuture<V> {
 	 * @see ExecutionException
 	 */
 	public static <V> ListenableFuture<V> forExecutionException(Throwable ex) {
-		return new AsyncResult<>(null,
+		return new AsyncResult<V>(null,
 				(ex instanceof ExecutionException ? (ExecutionException) ex : new ExecutionException(ex)));
 	}
 

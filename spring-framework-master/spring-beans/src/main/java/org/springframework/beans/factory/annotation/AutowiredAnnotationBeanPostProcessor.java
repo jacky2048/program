@@ -119,7 +119,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final Set<Class<? extends Annotation>> autowiredAnnotationTypes = new LinkedHashSet<>();
+	private final Set<Class<? extends Annotation>> autowiredAnnotationTypes =
+			new LinkedHashSet<Class<? extends Annotation>>();
 
 	private String requiredParameterName = "required";
 
@@ -129,11 +130,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	private ConfigurableListableBeanFactory beanFactory;
 
-	private final Set<String> lookupMethodsChecked = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
+	private final Set<String> lookupMethodsChecked =
+			Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(256));
 
-	private final Map<Class<?>, Constructor<?>[]> candidateConstructorsCache = new ConcurrentHashMap<>(256);
+	private final Map<Class<?>, Constructor<?>[]> candidateConstructorsCache =
+			new ConcurrentHashMap<Class<?>, Constructor<?>[]>(256);
 
-	private final Map<String, InjectionMetadata> injectionMetadataCache = new ConcurrentHashMap<>(256);
+	private final Map<String, InjectionMetadata> injectionMetadataCache =
+			new ConcurrentHashMap<String, InjectionMetadata>(256);
 
 
 	/**
@@ -261,6 +265,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			catch (IllegalStateException ex) {
 				throw new BeanCreationException(beanName, "Lookup method resolution failed", ex);
 			}
+			catch (NoClassDefFoundError err) {
+				throw new BeanCreationException(beanName, "Failed to introspect bean class [" + beanClass.getName() +
+						"] for lookup method metadata: could not find class that it depends on", err);
+			}
 			this.lookupMethodsChecked.add(beanName);
 		}
 
@@ -317,7 +325,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 							}
 							candidates.add(candidate);
 						}
-						else if (candidate.getParameterCount() == 0) {
+						else if (candidate.getParameterTypes().length == 0) {
 							defaultConstructor = candidate;
 						}
 					}
@@ -336,7 +344,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 						candidateConstructors = candidates.toArray(new Constructor<?>[candidates.size()]);
 					}
-					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
+					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterTypes().length > 0) {
 						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
 					}
 					else {
@@ -400,8 +408,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
-					metadata = buildAutowiringMetadata(clazz);
-					this.injectionMetadataCache.put(cacheKey, metadata);
+					try {
+						metadata = buildAutowiringMetadata(clazz);
+						this.injectionMetadataCache.put(cacheKey, metadata);
+					}
+					catch (NoClassDefFoundError err) {
+						throw new IllegalStateException("Failed to introspect bean class [" + clazz.getName() +
+								"] for autowiring metadata: could not find class that it depends on", err);
+					}
 				}
 			}
 		}
@@ -409,11 +423,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 
 	private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
-		LinkedList<InjectionMetadata.InjectedElement> elements = new LinkedList<>();
+		LinkedList<InjectionMetadata.InjectedElement> elements = new LinkedList<InjectionMetadata.InjectedElement>();
 		Class<?> targetClass = clazz;
 
 		do {
-			final LinkedList<InjectionMetadata.InjectedElement> currElements = new LinkedList<>();
+			final LinkedList<InjectionMetadata.InjectedElement> currElements =
+					new LinkedList<InjectionMetadata.InjectedElement>();
 
 			ReflectionUtils.doWithLocalFields(targetClass, new ReflectionUtils.FieldCallback() {
 				@Override
@@ -447,7 +462,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 							}
 							return;
 						}
-						if (method.getParameterCount() == 0) {
+						if (method.getParameterTypes().length == 0) {
 							if (logger.isWarnEnabled()) {
 								logger.warn("Autowired annotation should only be used on methods with parameters: " +
 										method);
@@ -564,7 +579,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			else {
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
-				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
+				Set<String> autowiredBeanNames = new LinkedHashSet<String>(1);
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
@@ -633,7 +648,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				Class<?>[] paramTypes = method.getParameterTypes();
 				arguments = new Object[paramTypes.length];
 				DependencyDescriptor[] descriptors = new DependencyDescriptor[paramTypes.length];
-				Set<String> autowiredBeans = new LinkedHashSet<>(paramTypes.length);
+				Set<String> autowiredBeans = new LinkedHashSet<String>(paramTypes.length);
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				for (int i = 0; i < arguments.length; i++) {
 					MethodParameter methodParam = new MethodParameter(method, i);

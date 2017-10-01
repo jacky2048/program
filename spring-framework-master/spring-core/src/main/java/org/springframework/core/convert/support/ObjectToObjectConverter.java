@@ -66,7 +66,7 @@ final class ObjectToObjectConverter implements ConditionalGenericConverter {
 
 	// Cache for the latest to-method resolved on a given Class
 	private static final Map<Class<?>, Member> conversionMemberCache =
-			new ConcurrentReferenceHashMap<>(32);
+			new ConcurrentReferenceHashMap<Class<?>, Member>(32);
 
 
 	@Override

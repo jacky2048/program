@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.FlashMapManager;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UrlPathHelper;
 
 
@@ -131,7 +130,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	 * Return a list of expired FlashMap instances contained in the given list.
 	 */
 	private List<FlashMap> getExpiredFlashMaps(List<FlashMap> allMaps) {
-		List<FlashMap> result = new LinkedList<>();
+		List<FlashMap> result = new LinkedList<FlashMap>();
 		for (FlashMap map : allMaps) {
 			if (map.isExpired()) {
 				result.add(map);
@@ -145,7 +144,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 	 * @return a matching FlashMap or {@code null}
 	 */
 	private FlashMap getMatchingFlashMap(List<FlashMap> allMaps, HttpServletRequest request) {
-		List<FlashMap> result = new LinkedList<>();
+		List<FlashMap> result = new LinkedList<FlashMap>();
 		for (FlashMap flashMap : allMaps) {
 			if (isFlashMapForRequest(flashMap, request)) {
 				result.add(flashMap);
@@ -173,8 +172,7 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 				return false;
 			}
 		}
-		UriComponents uriComponents = ServletUriComponentsBuilder.fromRequest(request).build();
-		MultiValueMap<String, String> actualParams = uriComponents.getQueryParams();
+		MultiValueMap<String, String> actualParams = getOriginatingRequestParams(request);
 		MultiValueMap<String, String> expectedParams = flashMap.getTargetRequestParams();
 		for (String expectedName : expectedParams.keySet()) {
 			List<String> actualValues = actualParams.get(expectedName);
@@ -188,6 +186,11 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 			}
 		}
 		return true;
+	}
+
+	private MultiValueMap<String, String> getOriginatingRequestParams(HttpServletRequest request) {
+		String query = getUrlPathHelper().getOriginatingQueryString(request);
+		return ServletUriComponentsBuilder.fromPath("/").query(query).build().getQueryParams();
 	}
 
 	@Override
@@ -208,14 +211,14 @@ public abstract class AbstractFlashMapManager implements FlashMapManager {
 		if (mutex != null) {
 			synchronized (mutex) {
 				List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
-				allFlashMaps = (allFlashMaps != null ? allFlashMaps : new CopyOnWriteArrayList<>());
+				allFlashMaps = (allFlashMaps != null ? allFlashMaps : new CopyOnWriteArrayList<FlashMap>());
 				allFlashMaps.add(flashMap);
 				updateFlashMaps(allFlashMaps, request, response);
 			}
 		}
 		else {
 			List<FlashMap> allFlashMaps = retrieveFlashMaps(request);
-			allFlashMaps = (allFlashMaps != null ? allFlashMaps : new LinkedList<>());
+			allFlashMaps = (allFlashMaps != null ? allFlashMaps : new LinkedList<FlashMap>());
 			allFlashMaps.add(flashMap);
 			updateFlashMaps(allFlashMaps, request, response);
 		}

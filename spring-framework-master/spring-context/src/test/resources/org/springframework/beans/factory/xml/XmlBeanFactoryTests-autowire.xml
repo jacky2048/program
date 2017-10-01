@@ -3,31 +3,38 @@
 
 <beans>
 
-	<bean id="rod1" class="org.springframework.tests.sample.beans.DependenciesBean" autowire="byType">
+	<bean id="rod1" class="org.springframework.tests.sample.beans.DependenciesBean"
+			autowire="byType" dependency-check="objects">
 		<!-- Should pick up spouse automatically -->
 	</bean>
 
-	<bean id="rod1a" class="org.springframework.tests.sample.beans.DependenciesBean" autowire="autodetect">
+	<bean id="rod1a" class="org.springframework.tests.sample.beans.DependenciesBean"
+			autowire="autodetect" dependency-check="objects">
 		<!-- Should pick up spouse automatically -->
 	</bean>
 
-	<bean id="rod2" class="org.springframework.tests.sample.beans.DependenciesBean" autowire="byName">
+	<bean id="rod2" class="org.springframework.tests.sample.beans.DependenciesBean"
+			autowire="byName" dependency-check="objects">
 		<!-- Should pick up spouse automatically -->
 	</bean>
 
-	<bean id="rod2a" class="org.springframework.tests.sample.beans.DependenciesBean" autowire="byName">
+	<bean id="rod2a" class="org.springframework.tests.sample.beans.DependenciesBean"
+			autowire="byName" dependency-check="objects">
 		<property name="spouse" ref="spouse"/>
 	</bean>
 
-	<bean id="rod3" class="org.springframework.beans.factory.xml.ConstructorDependenciesBean" autowire="constructor">
+	<bean id="rod3" class="org.springframework.beans.factory.xml.ConstructorDependenciesBean"
+			autowire="constructor" dependency-check="objects">
 		<!-- Should pick up spouse automatically -->
 	</bean>
 
-	<bean id="rod3a" class="org.springframework.beans.factory.xml.ConstructorDependenciesBean" autowire="autodetect">
+	<bean id="rod3a" class="org.springframework.beans.factory.xml.ConstructorDependenciesBean"
+			autowire="autodetect" dependency-check="objects">
 		<!-- Should pick up spouse automatically -->
 	</bean>
 
-	<bean id="rod4" class="org.springframework.beans.factory.xml.ConstructorDependenciesBean" scope="prototype">
+	<bean id="rod4" class="org.springframework.beans.factory.xml.ConstructorDependenciesBean"
+			scope="prototype" dependency-check="objects">
 		<!-- Should not pick up spouse automatically -->
 	</bean>
 

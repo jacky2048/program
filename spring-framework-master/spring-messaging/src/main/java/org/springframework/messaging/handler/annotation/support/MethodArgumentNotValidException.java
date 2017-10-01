@@ -18,7 +18,6 @@ package org.springframework.messaging.handler.annotation.support;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.invocation.MethodArgumentResolutionException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 
@@ -30,8 +29,8 @@ import org.springframework.validation.ObjectError;
  * @author Rossen Stoyanchev
  * @since 4.0.1
  */
-@SuppressWarnings("serial")
-public class MethodArgumentNotValidException extends MethodArgumentResolutionException {
+@SuppressWarnings({"serial", "deprecation"})
+public class MethodArgumentNotValidException extends AbstractMethodArgumentResolutionException {
 
 	private BindingResult bindingResult;
 

@@ -82,7 +82,7 @@ public class MapFactoryBean extends AbstractFactoryBean<Map<Object, Object>> {
 			result = BeanUtils.instantiateClass(this.targetMapClass);
 		}
 		else {
-			result = new LinkedHashMap<>(this.sourceMap.size());
+			result = new LinkedHashMap<Object, Object>(this.sourceMap.size());
 		}
 		Class<?> keyType = null;
 		Class<?> valueType = null;

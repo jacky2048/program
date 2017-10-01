@@ -16,7 +16,7 @@
 
 package org.springframework.messaging.simp.stomp;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,6 +57,9 @@ import static org.junit.Assert.*;
  * @author Rossen Stoyanchev
  */
 public class StompBrokerRelayMessageHandlerIntegrationTests {
+
+	private static final Charset UTF_8 = Charset.forName("UTF-8");
+
 
 	@Rule
 	public final TestName testName = new TestName();
@@ -278,7 +281,7 @@ public class StompBrokerRelayMessageHandlerIntegrationTests {
 
 		public void expectMessages(MessageExchange... messageExchanges) throws InterruptedException {
 			List<MessageExchange> expectedMessages =
-					new ArrayList<>(Arrays.<MessageExchange>asList(messageExchanges));
+					new ArrayList<MessageExchange>(Arrays.<MessageExchange>asList(messageExchanges));
 			while (expectedMessages.size() > 0) {
 				Message<?> message = this.queue.poll(10000, TimeUnit.MILLISECONDS);
 				assertNotNull("Timed out waiting for messages, expected [" + expectedMessages + "]", message);
@@ -393,8 +396,7 @@ public class StompBrokerRelayMessageHandlerIntegrationTests {
 		public static MessageExchangeBuilder send(String destination, String payload) {
 			SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
 			headers.setDestination(destination);
-			Message<?> message = MessageBuilder.createMessage(payload.getBytes(StandardCharsets.UTF_8),
-					headers.getMessageHeaders());
+			Message<?> message = MessageBuilder.createMessage(payload.getBytes(UTF_8), headers.getMessageHeaders());
 			return new MessageExchangeBuilder(message);
 		}
 
@@ -528,7 +530,7 @@ public class StompBrokerRelayMessageHandlerIntegrationTests {
 
 		protected String getPayloadAsText() {
 			return (this.payload instanceof byte[]) ?
-					new String((byte[]) this.payload, StandardCharsets.UTF_8) : this.payload.toString();
+					new String((byte[]) this.payload, UTF_8) : this.payload.toString();
 		}
 	}
 

@@ -46,13 +46,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 import org.springframework.web.util.UrlPathHelper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.mock;
-import static org.mockito.BDDMockito.verify;
+import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.*;
 
 /**
  * A test fixture for {@link DelegatingWebMvcConfiguration} tests.
@@ -122,8 +117,8 @@ public class DelegatingWebMvcConfigurationTests {
 	public void configureMessageConverters() {
 		final HttpMessageConverter customConverter = mock(HttpMessageConverter.class);
 		final StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
-		List<WebMvcConfigurer> configurers = new ArrayList<>();
-		configurers.add(new WebMvcConfigurer() {
+		List<WebMvcConfigurer> configurers = new ArrayList<WebMvcConfigurer>();
+		configurers.add(new WebMvcConfigurerAdapter() {
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 				converters.add(stringConverter);
@@ -180,8 +175,8 @@ public class DelegatingWebMvcConfigurationTests {
 
 	@Test
 	public void configureExceptionResolvers() throws Exception {
-		List<WebMvcConfigurer> configurers = new ArrayList<>();
-		configurers.add(new WebMvcConfigurer() {
+		List<WebMvcConfigurer> configurers = new ArrayList<WebMvcConfigurer>();
+		configurers.add(new WebMvcConfigurerAdapter() {
 			@Override
 			public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
 				exceptionResolvers.add(new DefaultHandlerExceptionResolver());
@@ -199,8 +194,8 @@ public class DelegatingWebMvcConfigurationTests {
 		final PathMatcher pathMatcher = mock(PathMatcher.class);
 		final UrlPathHelper pathHelper = mock(UrlPathHelper.class);
 
-		List<WebMvcConfigurer> configurers = new ArrayList<>();
-		configurers.add(new WebMvcConfigurer() {
+		List<WebMvcConfigurer> configurers = new ArrayList<WebMvcConfigurer>();
+		configurers.add(new WebMvcConfigurerAdapter() {
 			@Override
 			public void configurePathMatch(PathMatchConfigurer configurer) {
 				configurer.setUseRegisteredSuffixPatternMatch(true)

@@ -300,7 +300,7 @@ public class TilesConfigurer implements ServletContextAware, InitializingBean, D
 		@Override
 		protected List<ApplicationResource> getSources(ApplicationContext applicationContext) {
 			if (definitions != null) {
-				List<ApplicationResource> result = new LinkedList<>();
+				List<ApplicationResource> result = new LinkedList<ApplicationResource>();
 				for (String definition : definitions) {
 					Collection<ApplicationResource> resources = applicationContext.getResources(definition);
 					if (resources != null) {
@@ -336,7 +336,7 @@ public class TilesConfigurer implements ServletContextAware, InitializingBean, D
 				LocaleResolver resolver) {
 
 			if (definitionsFactoryClass != null) {
-				DefinitionsFactory factory = BeanUtils.instantiateClass(definitionsFactoryClass);
+				DefinitionsFactory factory = BeanUtils.instantiate(definitionsFactoryClass);
 				if (factory instanceof ApplicationContextAware) {
 					((ApplicationContextAware) factory).setApplicationContext(applicationContext);
 				}
@@ -357,7 +357,7 @@ public class TilesConfigurer implements ServletContextAware, InitializingBean, D
 		@Override
 		protected PreparerFactory createPreparerFactory(ApplicationContext context) {
 			if (preparerFactoryClass != null) {
-				return BeanUtils.instantiateClass(preparerFactoryClass);
+				return BeanUtils.instantiate(preparerFactoryClass);
 			}
 			else {
 				return super.createPreparerFactory(context);

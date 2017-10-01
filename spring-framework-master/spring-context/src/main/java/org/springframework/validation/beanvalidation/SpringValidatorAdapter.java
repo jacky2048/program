@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import javax.validation.ConstraintViolation;
-import javax.validation.executable.ExecutableValidator;
+import javax.validation.ValidationException;
+import javax.validation.Validator;
 import javax.validation.metadata.BeanDescriptor;
 import javax.validation.metadata.ConstraintDescriptor;
 
@@ -40,19 +41,25 @@ import org.springframework.validation.ObjectError;
 import org.springframework.validation.SmartValidator;
 
 /**
- * Adapter that takes a JSR-303 {@code javax.validator.Validator}
- * and exposes it as a Spring {@link org.springframework.validation.Validator}
+ * Adapter that takes a JSR-303 {@code javax.validator.Validator} and
+ * exposes it as a Spring {@link org.springframework.validation.Validator}
  * while also exposing the original JSR-303 Validator interface itself.
  *
  * <p>Can be used as a programmatic wrapper. Also serves as base class for
  * {@link CustomValidatorBean} and {@link LocalValidatorFactoryBean}.
+ *
+ * <p>Note that Bean Validation 1.1's {@code #forExecutables} method isn't supported
+ * on this adapter: We do not expect that method to be called by application code;
+ * consider {@link MethodValidationInterceptor} instead. If you really need programmatic
+ * {@code #forExecutables} access, call {@code #unwrap(Validator.class) which will
+ * provide the native {@link Validator} object with {@code #forExecutables} support.
  *
  * @author Juergen Hoeller
  * @since 3.0
  */
 public class SpringValidatorAdapter implements SmartValidator, javax.validation.Validator {
 
-	private static final Set<String> internalAnnotationAttributes = new HashSet<>(3);
+	private static final Set<String> internalAnnotationAttributes = new HashSet<String>(3);
 
 	static {
 		internalAnnotationAttributes.add("message");
@@ -99,7 +106,7 @@ public class SpringValidatorAdapter implements SmartValidator, javax.validation.
 	@Override
 	public void validate(Object target, Errors errors, Object... validationHints) {
 		if (this.targetValidator != null) {
-			Set<Class<?>> groups = new LinkedHashSet<>();
+			Set<Class<?>> groups = new LinkedHashSet<Class<?>>();
 			if (validationHints != null) {
 				for (Object hint : validationHints) {
 					if (hint instanceof Class) {
@@ -206,10 +213,10 @@ public class SpringValidatorAdapter implements SmartValidator, javax.validation.
 	 * @see org.springframework.validation.DefaultBindingErrorProcessor#getArgumentsForBindError
 	 */
 	protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
-		List<Object> arguments = new LinkedList<>();
+		List<Object> arguments = new LinkedList<Object>();
 		arguments.add(getResolvableField(objectName, field));
 		// Using a TreeMap for alphabetical ordering of attribute names
-		Map<String, Object> attributesToExpose = new TreeMap<>();
+		Map<String, Object> attributesToExpose = new TreeMap<String, Object>();
 		for (Map.Entry<String, Object> entry : descriptor.getAttributes().entrySet()) {
 			String attributeName = entry.getKey();
 			Object attributeValue = entry.getValue();
@@ -298,12 +305,16 @@ public class SpringValidatorAdapter implements SmartValidator, javax.validation.
 	@SuppressWarnings("unchecked")
 	public <T> T unwrap(Class<T> type) {
 		Assert.state(this.targetValidator != null, "No target Validator set");
-		return (type != null ? this.targetValidator.unwrap(type) : (T) this.targetValidator);
-	}
-
-	@Override
-	public ExecutableValidator forExecutables() {
-		return this.targetValidator.forExecutables();
+		try {
+			return (type != null ? this.targetValidator.unwrap(type) : (T) this.targetValidator);
+		}
+		catch (ValidationException ex) {
+			// ignore if just being asked for plain Validator
+			if (javax.validation.Validator.class == type) {
+				return (T) this.targetValidator;
+			}
+			throw ex;
+		}
 	}
 
 

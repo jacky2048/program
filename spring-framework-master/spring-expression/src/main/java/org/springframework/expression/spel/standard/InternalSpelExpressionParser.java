@@ -91,7 +91,7 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 	private final SpelParserConfiguration configuration;
 
 	// For rules that build nodes, they are stacked here for return
-	private final Stack<SpelNodeImpl> constructedNodes = new Stack<>();
+	private final Stack<SpelNodeImpl> constructedNodes = new Stack<SpelNodeImpl>();
 
 	// The expression being parsed
 	private String expressionString;
@@ -340,7 +340,7 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 
 	// primaryExpression : startNode (node)? -> ^(EXPRESSION startNode (node)?);
 	private SpelNodeImpl eatPrimaryExpression() {
-		List<SpelNodeImpl> nodes = new ArrayList<>();
+		List<SpelNodeImpl> nodes = new ArrayList<SpelNodeImpl>();
 		SpelNodeImpl start = eatStartNode();  // always a start node
 		nodes.add(start);
 		while (maybeEatNode()) {
@@ -438,7 +438,7 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 		if (!peekToken(TokenKind.LPAREN)) {
 			return null;
 		}
-		List<SpelNodeImpl> args = new ArrayList<>();
+		List<SpelNodeImpl> args = new ArrayList<SpelNodeImpl>();
 		consumeArguments(args);
 		eatToken(TokenKind.RPAREN);
 		return args.toArray(new SpelNodeImpl[args.size()]);
@@ -638,14 +638,14 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 			// ',' - more expressions in this list
 			// ':' - this is a map!
 			if (peekToken(TokenKind.RCURLY)) {  // list with one item in it
-				List<SpelNodeImpl> listElements = new ArrayList<>();
+				List<SpelNodeImpl> listElements = new ArrayList<SpelNodeImpl>();
 				listElements.add(firstExpression);
 				closingCurly = eatToken(TokenKind.RCURLY);
 				expr = new InlineList(toPos(t.startPos, closingCurly.endPos),
 						listElements.toArray(new SpelNodeImpl[listElements.size()]));
 			}
 			else if (peekToken(TokenKind.COMMA, true)) {  // multi-item list
-				List<SpelNodeImpl> listElements = new ArrayList<>();
+				List<SpelNodeImpl> listElements = new ArrayList<SpelNodeImpl>();
 				listElements.add(firstExpression);
 				do {
 					listElements.add(eatExpression());
@@ -657,7 +657,7 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 
 			}
 			else if (peekToken(TokenKind.COLON, true)) {  // map!
-				List<SpelNodeImpl> mapElements = new ArrayList<>();
+				List<SpelNodeImpl> mapElements = new ArrayList<SpelNodeImpl>();
 				mapElements.add(firstExpression);
 				mapElements.add(eatExpression());
 				while (peekToken(TokenKind.COMMA, true)) {
@@ -716,7 +716,7 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 	 * TODO AndyC Could create complete identifiers (a.b.c) here rather than a sequence of them? (a, b, c)
 	 */
 	private SpelNodeImpl eatPossiblyQualifiedId() {
-		LinkedList<SpelNodeImpl> qualifiedIdPieces = new LinkedList<>();
+		LinkedList<SpelNodeImpl> qualifiedIdPieces = new LinkedList<SpelNodeImpl>();
 		Token node = peekToken();
 		while (isValidQualifiedId(node)) {
 			nextToken();
@@ -783,11 +783,11 @@ class InternalSpelExpressionParser extends TemplateAwareExpressionParser {
 				return true;
 			}
 			SpelNodeImpl possiblyQualifiedConstructorName = eatPossiblyQualifiedId();
-			List<SpelNodeImpl> nodes = new ArrayList<>();
+			List<SpelNodeImpl> nodes = new ArrayList<SpelNodeImpl>();
 			nodes.add(possiblyQualifiedConstructorName);
 			if (peekToken(TokenKind.LSQUARE)) {
 				// array initializer
-				List<SpelNodeImpl> dimensions = new ArrayList<>();
+				List<SpelNodeImpl> dimensions = new ArrayList<SpelNodeImpl>();
 				while (peekToken(TokenKind.LSQUARE, true)) {
 					if (!peekToken(TokenKind.RSQUARE)) {
 						dimensions.add(eatExpression());

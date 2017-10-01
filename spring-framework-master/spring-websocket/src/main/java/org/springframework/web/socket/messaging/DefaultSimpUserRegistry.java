@@ -47,10 +47,10 @@ import org.springframework.util.Assert;
 public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicationListener {
 
 	/* Primary lookup that holds all users and their sessions */
-	private final Map<String, LocalSimpUser> users = new ConcurrentHashMap<>();
+	private final Map<String, LocalSimpUser> users = new ConcurrentHashMap<String, LocalSimpUser>();
 
 	/* Secondary lookup across all sessions by id */
-	private final Map<String, LocalSimpSession> sessions = new ConcurrentHashMap<>();
+	private final Map<String, LocalSimpSession> sessions = new ConcurrentHashMap<String, LocalSimpSession>();
 
 	private final Object sessionLock = new Object();
 
@@ -139,7 +139,7 @@ public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicati
 
 	@Override
 	public Set<SimpUser> getUsers() {
-		return new HashSet<>(this.users.values());
+		return new HashSet<SimpUser>(this.users.values());
 	}
 
 	@Override
@@ -148,7 +148,7 @@ public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicati
 	}
 
 	public Set<SimpSubscription> findSubscriptions(SimpSubscriptionMatcher matcher) {
-		Set<SimpSubscription> result = new HashSet<>();
+		Set<SimpSubscription> result = new HashSet<SimpSubscription>();
 		for (LocalSimpSession session : this.sessions.values()) {
 			for (SimpSubscription subscription : session.subscriptions.values()) {
 				if (matcher.match(subscription)) {
@@ -170,7 +170,7 @@ public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicati
 
 		private final String name;
 
-		private final Map<String, SimpSession> userSessions = new ConcurrentHashMap<>(1);
+		private final Map<String, SimpSession> userSessions = new ConcurrentHashMap<String, SimpSession>(1);
 
 		public LocalSimpUser(String userName) {
 			Assert.notNull(userName, "User name must not be null");
@@ -194,7 +194,7 @@ public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicati
 
 		@Override
 		public Set<SimpSession> getSessions() {
-			return new HashSet<>(this.userSessions.values());
+			return new HashSet<SimpSession>(this.userSessions.values());
 		}
 
 		void addSession(SimpSession session) {
@@ -229,7 +229,7 @@ public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicati
 
 		private final LocalSimpUser user;
 
-		private final Map<String, SimpSubscription> subscriptions = new ConcurrentHashMap<>(4);
+		private final Map<String, SimpSubscription> subscriptions = new ConcurrentHashMap<String, SimpSubscription>(4);
 
 		public LocalSimpSession(String id, LocalSimpUser user) {
 			Assert.notNull(id, "Id must not be null");
@@ -250,7 +250,7 @@ public class DefaultSimpUserRegistry implements SimpUserRegistry, SmartApplicati
 
 		@Override
 		public Set<SimpSubscription> getSubscriptions() {
-			return new HashSet<>(this.subscriptions.values());
+			return new HashSet<SimpSubscription>(this.subscriptions.values());
 		}
 
 		void addSubscription(String id, String destination) {

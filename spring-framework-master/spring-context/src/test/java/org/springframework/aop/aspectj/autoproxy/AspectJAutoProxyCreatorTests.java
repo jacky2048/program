@@ -68,7 +68,7 @@ import static org.junit.Assert.*;
  * @author Chris Beams
  * @author Sam Brannen
  */
-public class AspectJAutoProxyCreatorTests {
+public final class AspectJAutoProxyCreatorTests {
 
 	private static final Log factoryLog = LogFactory.getLog(DefaultListableBeanFactory.class);
 

@@ -47,6 +47,7 @@ import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.lang.UsesJava8;
 import org.springframework.util.Assert;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
@@ -107,11 +108,11 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * by specificity via {@link MediaType#sortBySpecificity(List)}.
 	 */
 	private static List<MediaType> getAllSupportedMediaTypes(List<HttpMessageConverter<?>> messageConverters) {
-		Set<MediaType> allSupportedMediaTypes = new LinkedHashSet<>();
+		Set<MediaType> allSupportedMediaTypes = new LinkedHashSet<MediaType>();
 		for (HttpMessageConverter<?> messageConverter : messageConverters) {
 			allSupportedMediaTypes.addAll(messageConverter.getSupportedMediaTypes());
 		}
-		List<MediaType> result = new ArrayList<>(allSupportedMediaTypes);
+		List<MediaType> result = new ArrayList<MediaType>(allSupportedMediaTypes);
 		MediaType.sortBySpecificity(result);
 		return Collections.unmodifiableList(result);
 	}
@@ -225,7 +226,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			}
 		}
 		catch (IOException ex) {
-			throw new HttpMessageNotReadableException("Could not read document: " + ex.getMessage(), ex);
+			throw new HttpMessageNotReadableException("I/O error while reading input message", ex);
 		}
 
 		if (body == NO_VALUE) {
@@ -294,16 +295,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @since 4.3.5
 	 */
 	protected Object adaptArgumentIfNecessary(Object arg, MethodParameter parameter) {
-		if (parameter.getParameterType() == Optional.class) {
-			if (arg == null || (arg instanceof Collection && ((Collection) arg).isEmpty()) ||
-					(arg instanceof Object[] && ((Object[]) arg).length == 0)) {
-				return Optional.empty();
-			}
-			else {
-				return Optional.of(arg);
-			}
-		}
-		return arg;
+		return (parameter.isOptional() ? OptionalResolver.resolveValue(arg) : arg);
 	}
 
 
@@ -353,6 +345,22 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 		public HttpMethod getMethod() {
 			return this.method;
+		}
+	}
+
+
+	/**
+	 * Inner class to avoid hard-coded dependency on Java 8 Optional type...
+	 */
+	@UsesJava8
+	private static class OptionalResolver {
+
+		public static Object resolveValue(Object value) {
+			if (value == null || (value instanceof Collection && ((Collection) value).isEmpty()) ||
+					(value instanceof Object[] && ((Object[]) value).length == 0)) {
+				return Optional.empty();
+			}
+			return Optional.of(value);
 		}
 	}
 

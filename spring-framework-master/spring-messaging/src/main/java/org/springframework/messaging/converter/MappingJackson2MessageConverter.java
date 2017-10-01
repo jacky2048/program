@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -71,7 +70,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 	 * the {@code application/json} MIME type with {@code UTF-8} character set.
 	 */
 	public MappingJackson2MessageConverter() {
-		super(new MimeType("application", "json", StandardCharsets.UTF_8));
+		super(new MimeType("application", "json", Charset.forName("UTF-8")));
 		initObjectMapper();
 	}
 
@@ -143,10 +142,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 			return false;
 		}
 		JavaType javaType = this.objectMapper.constructType(targetClass);
-		if (!logger.isWarnEnabled()) {
-			return this.objectMapper.canDeserialize(javaType);
-		}
-		AtomicReference<Throwable> causeRef = new AtomicReference<>();
+		AtomicReference<Throwable> causeRef = new AtomicReference<Throwable>();
 		if (this.objectMapper.canDeserialize(javaType, causeRef)) {
 			return true;
 		}
@@ -159,10 +155,7 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 		if (payload == null || !supportsMimeType(headers)) {
 			return false;
 		}
-		if (!logger.isWarnEnabled()) {
-			return this.objectMapper.canSerialize(payload.getClass());
-		}
-		AtomicReference<Throwable> causeRef = new AtomicReference<>();
+		AtomicReference<Throwable> causeRef = new AtomicReference<Throwable>();
 		if (this.objectMapper.canSerialize(payload.getClass(), causeRef)) {
 			return true;
 		}
@@ -179,10 +172,20 @@ public class MappingJackson2MessageConverter extends AbstractMessageConverter {
 	 * @since 4.3
 	 */
 	protected void logWarningIfNecessary(Type type, Throwable cause) {
-		if (cause != null && !(cause instanceof JsonMappingException && cause.getMessage().startsWith("Can not find"))) {
+		if (cause == null) {
+			return;
+		}
+
+		boolean debugLevel = (cause instanceof JsonMappingException &&
+				cause.getMessage().startsWith("Can not find"));
+
+		if (debugLevel ? logger.isDebugEnabled() : logger.isWarnEnabled()) {
 			String msg = "Failed to evaluate Jackson " + (type instanceof JavaType ? "de" : "") +
 					"serialization for type [" + type + "]";
-			if (logger.isDebugEnabled()) {
+			if (debugLevel) {
+				logger.debug(msg, cause);
+			}
+			else if (logger.isDebugEnabled()) {
 				logger.warn(msg, cause);
 			}
 			else {

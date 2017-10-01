@@ -16,9 +16,9 @@
 
 package org.springframework.beans.support;
 
-import java.util.Comparator;
-
 import org.junit.Test;
+
+import org.springframework.util.comparator.CompoundComparator;
 
 import static org.junit.Assert.*;
 
@@ -53,8 +53,9 @@ public class PropertyComparatorTests {
 	}
 
 	@Test
-	public void testChainedComparators() {
-		Comparator<Dog> c = new PropertyComparator<>("lastName", false, true);
+	public void testCompoundComparator() {
+		CompoundComparator<Dog> c = new CompoundComparator<>();
+		c.addComparator(new PropertyComparator<>("lastName", false, true));
 
 		Dog dog1 = new Dog();
 		dog1.setFirstName("macy");
@@ -66,7 +67,7 @@ public class PropertyComparatorTests {
 
 		assertTrue(c.compare(dog1, dog2) == 0);
 
-		c = c.thenComparing(new PropertyComparator<>("firstName", false, true));
+		c.addComparator(new PropertyComparator<>("firstName", false, true));
 		assertTrue(c.compare(dog1, dog2) > 0);
 
 		dog2.setLastName("konikk dog");
@@ -74,9 +75,10 @@ public class PropertyComparatorTests {
 	}
 
 	@Test
-	public void testChainedComparatorsReversed() {
-		Comparator<Dog> c = (new PropertyComparator<Dog>("lastName", false, true)).
-				thenComparing(new PropertyComparator<>("firstName", false, true));
+	public void testCompoundComparatorInvert() {
+		CompoundComparator<Dog> c = new CompoundComparator<>();
+		c.addComparator(new PropertyComparator<>("lastName", false, true));
+		c.addComparator(new PropertyComparator<>("firstName", false, true));
 
 		Dog dog1 = new Dog();
 		dog1.setFirstName("macy");
@@ -87,7 +89,7 @@ public class PropertyComparatorTests {
 		dog2.setLastName("grayspots");
 
 		assertTrue(c.compare(dog1, dog2) > 0);
-		c = c.reversed();
+		c.invertOrder();
 		assertTrue(c.compare(dog1, dog2) < 0);
 	}
 

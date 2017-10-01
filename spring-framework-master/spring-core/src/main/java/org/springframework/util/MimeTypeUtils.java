@@ -16,7 +16,7 @@
 
 package org.springframework.util;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +37,7 @@ import org.springframework.util.MimeType.SpecificityComparator;
  * @author Rossen Stoyanchev
  * @since 4.0
  */
+@SuppressWarnings("deprecation")
 public abstract class MimeTypeUtils {
 
 	private static final byte[] BOUNDARY_CHARS =
@@ -47,10 +48,12 @@ public abstract class MimeTypeUtils {
 
 	private static final Random RND = new Random();
 
+	private static Charset US_ASCII = Charset.forName("US-ASCII");
+
 	/**
 	 * Comparator used by {@link #sortBySpecificity(List)}.
 	 */
-	public static final Comparator<MimeType> SPECIFICITY_COMPARATOR = new SpecificityComparator<>();
+	public static final Comparator<MimeType> SPECIFICITY_COMPARATOR = new SpecificityComparator<MimeType>();
 
 	/**
 	 * Public constant mime type that includes all media ranges (i.e. "&#42;/&#42;").
@@ -61,6 +64,34 @@ public abstract class MimeTypeUtils {
 	 * A String equivalent of {@link MimeTypeUtils#ALL}.
 	 */
 	public static final String ALL_VALUE = "*/*";
+
+	/**
+	 * Public constant mime type for {@code application/atom+xml}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static MimeType APPLICATION_ATOM_XML;
+
+	/**
+	 * A String equivalent of {@link MimeTypeUtils#APPLICATION_ATOM_XML}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static String APPLICATION_ATOM_XML_VALUE = "application/atom+xml";
+
+	/**
+	 * Public constant mime type for {@code application/x-www-form-urlencoded}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 *  */
+	@Deprecated
+	public final static MimeType APPLICATION_FORM_URLENCODED;
+
+	/**
+	 * A String equivalent of {@link MimeTypeUtils#APPLICATION_FORM_URLENCODED}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static String APPLICATION_FORM_URLENCODED_VALUE = "application/x-www-form-urlencoded";
 
 	/**
 	 * Public constant mime type for {@code application/json}.
@@ -81,6 +112,20 @@ public abstract class MimeTypeUtils {
 	 * A String equivalent of {@link MimeTypeUtils#APPLICATION_OCTET_STREAM}.
 	 */
 	public final static String APPLICATION_OCTET_STREAM_VALUE = "application/octet-stream";
+
+	/**
+	 * Public constant mime type for {@code application/xhtml+xml}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static MimeType APPLICATION_XHTML_XML;
+
+	/**
+	 * A String equivalent of {@link MimeTypeUtils#APPLICATION_XHTML_XML}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static String APPLICATION_XHTML_XML_VALUE = "application/xhtml+xml";
 
 	/**
 	 * Public constant mime type for {@code application/xml}.
@@ -123,6 +168,20 @@ public abstract class MimeTypeUtils {
 	public final static String IMAGE_PNG_VALUE = "image/png";
 
 	/**
+	 * Public constant mime type for {@code multipart/form-data}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static MimeType MULTIPART_FORM_DATA;
+
+	/**
+	 * A String equivalent of {@link MimeTypeUtils#MULTIPART_FORM_DATA}.
+	 * @deprecated as of 4.3.6, in favor of {@code MediaType} constants
+	 */
+	@Deprecated
+	public final static String MULTIPART_FORM_DATA_VALUE = "multipart/form-data";
+
+	/**
 	 * Public constant mime type for {@code text/html}.
 	 *  */
 	public final static MimeType TEXT_HTML;
@@ -155,12 +214,16 @@ public abstract class MimeTypeUtils {
 
 	static {
 		ALL = MimeType.valueOf(ALL_VALUE);
+		APPLICATION_ATOM_XML = MimeType.valueOf(APPLICATION_ATOM_XML_VALUE);
+		APPLICATION_FORM_URLENCODED = MimeType.valueOf(APPLICATION_FORM_URLENCODED_VALUE);
 		APPLICATION_JSON = MimeType.valueOf(APPLICATION_JSON_VALUE);
 		APPLICATION_OCTET_STREAM = MimeType.valueOf(APPLICATION_OCTET_STREAM_VALUE);
+		APPLICATION_XHTML_XML = MimeType.valueOf(APPLICATION_XHTML_XML_VALUE);
 		APPLICATION_XML = MimeType.valueOf(APPLICATION_XML_VALUE);
 		IMAGE_GIF = MimeType.valueOf(IMAGE_GIF_VALUE);
 		IMAGE_JPEG = MimeType.valueOf(IMAGE_JPEG_VALUE);
 		IMAGE_PNG = MimeType.valueOf(IMAGE_PNG_VALUE);
+		MULTIPART_FORM_DATA = MimeType.valueOf(MULTIPART_FORM_DATA_VALUE);
 		TEXT_HTML = MimeType.valueOf(TEXT_HTML_VALUE);
 		TEXT_PLAIN = MimeType.valueOf(TEXT_PLAIN_VALUE);
 		TEXT_XML = MimeType.valueOf(TEXT_XML_VALUE);
@@ -220,7 +283,7 @@ public abstract class MimeTypeUtils {
 			String parameter = mimeType.substring(index + 1, nextIndex).trim();
 			if (parameter.length() > 0) {
 				if (parameters == null) {
-					parameters = new LinkedHashMap<>(4);
+					parameters = new LinkedHashMap<String, String>(4);
 				}
 				int eqIndex = parameter.indexOf('=');
 				if (eqIndex >= 0) {
@@ -255,7 +318,7 @@ public abstract class MimeTypeUtils {
 			return Collections.emptyList();
 		}
 		String[] tokens = StringUtils.tokenizeToStringArray(mimeTypes, ",");
-		List<MimeType> result = new ArrayList<>(tokens.length);
+		List<MimeType> result = new ArrayList<MimeType>(tokens.length);
 		for (String token : tokens) {
 			result.add(parseMimeType(token));
 		}
@@ -327,7 +390,7 @@ public abstract class MimeTypeUtils {
 	 * Generate a random MIME boundary as String, often used in multipart mime types.
 	 */
 	public static String generateMultipartBoundaryString() {
-		return new String(generateMultipartBoundary(), StandardCharsets.US_ASCII);
+		return new String(generateMultipartBoundary(), US_ASCII);
 	}
 
 }

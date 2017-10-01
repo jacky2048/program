@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class ClassFiltersTests {
+public final class ClassFiltersTests {
 
 	private ClassFilter exceptionFilter = new RootClassFilter(Exception.class);
 

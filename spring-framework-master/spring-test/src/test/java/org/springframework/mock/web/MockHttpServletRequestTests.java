@@ -29,11 +29,8 @@ import java.util.Locale;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.util.StreamUtils;
 
 import static org.junit.Assert.*;
@@ -58,9 +55,6 @@ public class MockHttpServletRequestTests {
 
 	private final MockHttpServletRequest request = new MockHttpServletRequest();
 
-	@Rule
-	public final ExpectedException exception = ExpectedException.none();
-
 
 	@Test
 	public void protocolAndScheme() {
@@ -82,38 +76,10 @@ public class MockHttpServletRequestTests {
 	}
 
 	@Test
-	public void setContentAndGetContentAsByteArray() throws IOException {
-		byte[] bytes = "request body".getBytes();
-		request.setContent(bytes);
-		assertEquals(bytes.length, request.getContentLength());
-		assertNotNull(request.getContentAsByteArray());
-		assertEquals(bytes, request.getContentAsByteArray());
-	}
-
-	@Test
-	public void getContentAsStringWithoutSettingCharacterEncoding() throws IOException {
-		exception.expect(IllegalStateException.class);
-		exception.expectMessage("Cannot get content as a String for a null character encoding");
-		request.getContentAsString();
-	}
-
-	@Test
-	public void setContentAndGetContentAsStringWithExplicitCharacterEncoding() throws IOException {
-		String palindrome = "ablE was I ere I saw Elba";
-		byte[] bytes = palindrome.getBytes("UTF-16");
-		request.setCharacterEncoding("UTF-16");
-		request.setContent(bytes);
-		assertEquals(bytes.length, request.getContentLength());
-		assertNotNull(request.getContentAsString());
-		assertEquals(palindrome, request.getContentAsString());
-	}
-
-	@Test
 	public void noContent() throws IOException {
 		assertEquals(-1, request.getContentLength());
 		assertNotNull(request.getInputStream());
 		assertEquals(-1, request.getInputStream().read());
-		assertNull(request.getContentAsByteArray());
 	}
 
 	@Test
@@ -152,9 +118,7 @@ public class MockHttpServletRequestTests {
 		assertEquals("UTF-8", request.getCharacterEncoding());
 	}
 
-	// SPR-12677
-
-	@Test
+	@Test  // SPR-12677
 	public void setContentTypeHeaderWithMoreComplexCharsetSyntax() {
 		String contentType = "test/plain;charset=\"utf-8\";foo=\"charset=bar\";foocharset=bar;foo=bar";
 		request.addHeader("Content-Type", contentType);
@@ -252,14 +216,12 @@ public class MockHttpServletRequestTests {
 		request.setCookies(cookie1, cookie2);
 
 		Cookie[] cookies = request.getCookies();
-		List<String> cookieHeaders = Collections.list(request.getHeaders("Cookie"));
 
 		assertEquals(2, cookies.length);
 		assertEquals("foo", cookies[0].getName());
 		assertEquals("bar", cookies[0].getValue());
 		assertEquals("baz", cookies[1].getName());
 		assertEquals("qux", cookies[1].getValue());
-		assertEquals(Arrays.asList("foo=bar", "baz=qux"), cookieHeaders);
 	}
 
 	@Test
@@ -298,16 +260,6 @@ public class MockHttpServletRequestTests {
 		List<Locale> preferredLocales = Arrays.asList(Locale.ITALY, Locale.CHINA);
 		request.setPreferredLocales(preferredLocales);
 		assertEqualEnumerations(Collections.enumeration(preferredLocales), request.getLocales());
-		assertEquals("it-it, zh-cn", request.getHeader(HttpHeaders.ACCEPT_LANGUAGE));
-	}
-
-	@Test
-	public void preferredLocalesFromAcceptLanguageHeader() {
-		String headerValue = "fr-ch, fr;q=0.9, en-*;q=0.8, de;q=0.7, *;q=0.5";
-		request.addHeader("Accept-Language", headerValue);
-		List<Locale> actual = Collections.list(request.getLocales());
-		assertEquals(Arrays.asList(Locale.forLanguageTag("fr-ch"), Locale.forLanguageTag("fr"),
-				Locale.forLanguageTag("en"), Locale.forLanguageTag("de")), actual);
 	}
 
 	@Test

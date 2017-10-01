@@ -114,14 +114,10 @@ public interface FactoryBean<T> {
 	 * implementations which do not implement this extended interface are
 	 * simply assumed to always return independent instances if the
 	 * {@code isSingleton()} implementation returns {@code false}.
-	 * <p>The default implementation returns {@code true}, since a
-	 * {@code FactoryBean} typically manages a singleton instance.
 	 * @return whether the exposed object is a singleton
 	 * @see #getObject()
 	 * @see SmartFactoryBean#isPrototype()
 	 */
-	default boolean isSingleton() {
-		return true;
-	}
+	boolean isSingleton();
 
 }

@@ -17,7 +17,6 @@
 package org.springframework.util;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,7 +60,7 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 	 * to the backing {@link List} on demand.
 	 */
 	public AutoPopulatingList(Class<? extends E> elementClass) {
-		this(new ArrayList<>(), elementClass);
+		this(new ArrayList<E>(), elementClass);
 	}
 
 	/**
@@ -70,7 +69,7 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 	 * {@link List} on demand.
 	 */
 	public AutoPopulatingList(List<E> backingList, Class<? extends E> elementClass) {
-		this(backingList, new ReflectiveElementFactory<>(elementClass));
+		this(backingList, new ReflectiveElementFactory<E>(elementClass));
 	}
 
 	/**
@@ -78,7 +77,7 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 	 * {@link ArrayList} and creates new elements on demand using the supplied {@link ElementFactory}.
 	 */
 	public AutoPopulatingList(ElementFactory<E> elementFactory) {
-		this(new ArrayList<>(), elementFactory);
+		this(new ArrayList<E>(), elementFactory);
 	}
 
 	/**
@@ -244,7 +243,6 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 	 * Factory interface for creating elements for an index-based access
 	 * data structure such as a {@link java.util.List}.
 	 */
-	@FunctionalInterface
 	public interface ElementFactory<E> {
 
 		/**
@@ -273,8 +271,8 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 
 
 	/**
-	 * Reflective implementation of the ElementFactory interface, using
-	 * {@code Class.getDeclaredConstructor().newInstance()} on a given element class.
+	 * Reflective implementation of the ElementFactory interface,
+	 * using {@code Class.newInstance()} on a given element class.
 	 */
 	private static class ReflectiveElementFactory<E> implements ElementFactory<E>, Serializable {
 
@@ -290,11 +288,7 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 		@Override
 		public E createElement(int index) {
 			try {
-				return ReflectionUtils.accessibleConstructor(this.elementClass).newInstance();
-			}
-			catch (NoSuchMethodException ex) {
-				throw new ElementInstantiationException(
-						"No default constructor on element class: " + this.elementClass.getName(), ex);
+				return this.elementClass.newInstance();
 			}
 			catch (InstantiationException ex) {
 				throw new ElementInstantiationException(
@@ -303,10 +297,6 @@ public class AutoPopulatingList<E> implements List<E>, Serializable {
 			catch (IllegalAccessException ex) {
 				throw new ElementInstantiationException(
 						"Could not access element constructor: " + this.elementClass.getName(), ex);
-			}
-			catch (InvocationTargetException ex) {
-				throw new ElementInstantiationException(
-						"Failed to invoke element constructor: " + this.elementClass.getName(), ex.getTargetException());
 			}
 		}
 	}

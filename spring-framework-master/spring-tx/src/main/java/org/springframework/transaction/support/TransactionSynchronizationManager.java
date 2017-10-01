@@ -78,22 +78,22 @@ public abstract class TransactionSynchronizationManager {
 	private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);
 
 	private static final ThreadLocal<Map<Object, Object>> resources =
-			new NamedThreadLocal<>("Transactional resources");
+			new NamedThreadLocal<Map<Object, Object>>("Transactional resources");
 
 	private static final ThreadLocal<Set<TransactionSynchronization>> synchronizations =
-			new NamedThreadLocal<>("Transaction synchronizations");
+			new NamedThreadLocal<Set<TransactionSynchronization>>("Transaction synchronizations");
 
 	private static final ThreadLocal<String> currentTransactionName =
-			new NamedThreadLocal<>("Current transaction name");
+			new NamedThreadLocal<String>("Current transaction name");
 
 	private static final ThreadLocal<Boolean> currentTransactionReadOnly =
-			new NamedThreadLocal<>("Current transaction read-only status");
+			new NamedThreadLocal<Boolean>("Current transaction read-only status");
 
 	private static final ThreadLocal<Integer> currentTransactionIsolationLevel =
-			new NamedThreadLocal<>("Current transaction isolation level");
+			new NamedThreadLocal<Integer>("Current transaction isolation level");
 
 	private static final ThreadLocal<Boolean> actualTransactionActive =
-			new NamedThreadLocal<>("Actual transaction active");
+			new NamedThreadLocal<Boolean>("Actual transaction active");
 
 
 	//-------------------------------------------------------------------------
@@ -177,7 +177,7 @@ public abstract class TransactionSynchronizationManager {
 		Map<Object, Object> map = resources.get();
 		// set ThreadLocal Map if none found
 		if (map == null) {
-			map = new HashMap<>();
+			map = new HashMap<Object, Object>();
 			resources.set(map);
 		}
 		Object oldValue = map.put(actualKey, value);
@@ -270,7 +270,7 @@ public abstract class TransactionSynchronizationManager {
 			throw new IllegalStateException("Cannot activate transaction synchronization - already active");
 		}
 		logger.trace("Initializing transaction synchronization");
-		synchronizations.set(new LinkedHashSet<>());
+		synchronizations.set(new LinkedHashSet<TransactionSynchronization>());
 	}
 
 	/**
@@ -313,7 +313,7 @@ public abstract class TransactionSynchronizationManager {
 		}
 		else {
 			// Sort lazily here, not in registerSynchronization.
-			List<TransactionSynchronization> sortedSynchs = new ArrayList<>(synchs);
+			List<TransactionSynchronization> sortedSynchs = new ArrayList<TransactionSynchronization>(synchs);
 			AnnotationAwareOrderComparator.sort(sortedSynchs);
 			return Collections.unmodifiableList(sortedSynchs);
 		}
@@ -463,8 +463,8 @@ public abstract class TransactionSynchronizationManager {
 	public static void clear() {
 		synchronizations.remove();
 		currentTransactionName.remove();
-		currentTransactionReadOnly.remove();;
-		currentTransactionIsolationLevel.remove();;
+		currentTransactionReadOnly.remove();
+		currentTransactionIsolationLevel.remove();
 		actualTransactionActive.remove();
 	}
 

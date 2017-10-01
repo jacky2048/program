@@ -40,7 +40,6 @@ import org.springframework.core.type.filter.AspectJTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
 import org.springframework.core.type.filter.TypeFilter;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -260,7 +259,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 	private Object instantiateUserDefinedStrategy(String className, Class<?> strategyType, ClassLoader classLoader) {
 		Object result;
 		try {
-			result = ReflectionUtils.accessibleConstructor(classLoader.loadClass(className)).newInstance();
+			result = classLoader.loadClass(className).newInstance();
 		}
 		catch (ClassNotFoundException ex) {
 			throw new IllegalArgumentException("Class [" + className + "] for strategy [" +

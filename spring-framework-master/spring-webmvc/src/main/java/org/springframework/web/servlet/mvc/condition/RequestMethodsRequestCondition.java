@@ -57,12 +57,12 @@ public final class RequestMethodsRequestCondition extends AbstractRequestConditi
 	}
 
 	private RequestMethodsRequestCondition(Collection<RequestMethod> requestMethods) {
-		this.methods = Collections.unmodifiableSet(new LinkedHashSet<>(requestMethods));
+		this.methods = Collections.unmodifiableSet(new LinkedHashSet<RequestMethod>(requestMethods));
 	}
 
 
 	private static List<RequestMethod> asList(RequestMethod... requestMethods) {
-		return (requestMethods != null ? Arrays.asList(requestMethods) : Collections.emptyList());
+		return (requestMethods != null ? Arrays.asList(requestMethods) : Collections.<RequestMethod>emptyList());
 	}
 
 
@@ -89,7 +89,7 @@ public final class RequestMethodsRequestCondition extends AbstractRequestConditi
 	 */
 	@Override
 	public RequestMethodsRequestCondition combine(RequestMethodsRequestCondition other) {
-		Set<RequestMethod> set = new LinkedHashSet<>(this.methods);
+		Set<RequestMethod> set = new LinkedHashSet<RequestMethod>(this.methods);
 		set.addAll(other.methods);
 		return new RequestMethodsRequestCondition(set);
 	}

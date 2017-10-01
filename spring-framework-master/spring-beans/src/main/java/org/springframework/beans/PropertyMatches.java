@@ -203,7 +203,7 @@ public abstract class PropertyMatches {
 		 * @param maxDistance the maximum distance to accept
 		 */
 		private static String[] calculateMatches(String propertyName, PropertyDescriptor[] propertyDescriptors, int maxDistance) {
-			List<String> candidates = new ArrayList<>();
+			List<String> candidates = new ArrayList<String>();
 			for (PropertyDescriptor pd : propertyDescriptors) {
 				if (pd.getWriteMethod() != null) {
 					String possibleAlternative = pd.getName();
@@ -244,7 +244,7 @@ public abstract class PropertyMatches {
 		}
 
 		private static String[] calculateMatches(final String propertyName, Class<?> beanClass, final int maxDistance) {
-			final List<String> candidates = new ArrayList<>();
+			final List<String> candidates = new ArrayList<String>();
 			ReflectionUtils.doWithFields(beanClass, new ReflectionUtils.FieldCallback() {
 				@Override
 				public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {

@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -132,7 +132,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 	private List<HttpMessageConverter<?>> messageConverters;
 
-	private List<Object> requestResponseBodyAdvice = new ArrayList<>();
+	private List<Object> requestResponseBodyAdvice = new ArrayList<Object>();
 
 	private WebBindingInitializer webBindingInitializer;
 
@@ -143,8 +143,6 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	private CallableProcessingInterceptor[] callableInterceptors = new CallableProcessingInterceptor[0];
 
 	private DeferredResultProcessingInterceptor[] deferredResultInterceptors = new DeferredResultProcessingInterceptor[0];
-
-	private ReactiveAdapterRegistry reactiveRegistry = new ReactiveAdapterRegistry();
 
 	private boolean ignoreDefaultModelOnRedirect = false;
 
@@ -160,27 +158,27 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 
 	private final Map<Class<?>, SessionAttributesHandler> sessionAttributesHandlerCache =
-			new ConcurrentHashMap<>(64);
+			new ConcurrentHashMap<Class<?>, SessionAttributesHandler>(64);
 
-	private final Map<Class<?>, Set<Method>> initBinderCache = new ConcurrentHashMap<>(64);
+	private final Map<Class<?>, Set<Method>> initBinderCache = new ConcurrentHashMap<Class<?>, Set<Method>>(64);
 
 	private final Map<ControllerAdviceBean, Set<Method>> initBinderAdviceCache =
-			new LinkedHashMap<>();
+			new LinkedHashMap<ControllerAdviceBean, Set<Method>>();
 
-	private final Map<Class<?>, Set<Method>> modelAttributeCache = new ConcurrentHashMap<>(64);
+	private final Map<Class<?>, Set<Method>> modelAttributeCache = new ConcurrentHashMap<Class<?>, Set<Method>>(64);
 
 	private final Map<ControllerAdviceBean, Set<Method>> modelAttributeAdviceCache =
-			new LinkedHashMap<>();
+			new LinkedHashMap<ControllerAdviceBean, Set<Method>>();
 
 
 	public RequestMappingHandlerAdapter() {
 		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
 		stringHttpMessageConverter.setWriteAcceptCharset(false);  // see SPR-7316
 
-		this.messageConverters = new ArrayList<>(4);
+		this.messageConverters = new ArrayList<HttpMessageConverter<?>>(4);
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
 		this.messageConverters.add(stringHttpMessageConverter);
-		this.messageConverters.add(new SourceHttpMessageConverter<>());
+		this.messageConverters.add(new SourceHttpMessageConverter<Source>());
 		this.messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 	}
 
@@ -412,22 +410,6 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	}
 
 	/**
-	 * Configure the registry for reactive library types to be supported as
-	 * return values from controller methods.
-	 */
-	public void setReactiveRegistry(ReactiveAdapterRegistry reactiveRegistry) {
-		Assert.notNull(reactiveRegistry, "ReactiveAdapterRegistry is required");
-		this.reactiveRegistry = this.reactiveRegistry;
-	}
-
-	/**
-	 * Return the configured reactive type registry of adapters.
-	 */
-	public ReactiveAdapterRegistry getReactiveAdapterRegistry() {
-		return this.reactiveRegistry;
-	}
-
-	/**
 	 * By default the content of the "default" model is used both during
 	 * rendering and redirect scenarios. Alternatively a controller method
 	 * can declare a {@link RedirectAttributes} argument and use it to provide
@@ -555,7 +537,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		List<ControllerAdviceBean> beans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
 		AnnotationAwareOrderComparator.sort(beans);
 
-		List<Object> requestResponseBodyAdviceBeans = new ArrayList<>();
+		List<Object> requestResponseBodyAdviceBeans = new ArrayList<Object>();
 
 		for (ControllerAdviceBean bean : beans) {
 			Set<Method> attrMethods = MethodIntrospector.selectMethods(bean.getBeanType(), MODEL_ATTRIBUTE_METHODS);
@@ -596,7 +578,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * and custom resolvers provided via {@link #setCustomArgumentResolvers}.
 	 */
 	private List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
 
 		// Annotation-based argument resolution
 		resolvers.add(new RequestParamMethodArgumentResolver(getBeanFactory(), false));
@@ -643,7 +625,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * methods including built-in and custom resolvers.
 	 */
 	private List<HandlerMethodArgumentResolver> getDefaultInitBinderArgumentResolvers() {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
 
 		// Annotation-based argument resolution
 		resolvers.add(new RequestParamMethodArgumentResolver(getBeanFactory(), false));
@@ -676,14 +658,13 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * custom handlers provided via {@link #setReturnValueHandlers}.
 	 */
 	private List<HandlerMethodReturnValueHandler> getDefaultReturnValueHandlers() {
-		List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
+		List<HandlerMethodReturnValueHandler> handlers = new ArrayList<HandlerMethodReturnValueHandler>();
 
 		// Single-purpose return value types
 		handlers.add(new ModelAndViewMethodReturnValueHandler());
 		handlers.add(new ModelMethodProcessor());
 		handlers.add(new ViewMethodReturnValueHandler());
-		handlers.add(new ResponseBodyEmitterReturnValueHandler(getMessageConverters(),
-				this.reactiveRegistry, this.taskExecutor, this.contentNegotiationManager));
+		handlers.add(new ResponseBodyEmitterReturnValueHandler(getMessageConverters()));
 		handlers.add(new StreamingResponseBodyReturnValueHandler());
 		handlers.add(new HttpEntityMethodProcessor(getMessageConverters(),
 				this.contentNegotiationManager, this.requestResponseBodyAdvice));
@@ -873,7 +854,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			methods = MethodIntrospector.selectMethods(handlerType, MODEL_ATTRIBUTE_METHODS);
 			this.modelAttributeCache.put(handlerType, methods);
 		}
-		List<InvocableHandlerMethod> attrMethods = new ArrayList<>();
+		List<InvocableHandlerMethod> attrMethods = new ArrayList<InvocableHandlerMethod>();
 		// Global methods first
 		for (Entry<ControllerAdviceBean, Set<Method>> entry : this.modelAttributeAdviceCache.entrySet()) {
 			if (entry.getKey().isApplicableToBeanType(handlerType)) {
@@ -905,7 +886,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			methods = MethodIntrospector.selectMethods(handlerType, INIT_BINDER_METHODS);
 			this.initBinderCache.put(handlerType, methods);
 		}
-		List<InvocableHandlerMethod> initBinderMethods = new ArrayList<>();
+		List<InvocableHandlerMethod> initBinderMethods = new ArrayList<InvocableHandlerMethod>();
 		// Global methods first
 		for (Entry<ControllerAdviceBean, Set<Method>> entry : this.initBinderAdviceCache.entrySet()) {
 			if (entry.getKey().isApplicableToBeanType(handlerType)) {

@@ -17,7 +17,6 @@
 package org.springframework.test.web.servlet.htmlunit;
 
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import javax.servlet.http.Cookie;
 
@@ -82,7 +81,7 @@ public class MockWebResponseBuilderTests {
 		this.response.addHeader("Content-Type", "text/html; charset=UTF-8");
 		WebResponse webResponse = this.responseBuilder.build();
 
-		assertThat(webResponse.getContentCharset(), equalTo(StandardCharsets.UTF_8));
+		assertThat(webResponse.getContentCharset(), equalTo("UTF-8"));
 	}
 
 	@Test
@@ -116,8 +115,8 @@ public class MockWebResponseBuilderTests {
 		assertThat(header.getValue(), equalTo("value"));
 		header = responseHeaders.get(2);
 		assertThat(header.getName(), equalTo("Set-Cookie"));
-		assertThat(header.getValue(), startsWith("cookieA=valueA;Path=/path;Domain=domain;Max-Age=1800;Expires="));
-		assertThat(header.getValue(), endsWith(";Secure;HttpOnly"));
+		assertThat(header.getValue(), startsWith("cookieA=valueA;domain=domain;path=/path;expires="));
+		assertThat(header.getValue(), endsWith(";secure;httpOnly"));
 	}
 
 	// SPR-14169

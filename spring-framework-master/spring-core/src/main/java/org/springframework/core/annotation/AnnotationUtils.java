@@ -17,7 +17,6 @@
 package org.springframework.core.annotation;
 
 import java.lang.annotation.Annotation;
-import java.lang.annotation.Repeatable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
@@ -113,26 +112,28 @@ public abstract class AnnotationUtils {
 	 */
 	public static final String VALUE = "value";
 
+	private static final String REPEATABLE_CLASS_NAME = "java.lang.annotation.Repeatable";
+
 	private static final Map<AnnotationCacheKey, Annotation> findAnnotationCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<AnnotationCacheKey, Annotation>(256);
 
 	private static final Map<AnnotationCacheKey, Boolean> metaPresentCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<AnnotationCacheKey, Boolean>(256);
 
 	private static final Map<Class<?>, Boolean> annotatedInterfaceCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<Class<?>, Boolean>(256);
 
 	private static final Map<Class<? extends Annotation>, Boolean> synthesizableCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<Class<? extends Annotation>, Boolean>(256);
 
 	private static final Map<Class<? extends Annotation>, Map<String, List<String>>> attributeAliasesCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<Class<? extends Annotation>, Map<String, List<String>>>(256);
 
 	private static final Map<Class<? extends Annotation>, List<Method>> attributeMethodsCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<Class<? extends Annotation>, List<Method>>(256);
 
 	private static final Map<Method, AliasDescriptor> aliasDescriptorCache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<Method, AliasDescriptor>(256);
 
 	private static transient Log logger;
 
@@ -160,8 +161,8 @@ public abstract class AnnotationUtils {
 		}
 		catch (Throwable ex) {
 			handleIntrospectionFailure(annotatedElement, ex);
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -191,8 +192,8 @@ public abstract class AnnotationUtils {
 		}
 		catch (Throwable ex) {
 			handleIntrospectionFailure(annotatedElement, ex);
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -231,8 +232,8 @@ public abstract class AnnotationUtils {
 		}
 		catch (Throwable ex) {
 			handleIntrospectionFailure(annotatedElement, ex);
+			return null;
 		}
-		return null;
 	}
 
 	/**
@@ -253,8 +254,38 @@ public abstract class AnnotationUtils {
 		}
 		catch (Throwable ex) {
 			handleIntrospectionFailure(method, ex);
+			return null;
 		}
-		return null;
+	}
+
+	/**
+	 * Delegates to {@link #getRepeatableAnnotations(AnnotatedElement, Class, Class)}.
+	 * @since 4.0
+	 * @see #getRepeatableAnnotations(AnnotatedElement, Class, Class)
+	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class, Class)
+	 * @deprecated As of Spring Framework 4.2, use {@code getRepeatableAnnotations()}
+	 * or {@code getDeclaredRepeatableAnnotations()} instead.
+	 */
+	@Deprecated
+	public static <A extends Annotation> Set<A> getRepeatableAnnotation(Method method,
+			Class<? extends Annotation> containerAnnotationType, Class<A> annotationType) {
+
+		return getRepeatableAnnotations(method, annotationType, containerAnnotationType);
+	}
+
+	/**
+	 * Delegates to {@link #getRepeatableAnnotations(AnnotatedElement, Class, Class)}.
+	 * @since 4.0
+	 * @see #getRepeatableAnnotations(AnnotatedElement, Class, Class)
+	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class, Class)
+	 * @deprecated As of Spring Framework 4.2, use {@code getRepeatableAnnotations()}
+	 * or {@code getDeclaredRepeatableAnnotations()} instead.
+	 */
+	@Deprecated
+	public static <A extends Annotation> Set<A> getRepeatableAnnotation(AnnotatedElement annotatedElement,
+			Class<? extends Annotation> containerAnnotationType, Class<A> annotationType) {
+
+		return getRepeatableAnnotations(annotatedElement, annotationType, containerAnnotationType);
 	}
 
 	/**
@@ -438,12 +469,12 @@ public abstract class AnnotationUtils {
 			if (annotatedElement instanceof Method) {
 				annotatedElement = BridgeMethodResolver.findBridgedMethod((Method) annotatedElement);
 			}
-			return new AnnotationCollector<>(annotationType, containerAnnotationType, declaredMode).getResult(annotatedElement);
+			return new AnnotationCollector<A>(annotationType, containerAnnotationType, declaredMode).getResult(annotatedElement);
 		}
 		catch (Throwable ex) {
 			handleIntrospectionFailure(annotatedElement, ex);
+			return Collections.emptySet();
 		}
-		return Collections.emptySet();
 	}
 
 	/**
@@ -470,7 +501,7 @@ public abstract class AnnotationUtils {
 
 		// Do NOT store result in the findAnnotationCache since doing so could break
 		// findAnnotation(Class, Class) and findAnnotation(Method, Class).
-		A ann = findAnnotation(annotatedElement, annotationType, new HashSet<>());
+		A ann = findAnnotation(annotatedElement, annotationType, new HashSet<Annotation>());
 		return synthesizeAnnotation(ann, annotatedElement);
 	}
 
@@ -488,14 +519,15 @@ public abstract class AnnotationUtils {
 	private static <A extends Annotation> A findAnnotation(
 			AnnotatedElement annotatedElement, Class<A> annotationType, Set<Annotation> visited) {
 		try {
-			A annotation = annotatedElement.getDeclaredAnnotation(annotationType);
-			if (annotation != null) {
-				return annotation;
+			Annotation[] anns = annotatedElement.getDeclaredAnnotations();
+			for (Annotation ann : anns) {
+				if (ann.annotationType() == annotationType) {
+					return (A) ann;
+				}
 			}
-			for (Annotation declaredAnn : annotatedElement.getDeclaredAnnotations()) {
-				Class<? extends Annotation> declaredType = declaredAnn.annotationType();
-				if (!isInJavaLangAnnotationPackage(declaredType) && visited.add(declaredAnn)) {
-					annotation = findAnnotation((AnnotatedElement) declaredType, annotationType, visited);
+			for (Annotation ann : anns) {
+				if (!isInJavaLangAnnotationPackage(ann) && visited.add(ann)) {
+					A annotation = findAnnotation((AnnotatedElement) ann.annotationType(), annotationType, visited);
 					if (annotation != null) {
 						return annotation;
 					}
@@ -655,7 +687,7 @@ public abstract class AnnotationUtils {
 		AnnotationCacheKey cacheKey = new AnnotationCacheKey(clazz, annotationType);
 		A result = (A) findAnnotationCache.get(cacheKey);
 		if (result == null) {
-			result = findAnnotation(clazz, annotationType, new HashSet<>());
+			result = findAnnotation(clazz, annotationType, new HashSet<Annotation>());
 			if (result != null && synthesize) {
 				result = synthesizeAnnotation(result, clazz);
 				findAnnotationCache.put(cacheKey, result);
@@ -676,14 +708,15 @@ public abstract class AnnotationUtils {
 	@SuppressWarnings("unchecked")
 	private static <A extends Annotation> A findAnnotation(Class<?> clazz, Class<A> annotationType, Set<Annotation> visited) {
 		try {
-			A annotation = clazz.getDeclaredAnnotation(annotationType);
-			if (annotation != null) {
-				return annotation;
+			Annotation[] anns = clazz.getDeclaredAnnotations();
+			for (Annotation ann : anns) {
+				if (ann.annotationType() == annotationType) {
+					return (A) ann;
+				}
 			}
-			for (Annotation declaredAnn : clazz.getDeclaredAnnotations()) {
-				Class<? extends Annotation> declaredType = declaredAnn.annotationType();
-				if (!isInJavaLangAnnotationPackage(declaredType) && visited.add(declaredAnn)) {
-					annotation = findAnnotation(declaredType, annotationType, visited);
+			for (Annotation ann : anns) {
+				if (!isInJavaLangAnnotationPackage(ann) && visited.add(ann)) {
+					A annotation = findAnnotation(ann.annotationType(), annotationType, visited);
 					if (annotation != null) {
 						return annotation;
 					}
@@ -801,12 +834,16 @@ public abstract class AnnotationUtils {
 		Assert.notNull(annotationType, "Annotation type must not be null");
 		Assert.notNull(clazz, "Class must not be null");
 		try {
-			return (clazz.getDeclaredAnnotation(annotationType) != null);
+			for (Annotation ann : clazz.getDeclaredAnnotations()) {
+				if (ann.annotationType() == annotationType) {
+					return true;
+				}
+			}
 		}
 		catch (Throwable ex) {
 			handleIntrospectionFailure(clazz, ex);
-			return false;
 		}
+		return false;
 	}
 
 	/**
@@ -1212,7 +1249,7 @@ public abstract class AnnotationUtils {
 
 		// Track which attribute values have already been replaced so that we can short
 		// circuit the search algorithms.
-		Set<String> valuesAlreadyReplaced = new HashSet<>();
+		Set<String> valuesAlreadyReplaced = new HashSet<String>();
 
 		if (!attributes.validated) {
 			// Validate @AliasFor configuration
@@ -1283,7 +1320,9 @@ public abstract class AnnotationUtils {
 	 * Retrieve the <em>value</em> of the {@code value} attribute of a
 	 * single-element Annotation, given an annotation instance.
 	 * @param annotation the annotation instance from which to retrieve the value
-	 * @return the attribute value, or {@code null} if not found
+	 * @return the attribute value, or {@code null} if not found unless the attribute
+	 * value cannot be retrieved due to an {@link AnnotationConfigurationException},
+	 * in which case such an exception will be rethrown
 	 * @see #getValue(Annotation, String)
 	 */
 	public static Object getValue(Annotation annotation) {
@@ -1294,8 +1333,11 @@ public abstract class AnnotationUtils {
 	 * Retrieve the <em>value</em> of a named attribute, given an annotation instance.
 	 * @param annotation the annotation instance from which to retrieve the value
 	 * @param attributeName the name of the attribute value to retrieve
-	 * @return the attribute value, or {@code null} if not found
+	 * @return the attribute value, or {@code null} if not found unless the attribute
+	 * value cannot be retrieved due to an {@link AnnotationConfigurationException},
+	 * in which case such an exception will be rethrown
 	 * @see #getValue(Annotation)
+	 * @see #rethrowAnnotationConfigurationException(Throwable)
 	 */
 	public static Object getValue(Annotation annotation, String attributeName) {
 		if (annotation == null || !StringUtils.hasText(attributeName)) {
@@ -1306,7 +1348,13 @@ public abstract class AnnotationUtils {
 			ReflectionUtils.makeAccessible(method);
 			return method.invoke(annotation);
 		}
-		catch (Exception ex) {
+		catch (InvocationTargetException ex) {
+			rethrowAnnotationConfigurationException(ex.getTargetException());
+			throw new IllegalStateException(
+					"Could not obtain value for annotation attribute '" + attributeName + "' in " + annotation, ex);
+		}
+		catch (Throwable ex) {
+			handleIntrospectionFailure(annotation.getClass(), ex);
 			return null;
 		}
 	}
@@ -1362,7 +1410,8 @@ public abstract class AnnotationUtils {
 		try {
 			return annotationType.getDeclaredMethod(attributeName).getDefaultValue();
 		}
-		catch (Exception ex) {
+		catch (Throwable ex) {
+			handleIntrospectionFailure(annotationType, ex);
 			return null;
 		}
 	}
@@ -1585,7 +1634,7 @@ public abstract class AnnotationUtils {
 			return map;
 		}
 
-		map = new LinkedHashMap<>();
+		map = new LinkedHashMap<String, List<String>>();
 		for (Method attribute : getAttributeMethods(annotationType)) {
 			List<String> aliasNames = getAttributeAliasNames(attribute);
 			if (!aliasNames.isEmpty()) {
@@ -1721,7 +1770,7 @@ public abstract class AnnotationUtils {
 			return methods;
 		}
 
-		methods = new ArrayList<>();
+		methods = new ArrayList<Method>();
 		for (Method method : annotationType.getDeclaredMethods()) {
 			if (isAttributeMethod(method)) {
 				ReflectionUtils.makeAccessible(method);
@@ -1758,7 +1807,7 @@ public abstract class AnnotationUtils {
 	 * @since 4.2
 	 */
 	static boolean isAttributeMethod(Method method) {
-		return (method != null && method.getParameterCount() == 0 && method.getReturnType() != void.class);
+		return (method != null && method.getParameterTypes().length == 0 && method.getReturnType() != void.class);
 	}
 
 	/**
@@ -1768,7 +1817,7 @@ public abstract class AnnotationUtils {
 	 * @since 4.2
 	 */
 	static boolean isAnnotationTypeMethod(Method method) {
-		return (method != null && method.getName().equals("annotationType") && method.getParameterCount() == 0);
+		return (method != null && method.getName().equals("annotationType") && method.getParameterTypes().length == 0);
 	}
 
 	/**
@@ -1779,9 +1828,19 @@ public abstract class AnnotationUtils {
 	 * {@code null}.
 	 * @since 4.2
 	 */
+	@SuppressWarnings("unchecked")
 	static Class<? extends Annotation> resolveContainerAnnotationType(Class<? extends Annotation> annotationType) {
-		Repeatable repeatable = getAnnotation(annotationType, Repeatable.class);
-		return (repeatable != null ? repeatable.value() : null);
+		try {
+			Annotation repeatable = getAnnotation(annotationType, REPEATABLE_CLASS_NAME);
+			if (repeatable != null) {
+				Object value = getValue(repeatable);
+				return (Class<? extends Annotation>) value;
+			}
+		}
+		catch (Exception ex) {
+			handleIntrospectionFailure(annotationType, ex);
+		}
+		return null;
 	}
 
 	/**
@@ -1821,9 +1880,9 @@ public abstract class AnnotationUtils {
 			logger = loggerToUse;
 		}
 		if (element instanceof Class && Annotation.class.isAssignableFrom((Class<?>) element)) {
-			// Meta-annotation lookup on an annotation type
+			// Meta-annotation or (default) value lookup on an annotation type
 			if (loggerToUse.isDebugEnabled()) {
-				loggerToUse.debug("Failed to introspect meta-annotations on [" + element + "]: " + ex);
+				loggerToUse.debug("Failed to meta-introspect annotation [" + element + "]: " + ex);
 			}
 		}
 		else {
@@ -1890,9 +1949,9 @@ public abstract class AnnotationUtils {
 
 		private final boolean declaredMode;
 
-		private final Set<AnnotatedElement> visited = new HashSet<>();
+		private final Set<AnnotatedElement> visited = new HashSet<AnnotatedElement>();
 
-		private final Set<A> result = new LinkedHashSet<>();
+		private final Set<A> result = new LinkedHashSet<A>();
 
 		AnnotationCollector(Class<A> annotationType, Class<? extends Annotation> containerAnnotationType, boolean declaredMode) {
 			this.annotationType = annotationType;
@@ -1933,7 +1992,7 @@ public abstract class AnnotationUtils {
 		@SuppressWarnings("unchecked")
 		private List<A> getValue(AnnotatedElement element, Annotation annotation) {
 			try {
-				List<A> synthesizedAnnotations = new ArrayList<>();
+				List<A> synthesizedAnnotations = new ArrayList<A>();
 				for (A anno : (A[]) AnnotationUtils.getValue(annotation)) {
 					synthesizedAnnotations.add(synthesizeAnnotation(anno, element));
 				}
@@ -2146,7 +2205,7 @@ public abstract class AnnotationUtils {
 			}
 
 			// Else: search for implicit aliases
-			List<String> aliases = new ArrayList<>();
+			List<String> aliases = new ArrayList<String>();
 			for (AliasDescriptor otherDescriptor : getOtherDescriptors()) {
 				if (this.isAliasFor(otherDescriptor)) {
 					this.validateAgainst(otherDescriptor);
@@ -2157,7 +2216,7 @@ public abstract class AnnotationUtils {
 		}
 
 		private List<AliasDescriptor> getOtherDescriptors() {
-			List<AliasDescriptor> otherDescriptors = new ArrayList<>();
+			List<AliasDescriptor> otherDescriptors = new ArrayList<AliasDescriptor>();
 			for (Method currentAttribute : getAttributeMethods(this.sourceAnnotationType)) {
 				if (!this.sourceAttribute.equals(currentAttribute)) {
 					AliasDescriptor otherDescriptor = AliasDescriptor.from(currentAttribute);

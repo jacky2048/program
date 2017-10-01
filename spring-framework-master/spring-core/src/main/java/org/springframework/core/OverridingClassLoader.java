@@ -19,6 +19,7 @@ package org.springframework.core;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.springframework.lang.UsesJava7;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -33,6 +34,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Juergen Hoeller
  * @since 2.0.1
  */
+@UsesJava7
 public class OverridingClassLoader extends DecoratingClassLoader {
 
 	/** Packages that are excluded by default */
@@ -42,7 +44,9 @@ public class OverridingClassLoader extends DecoratingClassLoader {
 	private static final String CLASS_FILE_SUFFIX = ".class";
 
 	static {
-		ClassLoader.registerAsParallelCapable();
+		if (parallelCapableClassLoaderAvailable) {
+			ClassLoader.registerAsParallelCapable();
+		}
 	}
 
 

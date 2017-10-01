@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.http.converter.xml;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -48,11 +48,10 @@ import org.springframework.http.MockHttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.util.FileCopyUtils;
 
+import static org.custommonkey.xmlunit.XMLAssert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.xmlunit.matchers.CompareMatcher.isSimilarTo;
 
 // Do NOT statically import org.junit.Assert.*, since XMLAssert extends junit.framework.Assert
 
@@ -74,7 +73,7 @@ public class SourceHttpMessageConverterTests {
 
 	@Before
 	public void setUp() throws IOException {
-		converter = new SourceHttpMessageConverter<>();
+		converter = new SourceHttpMessageConverter<Source>();
 		Resource external = new ClassPathResource("external.txt", getClass());
 
 		bodyExternal = "<!DOCTYPE root SYSTEM \"http://192.168.28.42/1.jsp\" [" +
@@ -150,7 +149,7 @@ public class SourceHttpMessageConverterTests {
 		SAXSource result = (SAXSource) converter.read(SAXSource.class, inputMessage);
 		InputSource inputSource = result.getInputSource();
 		String s = FileCopyUtils.copyToString(new InputStreamReader(inputSource.getByteStream()));
-		assertThat("Invalid result", s, isSimilarTo(BODY));
+		assertXMLEqual("Invalid result", BODY, s);
 	}
 
 	@Test
@@ -278,7 +277,7 @@ public class SourceHttpMessageConverterTests {
 		inputMessage.getHeaders().setContentType(new MediaType("application", "xml"));
 		StreamSource result = (StreamSource) converter.read(StreamSource.class, inputMessage);
 		String s = FileCopyUtils.copyToString(new InputStreamReader(result.getInputStream()));
-		assertThat("Invalid result", s, isSimilarTo(BODY));
+		assertXMLEqual("Invalid result", BODY, s);
 	}
 
 	@Test
@@ -300,8 +299,8 @@ public class SourceHttpMessageConverterTests {
 
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		converter.write(domSource, null, outputMessage);
-		assertThat("Invalid result", outputMessage.getBodyAsString(StandardCharsets.UTF_8),
-				isSimilarTo("<root>Hello World</root>"));
+		assertXMLEqual("Invalid result", "<root>Hello World</root>",
+				outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 		assertEquals("Invalid content-type", new MediaType("application", "xml"),
 				outputMessage.getHeaders().getContentType());
 		assertEquals("Invalid content-length", outputMessage.getBodyAsBytes().length,
@@ -315,8 +314,8 @@ public class SourceHttpMessageConverterTests {
 
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		converter.write(saxSource, null, outputMessage);
-		assertThat("Invalid result", outputMessage.getBodyAsString(StandardCharsets.UTF_8),
-				isSimilarTo("<root>Hello World</root>"));
+		assertXMLEqual("Invalid result", "<root>Hello World</root>",
+				outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 		assertEquals("Invalid content-type", new MediaType("application", "xml"),
 				outputMessage.getHeaders().getContentType());
 	}
@@ -328,8 +327,8 @@ public class SourceHttpMessageConverterTests {
 
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		converter.write(streamSource, null, outputMessage);
-		assertThat("Invalid result", outputMessage.getBodyAsString(StandardCharsets.UTF_8),
-				isSimilarTo("<root>Hello World</root>"));
+		assertXMLEqual("Invalid result", "<root>Hello World</root>",
+				outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 		assertEquals("Invalid content-type", new MediaType("application", "xml"),
 				outputMessage.getHeaders().getContentType());
 	}

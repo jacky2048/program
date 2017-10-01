@@ -45,13 +45,13 @@ public class MockAsyncContext implements AsyncContext {
 
 	private final HttpServletResponse response;
 
-	private final List<AsyncListener> listeners = new ArrayList<>();
+	private final List<AsyncListener> listeners = new ArrayList<AsyncListener>();
 
 	private String dispatchedPath;
 
 	private long timeout = 10 * 1000L;	// 10 seconds is Tomcat's default
 
-	private final List<Runnable> dispatchHandlers = new ArrayList<>();
+	private final List<Runnable> dispatchHandlers = new ArrayList<Runnable>();
 
 
 	public MockAsyncContext(ServletRequest request, ServletResponse response) {

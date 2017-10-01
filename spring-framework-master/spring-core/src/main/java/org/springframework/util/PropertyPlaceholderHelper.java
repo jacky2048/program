@@ -39,7 +39,7 @@ public class PropertyPlaceholderHelper {
 
 	private static final Log logger = LogFactory.getLog(PropertyPlaceholderHelper.class);
 
-	private static final Map<String, String> wellKnownSimplePrefixes = new HashMap<>(4);
+	private static final Map<String, String> wellKnownSimplePrefixes = new HashMap<String, String>(4);
 
 	static {
 		wellKnownSimplePrefixes.put("}", "{");
@@ -123,7 +123,7 @@ public class PropertyPlaceholderHelper {
 	 */
 	public String replacePlaceholders(String value, PlaceholderResolver placeholderResolver) {
 		Assert.notNull(value, "'value' must not be null");
-		return parseStringValue(value, placeholderResolver, new HashSet<>());
+		return parseStringValue(value, placeholderResolver, new HashSet<String>());
 	}
 
 	protected String parseStringValue(
@@ -212,7 +212,6 @@ public class PropertyPlaceholderHelper {
 	/**
 	 * Strategy interface used to resolve replacement values for placeholders contained in Strings.
 	 */
-	@FunctionalInterface
 	public interface PlaceholderResolver {
 
 		/**

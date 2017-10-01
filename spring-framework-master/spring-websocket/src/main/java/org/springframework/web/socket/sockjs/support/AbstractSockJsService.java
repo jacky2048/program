@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.web.socket.sockjs.support;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,6 +67,8 @@ import org.springframework.web.util.WebUtils;
  */
 public abstract class AbstractSockJsService implements SockJsService, CorsConfigurationSource {
 
+	private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
 	private static final long ONE_YEAR = TimeUnit.DAYS.toSeconds(365);
 
 	private static final Random random = new Random();
@@ -96,7 +98,7 @@ public abstract class AbstractSockJsService implements SockJsService, CorsConfig
 
 	private boolean suppressCors = false;
 
-	protected final Set<String> allowedOrigins = new LinkedHashSet<>();
+	protected final Set<String> allowedOrigins = new LinkedHashSet<String>();
 
 
 	public AbstractSockJsService(TaskScheduler scheduler) {
@@ -352,8 +354,8 @@ public abstract class AbstractSockJsService implements SockJsService, CorsConfig
 				if (requestInfo != null) {
 					logger.debug("Processing transport request: " + requestInfo);
 				}
-				response.getHeaders().setContentType(new MediaType("text", "plain", StandardCharsets.UTF_8));
-				response.getBody().write("Welcome to SockJS!\n".getBytes(StandardCharsets.UTF_8));
+				response.getHeaders().setContentType(new MediaType("text", "plain", UTF8_CHARSET));
+				response.getBody().write("Welcome to SockJS!\n".getBytes(UTF8_CHARSET));
 			}
 
 			else if (sockJsPath.equals("/info")) {
@@ -512,7 +514,7 @@ public abstract class AbstractSockJsService implements SockJsService, CorsConfig
 	protected void sendMethodNotAllowed(ServerHttpResponse response, HttpMethod... httpMethods) {
 		logger.warn("Sending Method Not Allowed (405)");
 		response.setStatusCode(HttpStatus.METHOD_NOT_ALLOWED);
-		response.getHeaders().setAllow(new HashSet<>(Arrays.asList(httpMethods)));
+		response.getHeaders().setAllow(new HashSet<HttpMethod>(Arrays.asList(httpMethods)));
 	}
 
 
@@ -545,7 +547,7 @@ public abstract class AbstractSockJsService implements SockJsService, CorsConfig
 			if (HttpMethod.GET == request.getMethod()) {
 				addNoCacheHeaders(response);
 				if (checkOrigin(request, response)) {
-					response.getHeaders().setContentType(new MediaType("application", "json", StandardCharsets.UTF_8));
+					response.getHeaders().setContentType(new MediaType("application", "json", UTF8_CHARSET));
 					String content = String.format(
 							INFO_CONTENT, random.nextInt(), isSessionCookieNeeded(), isWebSocketEnabled());
 					response.getBody().write(content.getBytes());
@@ -593,7 +595,7 @@ public abstract class AbstractSockJsService implements SockJsService, CorsConfig
 			}
 
 			String content = String.format(IFRAME_CONTENT, getSockJsClientLibraryUrl());
-			byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
+			byte[] contentBytes = content.getBytes(UTF8_CHARSET);
 			StringBuilder builder = new StringBuilder("\"0");
 			DigestUtils.appendMd5DigestAsHex(contentBytes, builder);
 			builder.append('"');
@@ -605,7 +607,7 @@ public abstract class AbstractSockJsService implements SockJsService, CorsConfig
 				return;
 			}
 
-			response.getHeaders().setContentType(new MediaType("text", "html", StandardCharsets.UTF_8));
+			response.getHeaders().setContentType(new MediaType("text", "html", UTF8_CHARSET));
 			response.getHeaders().setContentLength(contentBytes.length);
 
 			// No cache in order to check every time if IFrame are authorized

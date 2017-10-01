@@ -17,7 +17,6 @@
 package org.springframework.messaging.simp.stomp;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -182,7 +181,7 @@ public class StompHeaderAccessor extends SimpMessageHeaderAccessor {
 	Map<String, List<String>> getNativeHeaders() {
 		@SuppressWarnings("unchecked")
 		Map<String, List<String>> map = (Map<String, List<String>>) getHeader(NATIVE_HEADERS);
-		return (map != null ? map : Collections.emptyMap());
+		return (map != null ? map : Collections.<String, List<String>>emptyMap());
 	}
 
 	public StompCommand updateStompCommandAsClientMessage() {
@@ -242,7 +241,7 @@ public class StompHeaderAccessor extends SimpMessageHeaderAccessor {
 
 	public Set<String> getAcceptVersion() {
 		String rawValue = getFirstNativeHeader(STOMP_ACCEPT_VERSION_HEADER);
-		return (rawValue != null ? StringUtils.commaDelimitedListToSet(rawValue) : Collections.emptySet());
+		return (rawValue != null ? StringUtils.commaDelimitedListToSet(rawValue) : Collections.<String>emptySet());
 	}
 
 	public void setHost(String host) {
@@ -449,7 +448,7 @@ public class StompHeaderAccessor extends SimpMessageHeaderAccessor {
 			return contentType;
 		}
 		Charset charset = getContentType().getCharset();
-		charset = (charset != null ? charset : StandardCharsets.UTF_8);
+		charset = (charset != null ? charset : StompDecoder.UTF8_CHARSET);
 		return (bytes.length < 80) ?
 				contentType + " payload=" + new String(bytes, charset) :
 				contentType + " payload=" + new String(Arrays.copyOf(bytes, 80), charset) + "...(truncated)";

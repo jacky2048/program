@@ -101,15 +101,15 @@ public class ReloadableResourceBundleMessageSource extends AbstractResourceBased
 
 	/** Cache to hold filename lists per Locale */
 	private final ConcurrentMap<String, Map<Locale, List<String>>> cachedFilenames =
-			new ConcurrentHashMap<>();
+			new ConcurrentHashMap<String, Map<Locale, List<String>>>();
 
 	/** Cache to hold already loaded properties per filename */
 	private final ConcurrentMap<String, PropertiesHolder> cachedProperties =
-			new ConcurrentHashMap<>();
+			new ConcurrentHashMap<String, PropertiesHolder>();
 
 	/** Cache to hold merged loaded properties per locale */
 	private final ConcurrentMap<Locale, PropertiesHolder> cachedMergedProperties =
-			new ConcurrentHashMap<>();
+			new ConcurrentHashMap<Locale, PropertiesHolder>();
 
 
 	/**
@@ -278,7 +278,7 @@ public class ReloadableResourceBundleMessageSource extends AbstractResourceBased
 				return filenames;
 			}
 		}
-		List<String> filenames = new ArrayList<>(7);
+		List<String> filenames = new ArrayList<String>(7);
 		filenames.addAll(calculateFilenamesForLocale(basename, locale));
 		if (isFallbackToSystemLocale() && !locale.equals(Locale.getDefault())) {
 			List<String> fallbackFilenames = calculateFilenamesForLocale(basename, Locale.getDefault());
@@ -291,7 +291,7 @@ public class ReloadableResourceBundleMessageSource extends AbstractResourceBased
 		}
 		filenames.add(basename);
 		if (localeMap == null) {
-			localeMap = new ConcurrentHashMap<>();
+			localeMap = new ConcurrentHashMap<Locale, List<String>>();
 			Map<Locale, List<String>> existing = this.cachedFilenames.putIfAbsent(basename, localeMap);
 			if (existing != null) {
 				localeMap = existing;
@@ -312,7 +312,7 @@ public class ReloadableResourceBundleMessageSource extends AbstractResourceBased
 	 * @return the List of filenames to check
 	 */
 	protected List<String> calculateFilenamesForLocale(String basename, Locale locale) {
-		List<String> result = new ArrayList<>(3);
+		List<String> result = new ArrayList<String>(3);
 		String language = locale.getLanguage();
 		String country = locale.getCountry();
 		String variant = locale.getVariant();
@@ -557,7 +557,7 @@ public class ReloadableResourceBundleMessageSource extends AbstractResourceBased
 
 		/** Cache to hold already generated MessageFormats per message code */
 		private final ConcurrentMap<String, Map<Locale, MessageFormat>> cachedMessageFormats =
-				new ConcurrentHashMap<>();
+				new ConcurrentHashMap<String, Map<Locale, MessageFormat>>();
 
 		public PropertiesHolder() {
 			this.properties = null;
@@ -606,7 +606,7 @@ public class ReloadableResourceBundleMessageSource extends AbstractResourceBased
 			String msg = this.properties.getProperty(code);
 			if (msg != null) {
 				if (localeMap == null) {
-					localeMap = new ConcurrentHashMap<>();
+					localeMap = new ConcurrentHashMap<Locale, MessageFormat>();
 					Map<Locale, MessageFormat> existing = this.cachedMessageFormats.putIfAbsent(code, localeMap);
 					if (existing != null) {
 						localeMap = existing;

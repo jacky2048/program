@@ -29,7 +29,6 @@ import org.springframework.http.client.ClientHttpRequest;
  * @author Craig Walls
  * @since 3.2
  */
-@FunctionalInterface
 public interface RequestMatcher {
 
 	/**

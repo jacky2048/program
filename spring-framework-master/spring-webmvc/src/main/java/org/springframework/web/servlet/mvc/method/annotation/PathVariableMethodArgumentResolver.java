@@ -106,7 +106,7 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 		int scope = RequestAttributes.SCOPE_REQUEST;
 		Map<String, Object> pathVars = (Map<String, Object>) request.getAttribute(key, scope);
 		if (pathVars == null) {
-			pathVars = new HashMap<>();
+			pathVars = new HashMap<String, Object>();
 			request.setAttribute(key, pathVars, scope);
 		}
 		pathVars.put(name, arg);

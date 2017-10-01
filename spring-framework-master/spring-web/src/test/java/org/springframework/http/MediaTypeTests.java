@@ -158,14 +158,14 @@ public class MediaTypeTests {
 
 		assertTrue("Invalid comparison result", audioBasicLevel.compareTo(audio) > 0);
 
-		List<MediaType> expected = new ArrayList<>();
+		List<MediaType> expected = new ArrayList<MediaType>();
 		expected.add(audio);
 		expected.add(audioBasic);
 		expected.add(audioBasicLevel);
 		expected.add(audioBasic07);
 		expected.add(audioWave);
 
-		List<MediaType> result = new ArrayList<>(expected);
+		List<MediaType> result = new ArrayList<MediaType>(expected);
 		Random rnd = new Random();
 		// shuffle & sort 10 times
 		for (int i = 0; i < 10; i++) {
@@ -277,7 +277,7 @@ public class MediaTypeTests {
 		MediaType audioBasicLevel = new MediaType("audio", "basic", Collections.singletonMap("level", "1"));
 		MediaType all = MediaType.ALL;
 
-		List<MediaType> expected = new ArrayList<>();
+		List<MediaType> expected = new ArrayList<MediaType>();
 		expected.add(audioBasicLevel);
 		expected.add(audioBasic);
 		expected.add(audio);
@@ -285,7 +285,7 @@ public class MediaTypeTests {
 		expected.add(audio03);
 		expected.add(all);
 
-		List<MediaType> result = new ArrayList<>(expected);
+		List<MediaType> result = new ArrayList<MediaType>(expected);
 		Random rnd = new Random();
 		// shuffle & sort 10 times
 		for (int i = 0; i < 10; i++) {
@@ -304,12 +304,12 @@ public class MediaTypeTests {
 		MediaType audioWave = new MediaType("audio", "wave");
 		MediaType textHtml = new MediaType("text", "html");
 
-		List<MediaType> expected = new ArrayList<>();
+		List<MediaType> expected = new ArrayList<MediaType>();
 		expected.add(textHtml);
 		expected.add(audioBasic);
 		expected.add(audioWave);
 
-		List<MediaType> result = new ArrayList<>(expected);
+		List<MediaType> result = new ArrayList<MediaType>(expected);
 		MediaType.sortBySpecificity(result);
 
 		for (int i = 0; i < result.size(); i++) {
@@ -381,7 +381,7 @@ public class MediaTypeTests {
 		MediaType audioBasicLevel = new MediaType("audio", "basic", Collections.singletonMap("level", "1"));
 		MediaType all = MediaType.ALL;
 
-		List<MediaType> expected = new ArrayList<>();
+		List<MediaType> expected = new ArrayList<MediaType>();
 		expected.add(audioBasicLevel);
 		expected.add(audioBasic);
 		expected.add(audio);
@@ -389,7 +389,7 @@ public class MediaTypeTests {
 		expected.add(audio07);
 		expected.add(audio03);
 
-		List<MediaType> result = new ArrayList<>(expected);
+		List<MediaType> result = new ArrayList<MediaType>(expected);
 		Random rnd = new Random();
 		// shuffle & sort 10 times
 		for (int i = 0; i < 10; i++) {
@@ -408,12 +408,12 @@ public class MediaTypeTests {
 		MediaType audioWave = new MediaType("audio", "wave");
 		MediaType textHtml = new MediaType("text", "html");
 
-		List<MediaType> expected = new ArrayList<>();
+		List<MediaType> expected = new ArrayList<MediaType>();
 		expected.add(textHtml);
 		expected.add(audioBasic);
 		expected.add(audioWave);
 
-		List<MediaType> result = new ArrayList<>(expected);
+		List<MediaType> result = new ArrayList<MediaType>(expected);
 		MediaType.sortBySpecificity(result);
 
 		for (int i = 0; i < result.size(); i++) {

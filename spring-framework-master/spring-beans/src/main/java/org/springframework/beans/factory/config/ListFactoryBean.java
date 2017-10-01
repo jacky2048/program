@@ -82,7 +82,7 @@ public class ListFactoryBean extends AbstractFactoryBean<List<Object>> {
 			result = BeanUtils.instantiateClass(this.targetListClass);
 		}
 		else {
-			result = new ArrayList<>(this.sourceList.size());
+			result = new ArrayList<Object>(this.sourceList.size());
 		}
 		Class<?> valueType = null;
 		if (this.targetListClass != null) {

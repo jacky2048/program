@@ -177,7 +177,8 @@ public abstract class WebApplicationContextUtils {
 	 */
 	public static void registerWebApplicationScopes(ConfigurableListableBeanFactory beanFactory, ServletContext sc) {
 		beanFactory.registerScope(WebApplicationContext.SCOPE_REQUEST, new RequestScope());
-		beanFactory.registerScope(WebApplicationContext.SCOPE_SESSION, new SessionScope());
+		beanFactory.registerScope(WebApplicationContext.SCOPE_SESSION, new SessionScope(false));
+		beanFactory.registerScope(WebApplicationContext.SCOPE_GLOBAL_SESSION, new SessionScope(true));
 		if (sc != null) {
 			ServletContextScope appScope = new ServletContextScope(sc);
 			beanFactory.registerScope(WebApplicationContext.SCOPE_APPLICATION, appScope);
@@ -223,7 +224,7 @@ public abstract class WebApplicationContextUtils {
 		}
 
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME)) {
-			Map<String, String> parameterMap = new HashMap<>();
+			Map<String, String> parameterMap = new HashMap<String, String>();
 			if (servletContext != null) {
 				Enumeration<?> paramNameEnum = servletContext.getInitParameterNames();
 				while (paramNameEnum.hasMoreElements()) {
@@ -243,7 +244,7 @@ public abstract class WebApplicationContextUtils {
 		}
 
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME)) {
-			Map<String, Object> attributeMap = new HashMap<>();
+			Map<String, Object> attributeMap = new HashMap<String, Object>();
 			if (servletContext != null) {
 				Enumeration<?> attrNameEnum = servletContext.getAttributeNames();
 				while (attrNameEnum.hasMoreElements()) {

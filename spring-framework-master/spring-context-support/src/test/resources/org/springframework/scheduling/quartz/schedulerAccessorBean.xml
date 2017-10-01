@@ -8,8 +8,8 @@
 	<bean class="org.springframework.scheduling.quartz.SchedulerAccessorBean">
 		<property name="triggers">
 			<list>
-				<ref bean="exportTrigger"/>
-				<ref bean="importTrigger"/>
+				<ref local="exportTrigger"/>
+				<ref local="importTrigger"/>
 			</list>
 		</property>
 	</bean>

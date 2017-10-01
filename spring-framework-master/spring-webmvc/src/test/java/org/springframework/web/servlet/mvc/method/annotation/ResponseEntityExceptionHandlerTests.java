@@ -54,6 +54,7 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 
 import static org.junit.Assert.*;
@@ -104,12 +105,19 @@ public class ResponseEntityExceptionHandlerTests {
 	}
 
 	@Test
+	public void noSuchRequestHandlingMethod() {
+		Exception ex = new NoSuchRequestHandlingMethodException("GET", TestController.class);
+		testException(ex);
+	}
+
+	@Test
 	public void httpRequestMethodNotSupported() {
 		List<String> supported = Arrays.asList("POST", "DELETE");
 		Exception ex = new HttpRequestMethodNotSupportedException("GET", supported);
 
 		ResponseEntity<Object> responseEntity = testException(ex);
 		assertEquals(EnumSet.of(HttpMethod.POST, HttpMethod.DELETE), responseEntity.getHeaders().getAllow());
+
 	}
 
 	@Test

@@ -16,8 +16,6 @@
 
 package org.springframework.util.backoff;
 
-import org.springframework.util.Assert;
-
 /**
  * Implementation of {@link BackOff} that increases the back off period for each
  * retry attempt. When the interval has reached the {@link #setMaxInterval(long)
@@ -171,8 +169,10 @@ public class ExponentialBackOff implements BackOff {
 	}
 
 	private void checkMultiplier(double multiplier) {
-		Assert.isTrue(multiplier >= 1, () -> "Invalid multiplier '" + multiplier + "'. Should be greater than " +
-					"or equal to 1. A multiplier of 1 is equivalent to a fixed interval.");
+		if (multiplier < 1) {
+			throw new IllegalArgumentException("Invalid multiplier '" + multiplier + "'. Should be equal" +
+					"or higher than 1. A multiplier of 1 is equivalent to a fixed interval");
+		}
 	}
 
 

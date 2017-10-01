@@ -32,7 +32,6 @@ import javax.jms.Session;
  * @see JmsTemplate#browse(BrowserCallback)
  * @see JmsTemplate#browseSelected(String, BrowserCallback)
  */
-@FunctionalInterface
 public interface BrowserCallback<T> {
 
 	/**

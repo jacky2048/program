@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.Source;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,14 +45,11 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.cbor.MappingJackson2CborHttpMessageConverter;
 import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
 import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.JsonbHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.smile.MappingJackson2SmileHttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -88,8 +86,10 @@ import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionRes
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.mvc.method.annotation.JsonViewRequestBodyAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.JsonViewResponseBodyAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
@@ -168,6 +168,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @since 3.1
  * @see EnableWebMvc
  * @see WebMvcConfigurer
+ * @see WebMvcConfigurerAdapter
  */
 public class WebMvcConfigurationSupport implements ApplicationContextAware, ServletContextAware {
 
@@ -184,17 +185,8 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	private static final boolean jackson2XmlPresent =
 			ClassUtils.isPresent("com.fasterxml.jackson.dataformat.xml.XmlMapper", WebMvcConfigurationSupport.class.getClassLoader());
 
-	private static final boolean jackson2SmilePresent =
-			ClassUtils.isPresent("com.fasterxml.jackson.dataformat.smile.SmileFactory", WebMvcConfigurationSupport.class.getClassLoader());
-
-	private static final boolean jackson2CborPresent =
-			ClassUtils.isPresent("com.fasterxml.jackson.dataformat.cbor.CBORFactory", WebMvcConfigurationSupport.class.getClassLoader());
-
 	private static final boolean gsonPresent =
 			ClassUtils.isPresent("com.google.gson.Gson", WebMvcConfigurationSupport.class.getClassLoader());
-
-	private static final boolean jsonbPresent =
-			ClassUtils.isPresent("javax.json.bind.Jsonb", WebMvcConfigurationSupport.class.getClassLoader());
 
 
 	private ApplicationContext applicationContext;
@@ -385,7 +377,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	}
 
 	protected Map<String, MediaType> getDefaultMediaTypes() {
-		Map<String, MediaType> map = new HashMap<>(4);
+		Map<String, MediaType> map = new HashMap<String, MediaType>(4);
 		if (romePresent) {
 			map.put("atom", MediaType.APPLICATION_ATOM_XML);
 			map.put("rss", MediaType.APPLICATION_RSS_XML);
@@ -393,14 +385,8 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		if (jaxb2Present || jackson2XmlPresent) {
 			map.put("xml", MediaType.APPLICATION_XML);
 		}
-		if (jackson2Present || gsonPresent || jsonbPresent) {
+		if (jackson2Present || gsonPresent) {
 			map.put("json", MediaType.APPLICATION_JSON);
-		}
-		if (jackson2SmilePresent) {
-			map.put("smile", MediaType.valueOf("application/x-jackson-smile"));
-		}
-		if (jackson2CborPresent) {
-			map.put("cbor", MediaType.valueOf("application/cbor"));
 		}
 		return map;
 	}
@@ -542,8 +528,10 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		adapter.setCustomReturnValueHandlers(getReturnValueHandlers());
 
 		if (jackson2Present) {
-			adapter.setRequestBodyAdvice(Collections.singletonList(new JsonViewRequestBodyAdvice()));
-			adapter.setResponseBodyAdvice(Collections.singletonList(new JsonViewResponseBodyAdvice()));
+			adapter.setRequestBodyAdvice(
+					Collections.<RequestBodyAdvice>singletonList(new JsonViewRequestBodyAdvice()));
+			adapter.setResponseBodyAdvice(
+					Collections.<ResponseBodyAdvice<?>>singletonList(new JsonViewResponseBodyAdvice()));
 		}
 
 		AsyncSupportConfigurer configurer = new AsyncSupportConfigurer();
@@ -631,8 +619,11 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 					String className = "org.springframework.validation.beanvalidation.OptionalValidatorFactoryBean";
 					clazz = ClassUtils.forName(className, WebMvcConfigurationSupport.class.getClassLoader());
 				}
-				catch (ClassNotFoundException | LinkageError ex) {
+				catch (ClassNotFoundException ex) {
 					throw new BeanInitializationException("Could not find default validator class", ex);
+				}
+				catch (LinkageError ex) {
+					throw new BeanInitializationException("Could not load default validator class", ex);
 				}
 				validator = (Validator) BeanUtils.instantiateClass(clazz);
 			}
@@ -659,7 +650,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 */
 	protected final List<HandlerMethodArgumentResolver> getArgumentResolvers() {
 		if (this.argumentResolvers == null) {
-			this.argumentResolvers = new ArrayList<>();
+			this.argumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
 			addArgumentResolvers(this.argumentResolvers);
 		}
 		return this.argumentResolvers;
@@ -688,7 +679,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 */
 	protected final List<HandlerMethodReturnValueHandler> getReturnValueHandlers() {
 		if (this.returnValueHandlers == null) {
-			this.returnValueHandlers = new ArrayList<>();
+			this.returnValueHandlers = new ArrayList<HandlerMethodReturnValueHandler>();
 			addReturnValueHandlers(this.returnValueHandlers);
 		}
 		return this.returnValueHandlers;
@@ -719,7 +710,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 */
 	protected final List<HttpMessageConverter<?>> getMessageConverters() {
 		if (this.messageConverters == null) {
-			this.messageConverters = new ArrayList<>();
+			this.messageConverters = new ArrayList<HttpMessageConverter<?>>();
 			configureMessageConverters(this.messageConverters);
 			if (this.messageConverters.isEmpty()) {
 				addDefaultHttpMessageConverters(this.messageConverters);
@@ -765,7 +756,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		messageConverters.add(new ByteArrayHttpMessageConverter());
 		messageConverters.add(stringConverter);
 		messageConverters.add(new ResourceHttpMessageConverter());
-		messageConverters.add(new SourceHttpMessageConverter<>());
+		messageConverters.add(new SourceHttpMessageConverter<Source>());
 		messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 
 		if (romePresent) {
@@ -787,18 +778,6 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		}
 		else if (gsonPresent) {
 			messageConverters.add(new GsonHttpMessageConverter());
-		}
-		else if (jsonbPresent) {
-			messageConverters.add(new JsonbHttpMessageConverter());
-		}
-
-		if (jackson2SmilePresent) {
-			ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.smile().applicationContext(this.applicationContext).build();
-			messageConverters.add(new MappingJackson2SmileHttpMessageConverter(objectMapper));
-		}
-		if (jackson2CborPresent) {
-			ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.cbor().applicationContext(this.applicationContext).build();
-			messageConverters.add(new MappingJackson2CborHttpMessageConverter(objectMapper));
 		}
 	}
 
@@ -843,7 +822,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	 */
 	@Bean
 	public HandlerExceptionResolver handlerExceptionResolver() {
-		List<HandlerExceptionResolver> exceptionResolvers = new ArrayList<>();
+		List<HandlerExceptionResolver> exceptionResolvers = new ArrayList<HandlerExceptionResolver>();
 		configureHandlerExceptionResolvers(exceptionResolvers);
 		if (exceptionResolvers.isEmpty()) {
 			addDefaultHandlerExceptionResolvers(exceptionResolvers);
@@ -898,7 +877,7 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 		exceptionHandlerResolver.setCustomReturnValueHandlers(getReturnValueHandlers());
 		if (jackson2Present) {
 			exceptionHandlerResolver.setResponseBodyAdvice(
-					Collections.singletonList(new JsonViewResponseBodyAdvice()));
+					Collections.<ResponseBodyAdvice<?>>singletonList(new JsonViewResponseBodyAdvice()));
 		}
 		exceptionHandlerResolver.setApplicationContext(this.applicationContext);
 		exceptionHandlerResolver.afterPropertiesSet();

@@ -16,6 +16,8 @@
 
 package org.springframework.web.servlet.handler;
 
+import static org.junit.Assert.*;
+
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,10 +39,6 @@ import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.util.UrlPathHelper;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 
 /**

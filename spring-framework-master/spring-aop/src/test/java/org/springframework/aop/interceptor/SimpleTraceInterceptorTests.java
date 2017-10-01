@@ -29,7 +29,7 @@ import static org.mockito.BDDMockito.*;
  * @author Rick Evans
  * @author Chris Beams
  */
-public class SimpleTraceInterceptorTests {
+public final class SimpleTraceInterceptorTests {
 
 	@Test
 	public void testSunnyDayPathLogsCorrectly() throws Throwable {

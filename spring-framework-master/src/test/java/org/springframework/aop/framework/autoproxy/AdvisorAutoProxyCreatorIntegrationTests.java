@@ -49,7 +49,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class AdvisorAutoProxyCreatorIntegrationTests {
+public final class AdvisorAutoProxyCreatorIntegrationTests {
 
 	private static final Class<?> CLASS = AdvisorAutoProxyCreatorIntegrationTests.class;
 	private static final String CLASSNAME = CLASS.getSimpleName();

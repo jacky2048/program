@@ -89,13 +89,13 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 
 	private List<Object> controllerAdvice;
 
-	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
+	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
-	private List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<>();
+	private List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
 
-	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers = new ArrayList<>();
+	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers = new ArrayList<HandlerMethodReturnValueHandler>();
 
-	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<>();
+	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<MappedInterceptor>();
 
 	private Validator validator = null;
 
@@ -119,7 +119,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 
 	private Boolean removeSemicolonContent;
 
-	private Map<String, String> placeholderValues = new HashMap<>();
+	private Map<String, String> placeholderValues = new HashMap<String, String>();
 
 
 	/**
@@ -320,6 +320,15 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	 * @since 4.2.8
 	 */
 	public StandaloneMockMvcBuilder addPlaceholderValue(String name, String value) {
+		this.placeholderValues.put(name, value);
+		return this;
+	}
+
+	/**
+	 * @deprecated as of 4.2.8, in favor of {@link #addPlaceholderValue(String, String)}
+	 */
+	@Deprecated
+	public StandaloneMockMvcBuilder addPlaceHolderValue(String name, String value) {
 		this.placeholderValues.put(name, value);
 		return this;
 	}

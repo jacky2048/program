@@ -18,7 +18,6 @@ package org.springframework.test.web.servlet.htmlunit;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,16 +44,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static java.util.Arrays.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
  * Unit tests for {@link HtmlUnitRequestBuilder}.
@@ -121,11 +114,12 @@ public class HtmlUnitRequestBuilderTests {
 
 	@Test
 	public void buildRequestCharacterEncoding() {
-		webRequest.setCharset(StandardCharsets.UTF_8);
+		String charset = "UTF-8";
+		webRequest.setCharset(charset);
 
 		MockHttpServletRequest actualRequest = requestBuilder.buildRequest(servletContext);
 
-		assertThat(actualRequest.getCharacterEncoding(), equalTo("UTF-8"));
+		assertThat(actualRequest.getCharacterEncoding(), equalTo(charset));
 	}
 
 	@Test
@@ -297,16 +291,16 @@ public class HtmlUnitRequestBuilderTests {
 
 		MockHttpServletRequest actualRequest = requestBuilder.buildRequest(servletContext);
 
-		assertThat(actualRequest.getLocale(), equalTo(new Locale("en", "gb")));
+		assertThat(actualRequest.getLocale(), equalTo(new Locale("en", "gb", "0.8")));
 	}
 
 	@Test
 	public void buildRequestLocaleEnQ07() {
-		webRequest.setAdditionalHeader("Accept-Language", "en");
+		webRequest.setAdditionalHeader("Accept-Language", "en;q=0.7");
 
 		MockHttpServletRequest actualRequest = requestBuilder.buildRequest(servletContext);
 
-		assertThat(actualRequest.getLocale(), equalTo(new Locale("en", "")));
+		assertThat(actualRequest.getLocale(), equalTo(new Locale("en", "", "0.7")));
 	}
 
 	@Test
@@ -329,11 +323,13 @@ public class HtmlUnitRequestBuilderTests {
 
 	@Test
 	public void buildRequestLocaleMulti() {
-		webRequest.setAdditionalHeader("Accept-Language", "en-gb;q=0.8, da, en;q=0.7");
+		webRequest.setAdditionalHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7");
 
 		MockHttpServletRequest actualRequest = requestBuilder.buildRequest(servletContext);
 
-		List<Locale> expected = asList(new Locale("da"), new Locale("en", "gb"), new Locale("en", ""));
+		// Append Locale.ENGLISH since MockHttpServletRequest automatically sets it as the
+		// preferred locale.
+		List<Locale> expected = asList(new Locale("da"), new Locale("en", "gb", "0.8"), new Locale("en", "", "0.7"), Locale.ENGLISH);
 		assertThat(Collections.list(actualRequest.getLocales()), equalTo(expected));
 	}
 

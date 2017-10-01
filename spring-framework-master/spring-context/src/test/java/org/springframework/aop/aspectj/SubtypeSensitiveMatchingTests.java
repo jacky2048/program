@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
  * @author Adrian Colyer
  * @author Chris Beams
  */
-public class SubtypeSensitiveMatchingTests {
+public final class SubtypeSensitiveMatchingTests {
 
 	private NonSerializableFoo nonSerializableBean;
 

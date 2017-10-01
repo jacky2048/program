@@ -64,7 +64,7 @@ public class NativeMessageHeaderAccessor extends MessageHeaderAccessor {
 	 */
 	protected NativeMessageHeaderAccessor(Map<String, List<String>> nativeHeaders) {
 		if (!CollectionUtils.isEmpty(nativeHeaders)) {
-			setHeader(NATIVE_HEADERS, new LinkedMultiValueMap<>(nativeHeaders));
+			setHeader(NATIVE_HEADERS, new LinkedMultiValueMap<String, String>(nativeHeaders));
 		}
 	}
 
@@ -79,7 +79,7 @@ public class NativeMessageHeaderAccessor extends MessageHeaderAccessor {
 			if (map != null) {
 				// Force removal since setHeader checks for equality
 				removeHeader(NATIVE_HEADERS);
-				setHeader(NATIVE_HEADERS, new LinkedMultiValueMap<>(map));
+				setHeader(NATIVE_HEADERS, new LinkedMultiValueMap<String, String>(map));
 			}
 		}
 	}
@@ -94,7 +94,7 @@ public class NativeMessageHeaderAccessor extends MessageHeaderAccessor {
 	 */
 	public Map<String, List<String>> toNativeHeaderMap() {
 		Map<String, List<String>> map = getNativeHeaders();
-		return (map != null ? new LinkedMultiValueMap<>(map) : Collections.emptyMap());
+		return (map != null ? new LinkedMultiValueMap<String, String>(map) : Collections.<String, List<String>>emptyMap());
 	}
 
 	@Override
@@ -154,10 +154,10 @@ public class NativeMessageHeaderAccessor extends MessageHeaderAccessor {
 			return;
 		}
 		if (map == null) {
-			map = new LinkedMultiValueMap<>(4);
+			map = new LinkedMultiValueMap<String, String>(4);
 			setHeader(NATIVE_HEADERS, map);
 		}
-		List<String> values = new LinkedList<>();
+		List<String> values = new LinkedList<String>();
 		values.add(value);
 		if (!ObjectUtils.nullSafeEquals(values, getHeader(name))) {
 			setModified(true);
@@ -175,12 +175,12 @@ public class NativeMessageHeaderAccessor extends MessageHeaderAccessor {
 		}
 		Map<String, List<String>> nativeHeaders = getNativeHeaders();
 		if (nativeHeaders == null) {
-			nativeHeaders = new LinkedMultiValueMap<>(4);
+			nativeHeaders = new LinkedMultiValueMap<String, String>(4);
 			setHeader(NATIVE_HEADERS, nativeHeaders);
 		}
 		List<String> values = nativeHeaders.get(name);
 		if (values == null) {
-			values = new LinkedList<>();
+			values = new LinkedList<String>();
 			nativeHeaders.put(name, values);
 		}
 		values.add(value);
@@ -191,9 +191,9 @@ public class NativeMessageHeaderAccessor extends MessageHeaderAccessor {
 		if (headers == null) {
 			return;
 		}
-		for (String header : headers.keySet()) {
-			for (String value : headers.get(header)) {
-				addNativeHeader(header, value);
+		for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
+			for (String value : headerEntry.getValue()) {
+				addNativeHeader(headerEntry.getKey(), value);
 			}
 		}
 	}

@@ -182,7 +182,9 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	 * <p>This is necessary for ConnectionHandles that expect "Connection borrowing",
 	 * where each returned Connection is only temporarily leased and needs to be
 	 * returned once the data operation is done, to make the Connection available
-	 * for other operations within the same transaction.
+	 * for other operations within the same transaction. This is the case with
+	 * JDO 2.0 DataStoreConnections, for example.
+	 * @see org.springframework.orm.jdo.DefaultJdoDialect#getJdbcConnection
 	 */
 	@Override
 	public void released() {

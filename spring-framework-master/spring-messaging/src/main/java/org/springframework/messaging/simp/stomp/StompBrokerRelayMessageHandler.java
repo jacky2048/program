@@ -40,8 +40,7 @@ import org.springframework.messaging.tcp.FixedIntervalReconnectStrategy;
 import org.springframework.messaging.tcp.TcpConnection;
 import org.springframework.messaging.tcp.TcpConnectionHandler;
 import org.springframework.messaging.tcp.TcpOperations;
-import org.springframework.messaging.tcp.reactor.ReactorNettyCodec;
-import org.springframework.messaging.tcp.reactor.ReactorNettyTcpClient;
+import org.springframework.messaging.tcp.reactor.Reactor2TcpClient;
 import org.springframework.util.Assert;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -91,7 +90,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 	private static final byte[] EMPTY_PAYLOAD = new byte[0];
 
-	private static final ListenableFutureTask<Void> EMPTY_TASK = new ListenableFutureTask<>(new VoidCallable());
+	private static final ListenableFutureTask<Void> EMPTY_TASK = new ListenableFutureTask<Void>(new VoidCallable());
 
 	private static final Message<byte[]> HEARTBEAT_MESSAGE;
 
@@ -119,7 +118,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 	private long systemHeartbeatReceiveInterval = 10000;
 
-	private final Map<String, MessageHandler> systemSubscriptions = new HashMap<>(4);
+	private final Map<String, MessageHandler> systemSubscriptions = new HashMap<String, MessageHandler>(4);
 
 	private String virtualHost;
 
@@ -129,7 +128,8 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 	private final Stats stats = new Stats();
 
-	private final Map<String, StompConnectionHandler> connectionHandlers = new ConcurrentHashMap<>();
+	private final Map<String, StompConnectionHandler> connectionHandlers =
+			new ConcurrentHashMap<String, StompConnectionHandler>();
 
 
 	/**
@@ -333,7 +333,7 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 
 	/**
 	 * Configure a TCP client for managing TCP connections to the STOMP broker.
-	 * <p>By default {@link ReactorNettyTcpClient} is used.
+	 * By default {@link Reactor2TcpClient} is used.
 	 */
 	public void setTcpClient(TcpOperations<byte[]> tcpClient) {
 		this.tcpClient = tcpClient;
@@ -385,8 +385,8 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 		if (this.tcpClient == null) {
 			StompDecoder decoder = new StompDecoder();
 			decoder.setHeaderInitializer(getHeaderInitializer());
-			ReactorNettyCodec<byte[]> codec = new StompReactorNettyCodec(decoder);
-			this.tcpClient = new ReactorNettyTcpClient<>(this.relayHost, this.relayPort, codec);
+			Reactor2StompCodec codec = new Reactor2StompCodec(new StompEncoder(), decoder);
+			this.tcpClient = new StompTcpClientFactory().create(this.relayHost, this.relayPort, codec);
 		}
 
 		if (logger.isInfoEnabled()) {
@@ -966,6 +966,14 @@ public class StompBrokerRelayMessageHandler extends AbstractBrokerMessageHandler
 			catch (Throwable ex) {
 				throw new MessageDeliveryException(message, ex);
 			}
+		}
+	}
+
+
+	private static class StompTcpClientFactory {
+
+		public TcpOperations<byte[]> create(String relayHost, int relayPort, Reactor2StompCodec codec) {
+			return new Reactor2TcpClient<byte[]>(relayHost, relayPort, codec);
 		}
 	}
 

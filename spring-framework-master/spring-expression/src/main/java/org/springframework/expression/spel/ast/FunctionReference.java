@@ -97,9 +97,9 @@ public class FunctionReference extends SpelNodeImpl {
 		this.method = null;
 		Object[] functionArgs = getArguments(state);
 
-		if (!method.isVarArgs() && method.getParameterCount() != functionArgs.length) {
+		if (!method.isVarArgs() && method.getParameterTypes().length != functionArgs.length) {
 			throw new SpelEvaluationException(SpelMessage.INCORRECT_NUMBER_OF_ARGUMENTS_TO_FUNCTION,
-					functionArgs.length, method.getParameterCount());
+					functionArgs.length, method.getParameterTypes().length);
 		}
 		// Only static methods can be called in this way
 		if (!Modifier.isStatic(method.getModifiers())) {

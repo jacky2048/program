@@ -286,7 +286,6 @@ public class DeferredResult<T> {
 	/**
 	 * Handles a DeferredResult value when set.
 	 */
-	@FunctionalInterface
 	public interface DeferredResultHandler {
 
 		void handleResult(Object result);

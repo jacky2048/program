@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -142,7 +141,7 @@ public class ServletWrappingController extends AbstractController
 		if (this.servletName == null) {
 			this.servletName = this.beanName;
 		}
-		this.servletInstance = ReflectionUtils.accessibleConstructor(this.servletClass).newInstance();
+		this.servletInstance = this.servletClass.newInstance();
 		this.servletInstance.init(new DelegatingServletConfig());
 	}
 

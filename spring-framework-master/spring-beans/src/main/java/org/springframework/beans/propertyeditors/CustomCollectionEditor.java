@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.springframework.util.ReflectionUtils;
-
 /**
  * Property editor for Collections, converting any source Collection
  * to a given target Collection type.
@@ -154,7 +152,7 @@ public class CustomCollectionEditor extends PropertyEditorSupport {
 	protected Collection<Object> createCollection(Class<? extends Collection> collectionType, int initialCapacity) {
 		if (!collectionType.isInterface()) {
 			try {
-				return ReflectionUtils.accessibleConstructor(collectionType).newInstance();
+				return collectionType.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalArgumentException(
@@ -162,13 +160,13 @@ public class CustomCollectionEditor extends PropertyEditorSupport {
 			}
 		}
 		else if (List.class == collectionType) {
-			return new ArrayList<>(initialCapacity);
+			return new ArrayList<Object>(initialCapacity);
 		}
 		else if (SortedSet.class == collectionType) {
-			return new TreeSet<>();
+			return new TreeSet<Object>();
 		}
 		else {
-			return new LinkedHashSet<>(initialCapacity);
+			return new LinkedHashSet<Object>(initialCapacity);
 		}
 	}
 

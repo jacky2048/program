@@ -19,14 +19,14 @@ package org.springframework.oxm.jibx;
 import java.io.StringWriter;
 import javax.xml.transform.stream.StreamResult;
 
-import org.junit.Assume;
-import org.junit.BeforeClass;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 
 import org.springframework.oxm.AbstractMarshallerTests;
 
-import static org.junit.Assert.*;
-import static org.xmlunit.matchers.CompareMatcher.*;
+import static org.custommonkey.xmlunit.XMLAssert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * NOTE: These tests fail under Eclipse/IDEA because JiBX binding does not occur by
@@ -36,13 +36,6 @@ import static org.xmlunit.matchers.CompareMatcher.*;
  * @author Sam Brannen
  */
 public class JibxMarshallerTests extends AbstractMarshallerTests<JibxMarshaller> {
-
-	@BeforeClass
-	public static void compilerAssumptions() {
-		// JiBX compiler is currently not compatible with JDK 9
-		Assume.assumeTrue(System.getProperty("java.version").startsWith("1.8."));
-	}
-
 
 	@Override
 	protected JibxMarshaller createMarshaller() throws Exception {
@@ -73,10 +66,11 @@ public class JibxMarshallerTests extends AbstractMarshallerTests<JibxMarshaller>
 		marshaller.setIndent(4);
 		StringWriter writer = new StringWriter();
 		marshaller.marshal(flights, new StreamResult(writer));
+		XMLUnit.setIgnoreWhitespace(false);
 		String expected =
 				"<?xml version=\"1.0\"?>\n" + "<flights xmlns=\"http://samples.springframework.org/flight\">\n" +
 						"    <flight>\n" + "        <number>42</number>\n" + "    </flight>\n" + "</flights>";
-		assertThat(writer.toString(), isSimilarTo(expected).ignoreWhitespace());
+		assertXMLEqual(expected, writer.toString());
 	}
 
 	@Test

@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  * @author Juergen Hoeller
  * @author Chris Beams
  */
-public class AtAspectJAnnotationBindingTests {
+public final class AtAspectJAnnotationBindingTests {
 
 	private AnnotatedTestBean testBean;
 	private ClassPathXmlApplicationContext ctx;

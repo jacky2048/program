@@ -24,7 +24,7 @@ import static org.junit.Assert.*;
  * @author Rick Evans
  * @author Chris Beams
  */
-public class NullSourceExtractorTests {
+public final class NullSourceExtractorTests {
 
 	@Test
 	public void testPassThroughContract() throws Exception {

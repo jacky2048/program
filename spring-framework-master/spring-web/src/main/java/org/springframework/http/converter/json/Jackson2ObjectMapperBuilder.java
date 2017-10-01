@@ -31,7 +31,6 @@ import javax.xml.stream.XMLResolver;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
@@ -48,8 +47,6 @@ import com.fasterxml.jackson.databind.cfg.HandlerInstantiator;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
-import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -95,8 +92,6 @@ public class Jackson2ObjectMapperBuilder {
 
 	private boolean createXmlMapper = false;
 
-	private JsonFactory factory;
-
 	private DateFormat dateFormat;
 
 	private Locale locale;
@@ -113,13 +108,13 @@ public class Jackson2ObjectMapperBuilder {
 
 	private FilterProvider filters;
 
-	private final Map<Class<?>, Class<?>> mixIns = new HashMap<>();
+	private final Map<Class<?>, Class<?>> mixIns = new HashMap<Class<?>, Class<?>>();
 
-	private final Map<Class<?>, JsonSerializer<?>> serializers = new LinkedHashMap<>();
+	private final Map<Class<?>, JsonSerializer<?>> serializers = new LinkedHashMap<Class<?>, JsonSerializer<?>>();
 
-	private final Map<Class<?>, JsonDeserializer<?>> deserializers = new LinkedHashMap<>();
+	private final Map<Class<?>, JsonDeserializer<?>> deserializers = new LinkedHashMap<Class<?>, JsonDeserializer<?>>();
 
-	private final Map<Object, Boolean> features = new HashMap<>();
+	private final Map<Object, Boolean> features = new HashMap<Object, Boolean>();
 
 	private List<Module> modules;
 
@@ -145,16 +140,6 @@ public class Jackson2ObjectMapperBuilder {
 	 */
 	public Jackson2ObjectMapperBuilder createXmlMapper(boolean createXmlMapper) {
 		this.createXmlMapper = createXmlMapper;
-		return this;
-	}
-
-	/**
-	 * Define the {@link JsonFactory} to be used to create the {@link ObjectMapper}
-	 * instance.
-	 * @since 5.0
-	 */
-	public Jackson2ObjectMapperBuilder factory(JsonFactory factory) {
-		this.factory = factory;
 		return this;
 	}
 
@@ -500,7 +485,7 @@ public class Jackson2ObjectMapperBuilder {
 	 * @see com.fasterxml.jackson.databind.Module
 	 */
 	public Jackson2ObjectMapperBuilder modules(List<Module> modules) {
-		this.modules = new LinkedList<>(modules);
+		this.modules = new LinkedList<Module>(modules);
 		this.findModulesViaServiceLoader = false;
 		this.findWellKnownModules = false;
 		return this;
@@ -600,7 +585,7 @@ public class Jackson2ObjectMapperBuilder {
 					new XmlObjectMapperInitializer().create());
 		}
 		else {
-			mapper = (this.factory != null ? new ObjectMapper(this.factory) : new ObjectMapper());
+			mapper = new ObjectMapper();
 		}
 		configure(mapper);
 		return (T) mapper;
@@ -630,7 +615,7 @@ public class Jackson2ObjectMapperBuilder {
 		}
 		if (this.moduleClasses != null) {
 			for (Class<? extends Module> module : this.moduleClasses) {
-				objectMapper.registerModule(BeanUtils.instantiateClass(module));
+				objectMapper.registerModule(BeanUtils.instantiate(module));
 			}
 		}
 
@@ -735,31 +720,40 @@ public class Jackson2ObjectMapperBuilder {
 
 	@SuppressWarnings("unchecked")
 	private void registerWellKnownModulesIfAvailable(ObjectMapper objectMapper) {
-		try {
-			Class<? extends Module> jdk7Module = (Class<? extends Module>)
-					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk7.Jdk7Module", this.moduleClassLoader);
-			objectMapper.registerModule(BeanUtils.instantiateClass(jdk7Module));
-		}
-		catch (ClassNotFoundException ex) {
-			// jackson-datatype-jdk7 not available
-		}
-
-		try {
-			Class<? extends Module> jdk8Module = (Class<? extends Module>)
-					ClassUtils.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", this.moduleClassLoader);
-			objectMapper.registerModule(BeanUtils.instantiateClass(jdk8Module));
-		}
-		catch (ClassNotFoundException ex) {
-			// jackson-datatype-jdk8 not available
+		// Java 7 java.nio.file.Path class present?
+		if (ClassUtils.isPresent("java.nio.file.Path", this.moduleClassLoader)) {
+			try {
+				Class<? extends Module> jdk7Module = (Class<? extends Module>)
+						ClassUtils.forName("com.fasterxml.jackson.datatype.jdk7.Jdk7Module", this.moduleClassLoader);
+				objectMapper.registerModule(BeanUtils.instantiateClass(jdk7Module));
+			}
+			catch (ClassNotFoundException ex) {
+				// jackson-datatype-jdk7 not available
+			}
 		}
 
-		try {
-			Class<? extends Module> javaTimeModule = (Class<? extends Module>)
-					ClassUtils.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", this.moduleClassLoader);
-			objectMapper.registerModule(BeanUtils.instantiateClass(javaTimeModule));
+		// Java 8 java.util.Optional class present?
+		if (ClassUtils.isPresent("java.util.Optional", this.moduleClassLoader)) {
+			try {
+				Class<? extends Module> jdk8Module = (Class<? extends Module>)
+						ClassUtils.forName("com.fasterxml.jackson.datatype.jdk8.Jdk8Module", this.moduleClassLoader);
+				objectMapper.registerModule(BeanUtils.instantiateClass(jdk8Module));
+			}
+			catch (ClassNotFoundException ex) {
+				// jackson-datatype-jdk8 not available
+			}
 		}
-		catch (ClassNotFoundException ex) {
-			// jackson-datatype-jsr310 not available
+
+		// Java 8 java.time package present?
+		if (ClassUtils.isPresent("java.time.LocalDate", this.moduleClassLoader)) {
+			try {
+				Class<? extends Module> javaTimeModule = (Class<? extends Module>)
+						ClassUtils.forName("com.fasterxml.jackson.datatype.jsr310.JavaTimeModule", this.moduleClassLoader);
+				objectMapper.registerModule(BeanUtils.instantiateClass(javaTimeModule));
+			}
+			catch (ClassNotFoundException ex) {
+				// jackson-datatype-jsr310 not available
+			}
 		}
 
 		// Joda-Time present?
@@ -806,24 +800,6 @@ public class Jackson2ObjectMapperBuilder {
 		return new Jackson2ObjectMapperBuilder().createXmlMapper(true);
 	}
 
-	/**
-	 * Obtain a {@link Jackson2ObjectMapperBuilder} instance in order to
-	 * build a Smile data format {@link ObjectMapper} instance.
-	 * @since 5.0
-	 */
-	public static Jackson2ObjectMapperBuilder smile() {
-		return new Jackson2ObjectMapperBuilder().factory(new SmileFactoryInitializer().create());
-	}
-
-	/**
-	 * Obtain a {@link Jackson2ObjectMapperBuilder} instance in order to
-	 * build a CBOR data format {@link ObjectMapper} instance.
-	 * @since 5.0
-	 */
-	public static Jackson2ObjectMapperBuilder cbor() {
-		return new Jackson2ObjectMapperBuilder().factory(new CborFactoryInitializer().create());
-	}
-
 
 	private static class XmlObjectMapperInitializer {
 
@@ -851,18 +827,6 @@ public class Jackson2ObjectMapperBuilder {
 				return StreamUtils.emptyInput();
 			}
 		};
-	}
-
-	private static class SmileFactoryInitializer {
-		public JsonFactory create() {
-			return new SmileFactory();
-		}
-	}
-
-	private static class CborFactoryInitializer {
-		public JsonFactory create() {
-			return new CBORFactory();
-		}
 	}
 
 }

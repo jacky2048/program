@@ -177,8 +177,10 @@ public abstract class PropertiesLoaderSupport {
 					PropertiesLoaderUtils.fillProperties(
 							props, new EncodedResource(location, this.fileEncoding), this.propertiesPersister);
 				}
-				catch (FileNotFoundException | UnknownHostException ex) {
-					if (this.ignoreResourceNotFound) {
+				catch (IOException ex) {
+					// Resource not found when trying to open it
+					if (this.ignoreResourceNotFound &&
+							(ex instanceof FileNotFoundException || ex instanceof UnknownHostException)) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Properties resource not found: " + ex.getMessage());
 						}

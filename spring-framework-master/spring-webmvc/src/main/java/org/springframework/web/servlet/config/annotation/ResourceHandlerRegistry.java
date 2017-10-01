@@ -57,7 +57,7 @@ public class ResourceHandlerRegistry {
 
 	private final ContentNegotiationManager contentNegotiationManager;
 
-	private final List<ResourceHandlerRegistration> registrations = new ArrayList<>();
+	private final List<ResourceHandlerRegistration> registrations = new ArrayList<ResourceHandlerRegistration>();
 
 	private int order = Integer.MAX_VALUE -1;
 
@@ -136,7 +136,7 @@ public class ResourceHandlerRegistry {
 			return null;
 		}
 
-		Map<String, HttpRequestHandler> urlMap = new LinkedHashMap<>();
+		Map<String, HttpRequestHandler> urlMap = new LinkedHashMap<String, HttpRequestHandler>();
 		for (ResourceHandlerRegistration registration : this.registrations) {
 			for (String pathPattern : registration.getPathPatterns()) {
 				ResourceHttpRequestHandler handler = registration.getRequestHandler();

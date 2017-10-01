@@ -87,6 +87,10 @@ public class Spr15275Tests {
 				public Class<?> getObjectType() {
 					return Foo.class;
 				}
+				@Override
+				public boolean isSingleton() {
+					return true;
+				}
 			};
 		}
 
@@ -215,6 +219,11 @@ public class Spr15275Tests {
 		@Override
 		public Class<?> getObjectType() {
 			return FooInterface.class;
+		}
+
+		@Override
+		public boolean isSingleton() {
+			return true;
 		}
 	}
 

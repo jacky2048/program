@@ -45,6 +45,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -65,7 +66,7 @@ import org.springframework.util.StreamUtils;
  */
 public class SourceHttpMessageConverter<T extends Source> extends AbstractHttpMessageConverter<T> {
 
-	private static final Set<Class<?>> SUPPORTED_CLASSES = new HashSet<>(5);
+	private static final Set<Class<?>> SUPPORTED_CLASSES = new HashSet<Class<?>>(5);
 
 	static {
 		SUPPORTED_CLASSES.add(DOMSource.class);
@@ -187,10 +188,9 @@ public class SourceHttpMessageConverter<T extends Source> extends AbstractHttpMe
 		}
 	}
 
-	@SuppressWarnings("deprecation")  // on JDK 9
 	private SAXSource readSAXSource(InputStream body) throws IOException {
 		try {
-			XMLReader xmlReader = org.xml.sax.helpers.XMLReaderFactory.createXMLReader();
+			XMLReader xmlReader = XMLReaderFactory.createXMLReader();
 			xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", !isSupportDtd());
 			xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", isProcessExternalEntities());
 			if (!isProcessExternalEntities()) {

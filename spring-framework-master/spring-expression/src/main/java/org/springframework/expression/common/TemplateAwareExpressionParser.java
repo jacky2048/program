@@ -108,7 +108,7 @@ public abstract class TemplateAwareExpressionParser implements ExpressionParser 
 	 * @throws ParseException when the expressions cannot be parsed
 	 */
 	private Expression[] parseExpressions(String expressionString, ParserContext context) throws ParseException {
-		List<Expression> expressions = new LinkedList<>();
+		List<Expression> expressions = new LinkedList<Expression>();
 		String prefix = context.getExpressionPrefix();
 		String suffix = context.getExpressionSuffix();
 		int startIdx = 0;
@@ -196,7 +196,7 @@ public abstract class TemplateAwareExpressionParser implements ExpressionParser 
 		if (nextSuffix == -1) {
 			return -1; // the suffix is missing
 		}
-		Stack<Bracket> stack = new Stack<>();
+		Stack<Bracket> stack = new Stack<Bracket>();
 		while (pos < maxlen) {
 			if (isSuffixHere(expressionString, pos, suffix) && stack.isEmpty()) {
 				break;

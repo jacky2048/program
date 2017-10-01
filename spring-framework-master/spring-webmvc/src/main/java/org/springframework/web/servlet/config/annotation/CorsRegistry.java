@@ -33,7 +33,7 @@ import org.springframework.web.cors.CorsConfiguration;
  */
 public class CorsRegistry {
 
-	private final List<CorsRegistration> registrations = new ArrayList<>();
+	private final List<CorsRegistration> registrations = new ArrayList<CorsRegistration>();
 
 
 	/**
@@ -58,7 +58,7 @@ public class CorsRegistry {
 	 * keyed by path pattern.
 	 */
 	protected Map<String, CorsConfiguration> getCorsConfigurations() {
-		Map<String, CorsConfiguration> configs = new LinkedHashMap<>(this.registrations.size());
+		Map<String, CorsConfiguration> configs = new LinkedHashMap<String, CorsConfiguration>(this.registrations.size());
 		for (CorsRegistration registration : this.registrations) {
 			configs.put(registration.getPathPattern(), registration.getCorsConfiguration());
 		}

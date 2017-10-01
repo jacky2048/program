@@ -32,7 +32,7 @@ import static org.springframework.tests.TestResourceUtils.*;
  * @author Chris Beams
  * @since 01.11.2003
  */
-public class PropertiesFactoryBeanTests {
+public final class PropertiesFactoryBeanTests {
 
 	private static final Class<?> CLASS = PropertiesFactoryBeanTests.class;
 	private static final Resource TEST_PROPS = qualifiedResource(CLASS, "test.properties");

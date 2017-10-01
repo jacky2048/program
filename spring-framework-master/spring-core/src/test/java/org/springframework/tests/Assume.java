@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.springframework.tests;
 
+import java.awt.GraphicsEnvironment;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.junit.AssumptionViolatedException;
+
+import org.springframework.util.ClassUtils;
 
 import static org.junit.Assume.*;
 
@@ -28,14 +32,13 @@ import static org.junit.Assume.*;
  * conditions hold {@code true}. If the assumption fails, it means the test should be
  * skipped.
  *
- * <p>Tests can be categorized into {@link TestGroup}s. Active groups are enabled using
+ * Tests can be categorized into {@link TestGroup}s. Active groups are enabled using
  * the 'testGroups' system property, usually activated from the gradle command line:
- *
- * <pre class="code">
+ * <pre>
  * gradle test -PtestGroups="performance"
  * </pre>
  *
- * <p>Groups can be specified as a comma separated list of values, or using the pseudo group
+ * Groups can be specified as a comma separated list of values, or using the pseudo group
  * 'all'. See {@link TestGroup} for a list of valid groups.
  *
  * @author Rob Winch
@@ -47,7 +50,7 @@ import static org.junit.Assume.*;
  */
 public abstract class Assume {
 
-	static final String TEST_GROUPS_SYSTEM_PROPERTY = "testGroups";
+	private static final Set<TestGroup> GROUPS = TestGroup.parse(System.getProperty("testGroups"));
 
 
 	/**
@@ -56,9 +59,8 @@ public abstract class Assume {
 	 * @throws AssumptionViolatedException if the assumption fails
 	 */
 	public static void group(TestGroup group) {
-		Set<TestGroup> testGroups = loadTestGroups();
-		if (!testGroups.contains(group)) {
-			throw new AssumptionViolatedException("Requires unspecified group " + group + " from " + testGroups);
+		if (!GROUPS.contains(group)) {
+			throw new AssumptionViolatedException("Requires unspecified group " + group + " from " + GROUPS);
 		}
 	}
 
@@ -72,8 +74,7 @@ public abstract class Assume {
 	 * @since 4.2
 	 */
 	public static void group(TestGroup group, Executable executable) throws Exception {
-		Set<TestGroup> testGroups = loadTestGroups();
-		if (testGroups.contains(group)) {
+		if (GROUPS.contains(group)) {
 			executable.execute();
 		}
 	}
@@ -89,17 +90,22 @@ public abstract class Assume {
 	}
 
 	/**
-	 * Load test groups dynamically instead of during static
-	 * initialization in order to avoid a {@link NoClassDefFoundError}
-	 * being thrown while attempting to load the {@code Assume} class.
+	 * Assume that we can load fonts.
+	 * <p>See <a href="https://java.net/jira/browse/MACOSX_PORT-355">MACOSX_PORT-355</a>
+	 * issue.
+	 * @throws AssumptionViolatedException if the assumption fails
 	 */
-	private static Set<TestGroup> loadTestGroups() {
+	public static void canLoadNativeDirFonts() {
 		try {
-			return TestGroup.parse(System.getProperty(TEST_GROUPS_SYSTEM_PROPERTY));
+			GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+			Class<?> parserClass = ClassUtils.forName(
+					"net.sf.jasperreports.engine.util.JRStyledTextParser", Assume.class.getClassLoader());
+			Method method = parserClass.getMethod("getInstance");
+			method.setAccessible(true);
+			method.invoke(null);
 		}
-		catch (Exception ex) {
-			throw new IllegalStateException("Failed to parse '" + TEST_GROUPS_SYSTEM_PROPERTY
-					+ "' system property: " + ex.getMessage(), ex);
+		catch (Throwable ex) {
+			throw new AssumptionViolatedException("Requires GraphicsEnvironment that can load fonts", ex);
 		}
 	}
 
@@ -107,7 +113,6 @@ public abstract class Assume {
 	/**
 	 * @since 4.2
 	 */
-	@FunctionalInterface
 	public interface Executable {
 
 		void execute() throws Exception;

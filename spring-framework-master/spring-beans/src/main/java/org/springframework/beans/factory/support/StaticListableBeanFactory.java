@@ -67,7 +67,7 @@ public class StaticListableBeanFactory implements ListableBeanFactory {
 	 * with singleton bean instances through {@link #addBean} calls.
 	 */
 	public StaticListableBeanFactory() {
-		this.beans = new LinkedHashMap<>();
+		this.beans = new LinkedHashMap<String, Object>();
 	}
 
 	/**
@@ -255,7 +255,7 @@ public class StaticListableBeanFactory implements ListableBeanFactory {
 				isFactoryType = true;
 			}
 		}
-		List<String> matches = new ArrayList<>();
+		List<String> matches = new ArrayList<String>();
 		for (Map.Entry<String, Object> entry : this.beans.entrySet()) {
 			String name = entry.getKey();
 			Object beanInstance = entry.getValue();
@@ -295,7 +295,7 @@ public class StaticListableBeanFactory implements ListableBeanFactory {
 			throws BeansException {
 
 		boolean isFactoryType = (type != null && FactoryBean.class.isAssignableFrom(type));
-		Map<String, T> matches = new LinkedHashMap<>();
+		Map<String, T> matches = new LinkedHashMap<String, T>();
 
 		for (Map.Entry<String, Object> entry : this.beans.entrySet()) {
 			String beanName = entry.getKey();
@@ -326,7 +326,7 @@ public class StaticListableBeanFactory implements ListableBeanFactory {
 
 	@Override
 	public String[] getBeanNamesForAnnotation(Class<? extends Annotation> annotationType) {
-		List<String> results = new ArrayList<>();
+		List<String> results = new ArrayList<String>();
 		for (String beanName : this.beans.keySet()) {
 			if (findAnnotationOnBean(beanName, annotationType) != null) {
 				results.add(beanName);
@@ -339,7 +339,7 @@ public class StaticListableBeanFactory implements ListableBeanFactory {
 	public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType)
 			throws BeansException {
 
-		Map<String, Object> results = new LinkedHashMap<>();
+		Map<String, Object> results = new LinkedHashMap<String, Object>();
 		for (String beanName : this.beans.keySet()) {
 			if (findAnnotationOnBean(beanName, annotationType) != null) {
 				results.put(beanName, getBean(beanName));

@@ -156,12 +156,12 @@ public class MessageConverterTests {
 		}
 
 		@Override
-		protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
+		public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 			return "success-from";
 		}
 
 		@Override
-		protected Object convertToInternal(Object payload, MessageHeaders headers, Object conversionHint) {
+		public Object convertToInternal(Object payload, MessageHeaders headers) {
 			return "success-to";
 		}
 	}

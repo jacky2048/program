@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ import org.w3c.dom.Node;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.SimpleTransformErrorListener;
 import org.springframework.util.xml.TransformerUtils;
@@ -197,7 +197,7 @@ public class XsltView extends AbstractUrlBasedView {
 	protected TransformerFactory newTransformerFactory(Class<? extends TransformerFactory> transformerFactoryClass) {
 		if (transformerFactoryClass != null) {
 			try {
-				return ReflectionUtils.accessibleConstructor(transformerFactoryClass).newInstance();
+				return transformerFactoryClass.newInstance();
 			}
 			catch (Exception ex) {
 				throw new TransformerFactoryConfigurationError(ex, "Could not instantiate TransformerFactory");

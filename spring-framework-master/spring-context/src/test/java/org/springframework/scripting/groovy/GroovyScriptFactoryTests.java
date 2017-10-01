@@ -28,6 +28,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.target.dynamic.Refreshable;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -277,7 +278,7 @@ public class GroovyScriptFactoryTests {
 			fail("Must have thrown a ScriptCompilationException (no public no-arg ctor in scripted class).");
 		}
 		catch (ScriptCompilationException expected) {
-			assertTrue(expected.contains(NoSuchMethodException.class));
+			assertTrue(expected.contains(InstantiationException.class));
 		}
 	}
 
@@ -288,7 +289,13 @@ public class GroovyScriptFactoryTests {
 		given(script.getScriptAsString()).willReturn(badScript);
 		given(script.suggestedClassName()).willReturn("someName");
 		GroovyScriptFactory factory = new GroovyScriptFactory(ScriptFactoryPostProcessor.INLINE_SCRIPT_PREFIX + badScript);
-		assertEquals("X", factory.getScriptedObject(script).toString());
+		try {
+			factory.getScriptedObject(script);
+			fail("Must have thrown a ScriptCompilationException (no oublic no-arg ctor in scripted class).");
+		}
+		catch (ScriptCompilationException expected) {
+			assertTrue(expected.contains(IllegalAccessException.class));
+		}
 	}
 
 	@Test
@@ -535,6 +542,15 @@ public class GroovyScriptFactoryTests {
 		ContextScriptBean bean2 = (ContextScriptBean) ctx.getBean("bean2");
 		assertEquals(tb, bean2.getTestBean());
 		assertEquals(ctx, bean2.getApplicationContext());
+
+		try {
+			ctx.getBean("bean3");
+			fail("Should have thrown BeanCreationException");
+		}
+		catch (BeanCreationException ex) {
+			// expected
+			assertTrue(ex.contains(UnsatisfiedDependencyException.class));
+		}
 	}
 
 	@Test

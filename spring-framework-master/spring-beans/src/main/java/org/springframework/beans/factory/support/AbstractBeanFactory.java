@@ -131,19 +131,21 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	private ConversionService conversionService;
 
 	/** Custom PropertyEditorRegistrars to apply to the beans of this factory */
-	private final Set<PropertyEditorRegistrar> propertyEditorRegistrars = new LinkedHashSet<>(4);
+	private final Set<PropertyEditorRegistrar> propertyEditorRegistrars =
+			new LinkedHashSet<PropertyEditorRegistrar>(4);
 
 	/** Custom PropertyEditors to apply to the beans of this factory */
-	private final Map<Class<?>, Class<? extends PropertyEditor>> customEditors = new HashMap<>(4);
+	private final Map<Class<?>, Class<? extends PropertyEditor>> customEditors =
+			new HashMap<Class<?>, Class<? extends PropertyEditor>>(4);
 
 	/** A custom TypeConverter to use, overriding the default PropertyEditor mechanism */
 	private TypeConverter typeConverter;
 
 	/** String resolvers to apply e.g. to annotation attribute values */
-	private final List<StringValueResolver> embeddedValueResolvers = new LinkedList<>();
+	private final List<StringValueResolver> embeddedValueResolvers = new LinkedList<StringValueResolver>();
 
 	/** BeanPostProcessors to apply in createBean */
-	private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
+	private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<BeanPostProcessor>();
 
 	/** Indicates whether any InstantiationAwareBeanPostProcessors have been registered */
 	private boolean hasInstantiationAwareBeanPostProcessors;
@@ -152,20 +154,22 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	private boolean hasDestructionAwareBeanPostProcessors;
 
 	/** Map from scope identifier String to corresponding Scope */
-	private final Map<String, Scope> scopes = new LinkedHashMap<>(8);
+	private final Map<String, Scope> scopes = new LinkedHashMap<String, Scope>(8);
 
 	/** Security context used when running with a SecurityManager */
 	private SecurityContextProvider securityContextProvider;
 
 	/** Map from bean name to merged RootBeanDefinition */
-	private final Map<String, RootBeanDefinition> mergedBeanDefinitions = new ConcurrentHashMap<>(256);
+	private final Map<String, RootBeanDefinition> mergedBeanDefinitions =
+			new ConcurrentHashMap<String, RootBeanDefinition>(256);
 
 	/** Names of beans that have already been created at least once */
-	private final Set<String> alreadyCreated = Collections.newSetFromMap(new ConcurrentHashMap<>(256));
+	private final Set<String> alreadyCreated =
+			Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(256));
 
 	/** Names of beans that are currently in creation */
 	private final ThreadLocal<Object> prototypesCurrentlyInCreation =
-			new NamedThreadLocal<>("Prototype beans currently in creation");
+			new NamedThreadLocal<Object>("Prototype beans currently in creation");
 
 
 	/**
@@ -641,7 +645,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Override
 	public String[] getAliases(String name) {
 		String beanName = transformedBeanName(name);
-		List<String> aliases = new ArrayList<>();
+		List<String> aliases = new ArrayList<String>();
 		boolean factoryPrefix = name.startsWith(FACTORY_BEAN_PREFIX);
 		String fullBeanName = beanName;
 		if (factoryPrefix) {
@@ -1032,7 +1036,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			this.prototypesCurrentlyInCreation.set(beanName);
 		}
 		else if (curVal instanceof String) {
-			Set<String> beanNameSet = new HashSet<>(2);
+			Set<String> beanNameSet = new HashSet<String>(2);
 			beanNameSet.add((String) curVal);
 			beanNameSet.add(beanName);
 			this.prototypesCurrentlyInCreation.set(beanNameSet);
@@ -1291,8 +1295,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					mbd.setScope(containingBd.getScope());
 				}
 
-				// Only cache the merged bean definition if we're already about to create an
-				// instance of the bean, or at least have already created an instance before.
+				// Cache the merged bean definition for the time being
+				// (it might still get re-merged later on in order to pick up metadata changes)
 				if (containingBd == null && isCacheBeanMetadata()) {
 					this.mergedBeanDefinitions.put(beanName, mbd);
 				}

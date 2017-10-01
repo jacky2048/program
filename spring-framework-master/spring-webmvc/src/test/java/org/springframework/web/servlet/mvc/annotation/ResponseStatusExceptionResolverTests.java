@@ -32,7 +32,6 @@ import org.springframework.mock.web.test.MockHttpServletRequest;
 import org.springframework.mock.web.test.MockHttpServletResponse;
 import org.springframework.tests.sample.beans.ITestBean;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
 import static org.junit.Assert.*;
@@ -42,7 +41,6 @@ import static org.junit.Assert.*;
  *
  * @author Arjen Poutsma
  * @author Sam Brannen
- * @author Rossen Stoyanchev
  */
 public class ResponseStatusExceptionResolverTests {
 
@@ -52,32 +50,40 @@ public class ResponseStatusExceptionResolverTests {
 
 	private final MockHttpServletResponse response = new MockHttpServletResponse();
 
-
 	@Before
 	public void setup() {
 		exceptionResolver.setWarnLogCategory(exceptionResolver.getClass().getName());
 	}
 
-
 	@Test
 	public void statusCode() {
 		StatusCodeException ex = new StatusCodeException();
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertResolved(mav, 400, null);
+		assertNotNull("No ModelAndView returned", mav);
+		assertTrue("No Empty ModelAndView returned", mav.isEmpty());
+		assertEquals("Invalid status code", 400, response.getStatus());
+		assertTrue("Response has not been committed", response.isCommitted());
 	}
 
 	@Test
 	public void statusCodeFromComposedResponseStatus() {
 		StatusCodeFromComposedResponseStatusException ex = new StatusCodeFromComposedResponseStatusException();
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertResolved(mav, 400, null);
+		assertNotNull("No ModelAndView returned", mav);
+		assertTrue("No Empty ModelAndView returned", mav.isEmpty());
+		assertEquals("Invalid status code", 400, response.getStatus());
+		assertTrue("Response has not been committed", response.isCommitted());
 	}
 
 	@Test
 	public void statusCodeAndReason() {
 		StatusCodeAndReasonException ex = new StatusCodeAndReasonException();
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertResolved(mav, 410, "You suck!");
+		assertNotNull("No ModelAndView returned", mav);
+		assertTrue("No Empty ModelAndView returned", mav.isEmpty());
+		assertEquals("Invalid status code", 410, response.getStatus());
+		assertEquals("Invalid status reason", "You suck!", response.getErrorMessage());
+		assertTrue("Response has not been committed", response.isCommitted());
 	}
 
 	@Test
@@ -106,29 +112,16 @@ public class ResponseStatusExceptionResolverTests {
 		assertNull("ModelAndView returned", mav);
 	}
 
-	@Test // SPR-12903
+	// SPR-12903
+
+	@Test
 	public void nestedException() throws Exception {
 		Exception cause = new StatusCodeAndReasonMessageException();
 		TypeMismatchException ex = new TypeMismatchException("value", ITestBean.class, cause);
 		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertResolved(mav, 410, null);
-	}
-
-	@Test
-	public void responseStatusException() throws Exception {
-		ResponseStatusException ex = new ResponseStatusException(HttpStatus.BAD_REQUEST, "The reason");
-		ModelAndView mav = exceptionResolver.resolveException(request, response, null, ex);
-		assertResolved(mav, 400, null);
-	}
-
-
-	private void assertResolved(ModelAndView mav, int status, String reason) {
-		assertTrue("No Empty ModelAndView returned", mav != null && mav.isEmpty());
-		assertEquals(status, response.getStatus());
-		if (reason != null) {
-			assertEquals(reason, response.getErrorMessage());
-		}
-		assertTrue(response.isCommitted());
+		assertNotNull("No ModelAndView returned", mav);
+		assertTrue("No Empty ModelAndView returned", mav.isEmpty());
+		assertEquals("Invalid status code", 410, response.getStatus());
 	}
 
 
@@ -149,7 +142,6 @@ public class ResponseStatusExceptionResolverTests {
 
 	@ResponseStatus
 	@Retention(RetentionPolicy.RUNTIME)
-	@SuppressWarnings("unused")
 	@interface ComposedResponseStatus {
 
 		@AliasFor(annotation = ResponseStatus.class, attribute = "code")

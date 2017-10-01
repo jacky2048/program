@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpHeaders;
@@ -139,8 +140,7 @@ public class Jaxb2RootElementHttpMessageConverter extends AbstractJaxb2HttpMessa
 		catch (NullPointerException ex) {
 			if (!isSupportDtd()) {
 				throw new HttpMessageNotReadableException("NPE while unmarshalling. " +
-						"This can happen on JDK 1.6 due to the presence of DTD " +
-						"declarations, which are disabled.", ex);
+						"This can happen due to the presence of DTD declarations which are disabled.", ex);
 			}
 			throw ex;
 		}
@@ -153,13 +153,12 @@ public class Jaxb2RootElementHttpMessageConverter extends AbstractJaxb2HttpMessa
 		}
 	}
 
-	@SuppressWarnings("deprecation")  // on JDK 9
 	protected Source processSource(Source source) {
 		if (source instanceof StreamSource) {
 			StreamSource streamSource = (StreamSource) source;
 			InputSource inputSource = new InputSource(streamSource.getInputStream());
 			try {
-				XMLReader xmlReader = org.xml.sax.helpers.XMLReaderFactory.createXMLReader();
+				XMLReader xmlReader = XMLReaderFactory.createXMLReader();
 				xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", !isSupportDtd());
 				String featureName = "http://xml.org/sax/features/external-general-entities";
 				xmlReader.setFeature(featureName, isProcessExternalEntities());

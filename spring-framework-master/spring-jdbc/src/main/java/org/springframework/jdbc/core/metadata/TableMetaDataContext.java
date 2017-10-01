@@ -32,6 +32,7 @@ import org.springframework.jdbc.core.SqlTypeValue;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractor;
 
 /**
  * Class to manage context metadata used for the configuration
@@ -46,17 +47,17 @@ public class TableMetaDataContext {
 	/** Logger available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	/** name of table for this context **/
+	/** Name of table for this context */
 	private String tableName;
 
-	/** name of catalog for this context **/
+	/** Name of catalog for this context */
 	private String catalogName;
 
-	/** name of schema for this context **/
+	/** Name of schema for this context */
 	private String schemaName;
 
 	/** List of columns objects to be used in this context */
-	private List<String> tableColumns = new ArrayList<>();
+	private List<String> tableColumns = new ArrayList<String>();
 
 	/** should we access insert parameter meta data info or not */
 	private boolean accessTableColumnMetaData = true;
@@ -69,6 +70,9 @@ public class TableMetaDataContext {
 
 	/** are we using generated key columns */
 	private boolean generatedKeyColumnsUsed = false;
+
+	/** NativeJdbcExtractor to be used to retrieve the native connection */
+	NativeJdbcExtractor nativeJdbcExtractor;
 
 
 	/**
@@ -150,37 +154,10 @@ public class TableMetaDataContext {
 	}
 
 	/**
-	 * Does this database support the JDBC 3.0 feature of retrieving generated keys
-	 * {@link java.sql.DatabaseMetaData#supportsGetGeneratedKeys()}?
+	 * Set {@link NativeJdbcExtractor} to be used to retrieve the native connection.
 	 */
-	public boolean isGetGeneratedKeysSupported() {
-		return this.metaDataProvider.isGetGeneratedKeysSupported();
-	}
-
-	/**
-	 * Does this database support simple query to retrieve generated keys
-	 * when the JDBC 3.0 feature is not supported.
-	 * {@link java.sql.DatabaseMetaData#supportsGetGeneratedKeys()}?
-	 */
-	public boolean isGetGeneratedKeysSimulated() {
-		return this.metaDataProvider.isGetGeneratedKeysSimulated();
-	}
-
-	/**
-	 * Does this database support simple query to retrieve generated keys
-	 * when the JDBC 3.0 feature is not supported.
-	 * {@link java.sql.DatabaseMetaData#supportsGetGeneratedKeys()}?
-	 */
-	public String getSimulationQueryForGetGeneratedKey(String tableName, String keyColumnName) {
-		return this.metaDataProvider.getSimpleQueryForGetGeneratedKey(tableName, keyColumnName);
-	}
-
-	/**
-	 * Is a column name String array for retrieving generated keys supported?
-	 * {@link java.sql.Connection#createStruct(String, Object[])}?
-	 */
-	public boolean isGeneratedKeysColumnNameArraySupported() {
-		return this.metaDataProvider.isGeneratedKeysColumnNameArraySupported();
+	public void setNativeJdbcExtractor(NativeJdbcExtractor nativeJdbcExtractor) {
+		this.nativeJdbcExtractor = nativeJdbcExtractor;
 	}
 
 
@@ -191,7 +168,8 @@ public class TableMetaDataContext {
 	 * @param generatedKeyNames name of generated keys
 	 */
 	public void processMetaData(DataSource dataSource, List<String> declaredColumns, String[] generatedKeyNames) {
-		this.metaDataProvider = TableMetaDataProviderFactory.createMetaDataProvider(dataSource, this);
+		this.metaDataProvider =
+				TableMetaDataProviderFactory.createMetaDataProvider(dataSource, this, this.nativeJdbcExtractor);
 		this.tableColumns = reconcileColumnsToUse(declaredColumns, generatedKeyNames);
 	}
 
@@ -205,14 +183,14 @@ public class TableMetaDataContext {
 			this.generatedKeyColumnsUsed = true;
 		}
 		if (declaredColumns.size() > 0) {
-			return new ArrayList<>(declaredColumns);
+			return new ArrayList<String>(declaredColumns);
 		}
-		Set<String> keys = new LinkedHashSet<>(generatedKeyNames.length);
+		Set<String> keys = new LinkedHashSet<String>(generatedKeyNames.length);
 		for (String key : generatedKeyNames) {
 			keys.add(key.toUpperCase());
 		}
-		List<String> columns = new ArrayList<>();
-		for (TableParameterMetaData meta : metaDataProvider.getTableParameterMetaData()) {
+		List<String> columns = new ArrayList<String>();
+		for (TableParameterMetaData meta : this.metaDataProvider.getTableParameterMetaData()) {
 			if (!keys.contains(meta.getParameterName().toUpperCase())) {
 				columns.add(meta.getParameterName());
 			}
@@ -225,7 +203,7 @@ public class TableMetaDataContext {
 	 * @param parameterSource the parameter names and values
 	 */
 	public List<Object> matchInParameterValuesWithInsertColumns(SqlParameterSource parameterSource) {
-		List<Object> values = new ArrayList<>();
+		List<Object> values = new ArrayList<Object>();
 		// for parameter source lookups we need to provide caseinsensitive lookup support since the
 		// database metadata is not necessarily providing case sensitive column names
 		Map<String, String> caseInsensitiveParameterNames =
@@ -265,8 +243,8 @@ public class TableMetaDataContext {
 	 * @param inParameters the parameter names and values
 	 */
 	public List<Object> matchInParameterValuesWithInsertColumns(Map<String, ?> inParameters) {
-		List<Object> values = new ArrayList<>();
-		Map<String, Object> source = new LinkedHashMap<>(inParameters.size());
+		List<Object> values = new ArrayList<Object>();
+		Map<String, Object> source = new LinkedHashMap<String, Object>(inParameters.size());
 		for (String key : inParameters.keySet()) {
 			source.put(key.toLowerCase(), inParameters.get(key));
 		}
@@ -282,7 +260,7 @@ public class TableMetaDataContext {
 	 * @return the insert string to be used
 	 */
 	public String createInsertString(String... generatedKeyNames) {
-		Set<String> keys = new LinkedHashSet<>(generatedKeyNames.length);
+		Set<String> keys = new LinkedHashSet<String>(generatedKeyNames.length);
 		for (String key : generatedKeyNames) {
 			keys.add(key.toUpperCase());
 		}
@@ -333,7 +311,7 @@ public class TableMetaDataContext {
 		int[] types = new int[getTableColumns().size()];
 		List<TableParameterMetaData> parameters = this.metaDataProvider.getTableParameterMetaData();
 		Map<String, TableParameterMetaData> parameterMap =
-				new LinkedHashMap<>(parameters.size());
+				new LinkedHashMap<String, TableParameterMetaData>(parameters.size());
 		for (TableParameterMetaData tpmd : parameters) {
 			parameterMap.put(tpmd.getParameterName().toUpperCase(), tpmd);
 		}
@@ -354,6 +332,41 @@ public class TableMetaDataContext {
 			typeIndx++;
 		}
 		return types;
+	}
+
+
+	/**
+	 * Does this database support the JDBC 3.0 feature of retrieving generated keys
+	 * {@link java.sql.DatabaseMetaData#supportsGetGeneratedKeys()}?
+	 */
+	public boolean isGetGeneratedKeysSupported() {
+		return this.metaDataProvider.isGetGeneratedKeysSupported();
+	}
+
+	/**
+	 * Does this database support simple query to retrieve generated keys
+	 * when the JDBC 3.0 feature is not supported.
+	 * {@link java.sql.DatabaseMetaData#supportsGetGeneratedKeys()}?
+	 */
+	public boolean isGetGeneratedKeysSimulated() {
+		return this.metaDataProvider.isGetGeneratedKeysSimulated();
+	}
+
+	/**
+	 * Does this database support simple query to retrieve generated keys
+	 * when the JDBC 3.0 feature is not supported.
+	 * {@link java.sql.DatabaseMetaData#supportsGetGeneratedKeys()}?
+	 */
+	public String getSimulationQueryForGetGeneratedKey(String tableName, String keyColumnName) {
+		return this.metaDataProvider.getSimpleQueryForGetGeneratedKey(tableName, keyColumnName);
+	}
+
+	/**
+	 * Is a column name String array for retrieving generated keys supported?
+	 * {@link java.sql.Connection#createStruct(String, Object[])}?
+	 */
+	public boolean isGeneratedKeysColumnNameArraySupported() {
+		return this.metaDataProvider.isGeneratedKeysColumnNameArraySupported();
 	}
 
 }

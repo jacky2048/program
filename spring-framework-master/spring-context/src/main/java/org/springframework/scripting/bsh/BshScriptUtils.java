@@ -91,7 +91,7 @@ public abstract class BshScriptUtils {
 		if (result instanceof Class) {
 			Class<?> clazz = (Class<?>) result;
 			try {
-				return ReflectionUtils.accessibleConstructor(clazz).newInstance();
+				return clazz.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalStateException("Could not instantiate script class: " + clazz.getName(), ex);

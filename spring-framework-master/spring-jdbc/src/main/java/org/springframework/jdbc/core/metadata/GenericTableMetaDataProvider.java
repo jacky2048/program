@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractor;
 
 /**
  * A generic implementation of the {@link TableMetaDataProvider} that should provide
@@ -71,7 +72,10 @@ public class GenericTableMetaDataProvider implements TableMetaDataProvider {
 			Arrays.asList("Apache Derby", "HSQL Database Engine");
 
 	/** Collection of TableParameterMetaData objects */
-	private List<TableParameterMetaData> tableParameterMetaData = new ArrayList<>();
+	private List<TableParameterMetaData> tableParameterMetaData = new ArrayList<TableParameterMetaData>();
+
+	/** NativeJdbcExtractor that can be used to retrieve the native connection */
+	private NativeJdbcExtractor nativeJdbcExtractor;
 
 
 	/**
@@ -136,6 +140,15 @@ public class GenericTableMetaDataProvider implements TableMetaDataProvider {
 	@Override
 	public boolean isGeneratedKeysColumnNameArraySupported() {
 		return this.generatedKeysColumnNameArraySupported;
+	}
+
+	@Override
+	public void setNativeJdbcExtractor(NativeJdbcExtractor nativeJdbcExtractor) {
+		this.nativeJdbcExtractor = nativeJdbcExtractor;
+	}
+
+	protected NativeJdbcExtractor getNativeJdbcExtractor() {
+		return this.nativeJdbcExtractor;
 	}
 
 
@@ -300,7 +313,7 @@ public class GenericTableMetaDataProvider implements TableMetaDataProvider {
 	private void locateTableAndProcessMetaData(
 			DatabaseMetaData databaseMetaData, String catalogName, String schemaName, String tableName) {
 
-		Map<String, TableMetaData> tableMeta = new HashMap<>();
+		Map<String, TableMetaData> tableMeta = new HashMap<String, TableMetaData>();
 		ResultSet tables = null;
 		try {
 			tables = databaseMetaData.getTables(

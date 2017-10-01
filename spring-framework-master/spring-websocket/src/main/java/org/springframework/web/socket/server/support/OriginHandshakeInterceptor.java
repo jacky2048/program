@@ -44,7 +44,7 @@ public class OriginHandshakeInterceptor implements HandshakeInterceptor {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final Set<String> allowedOrigins = new LinkedHashSet<>();
+	private final Set<String> allowedOrigins = new LinkedHashSet<String>();
 
 
 	/**

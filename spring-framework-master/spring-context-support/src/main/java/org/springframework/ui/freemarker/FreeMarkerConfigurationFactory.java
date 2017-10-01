@@ -85,7 +85,7 @@ public class FreeMarkerConfigurationFactory {
 
 	private String defaultEncoding;
 
-	private final List<TemplateLoader> templateLoaders = new ArrayList<>();
+	private final List<TemplateLoader> templateLoaders = new ArrayList<TemplateLoader>();
 
 	private List<TemplateLoader> preTemplateLoaders;
 
@@ -277,7 +277,7 @@ public class FreeMarkerConfigurationFactory {
 			config.setDefaultEncoding(this.defaultEncoding);
 		}
 
-		List<TemplateLoader> templateLoaders = new LinkedList<>(this.templateLoaders);
+		List<TemplateLoader> templateLoaders = new LinkedList<TemplateLoader>(this.templateLoaders);
 
 		// Register template loaders that are supposed to kick in early.
 		if (this.preTemplateLoaders != null) {

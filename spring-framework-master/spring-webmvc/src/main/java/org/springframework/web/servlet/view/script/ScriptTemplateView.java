@@ -19,12 +19,10 @@ package org.springframework.web.servlet.view.script;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -71,20 +69,18 @@ public class ScriptTemplateView extends AbstractUrlBasedView {
 
 	public static final String DEFAULT_CONTENT_TYPE = "text/html";
 
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
 	private static final String DEFAULT_RESOURCE_LOADER_PATH = "classpath:";
 
 
 	private static final ThreadLocal<Map<Object, ScriptEngine>> enginesHolder =
-			new NamedThreadLocal<>("ScriptTemplateView engines");
+			new NamedThreadLocal<Map<Object, ScriptEngine>>("ScriptTemplateView engines");
 
 
 	private ScriptEngine engine;
 
 	private String engineName;
-
-	private Locale locale;
 
 	private Boolean sharedEngine;
 
@@ -127,14 +123,6 @@ public class ScriptTemplateView extends AbstractUrlBasedView {
 	public void setEngine(ScriptEngine engine) {
 		Assert.isInstanceOf(Invocable.class, engine, "ScriptEngine must implement Invocable");
 		this.engine = engine;
-	}
-
-	/**
-	 * Set the {@link Locale} to pass to the render function.
-	 * @since 5.0
-	 */
-	public void setLocale(Locale locale) {
-		this.locale = locale;
 	}
 
 	/**
@@ -266,7 +254,7 @@ public class ScriptTemplateView extends AbstractUrlBasedView {
 		if (Boolean.FALSE.equals(this.sharedEngine)) {
 			Map<Object, ScriptEngine> engines = enginesHolder.get();
 			if (engines == null) {
-				engines = new HashMap<>(4);
+				engines = new HashMap<Object, ScriptEngine>(4);
 				enginesHolder.set(engines);
 			}
 			Object engineKey = (!ObjectUtils.isEmpty(this.scripts) ?
@@ -356,23 +344,14 @@ public class ScriptTemplateView extends AbstractUrlBasedView {
 			Invocable invocable = (Invocable) engine;
 			String url = getUrl();
 			String template = getTemplate(url);
-			Function<String, String> templateLoader = path -> {
-				try {
-					return getTemplate(path);
-				}
-				catch (IOException ex) {
-					throw new IllegalStateException(ex);
-				}
-			};
-			RenderingContext context = new RenderingContext(this.getApplicationContext(), this.locale, templateLoader, url);
 
 			Object html;
 			if (this.renderObject != null) {
 				Object thiz = engine.eval(this.renderObject);
-				html = invocable.invokeMethod(thiz, this.renderFunction, template, model, context);
+				html = invocable.invokeMethod(thiz, this.renderFunction, template, model, url);
 			}
 			else {
-				html = invocable.invokeFunction(this.renderFunction, template, model, context);
+				html = invocable.invokeFunction(this.renderFunction, template, model, url);
 			}
 
 			response.getWriter().write(String.valueOf(html));

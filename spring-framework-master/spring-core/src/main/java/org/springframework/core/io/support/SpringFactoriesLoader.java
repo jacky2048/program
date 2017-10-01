@@ -17,6 +17,7 @@
 package org.springframework.core.io.support;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,7 +88,7 @@ public abstract class SpringFactoriesLoader {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Loaded [" + factoryClass.getName() + "] names: " + factoryNames);
 		}
-		List<T> result = new ArrayList<>(factoryNames.size());
+		List<T> result = new ArrayList<T>(factoryNames.size());
 		for (String factoryName : factoryNames) {
 			result.add(instantiateFactory(factoryName, factoryClass, classLoaderToUse));
 		}
@@ -110,7 +111,7 @@ public abstract class SpringFactoriesLoader {
 		try {
 			Enumeration<URL> urls = (classLoader != null ? classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
 					ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
-			List<String> result = new ArrayList<>();
+			List<String> result = new ArrayList<String>();
 			while (urls.hasMoreElements()) {
 				URL url = urls.nextElement();
 				Properties properties = PropertiesLoaderUtils.loadProperties(new UrlResource(url));
@@ -133,7 +134,9 @@ public abstract class SpringFactoriesLoader {
 				throw new IllegalArgumentException(
 						"Class [" + instanceClassName + "] is not assignable to [" + factoryClass.getName() + "]");
 			}
-			return (T) ReflectionUtils.accessibleConstructor(instanceClass).newInstance();
+			Constructor<?> constructor = instanceClass.getDeclaredConstructor();
+			ReflectionUtils.makeAccessible(constructor);
+			return (T) constructor.newInstance();
 		}
 		catch (Throwable ex) {
 			throw new IllegalArgumentException("Unable to instantiate factory class: " + factoryClass.getName(), ex);

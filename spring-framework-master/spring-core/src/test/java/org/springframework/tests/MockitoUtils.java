@@ -32,16 +32,20 @@ import static org.junit.Assert.*;
  */
 public abstract class MockitoUtils {
 
+	private static final MockUtil mockUtil = new MockUtil();
+
+
 	/**
 	 * Verify the same invocations have been applied to two mocks. This is generally not
 	 * the preferred way test with mockito and should be avoided if possible.
 	 * @param expected the mock containing expected invocations
 	 * @param actual the mock containing actual invocations
-	 * @param argumentAdapters adapters that can be used to change argument values before they are compared
+	 * @param argumentAdapters adapters that can be used to change argument values before
+	 *        they are compared
 	 */
 	public static <T> void verifySameInvocations(T expected, T actual, InvocationArgumentsAdapter... argumentAdapters) {
-		List<Invocation> expectedInvocations = MockUtil.getMockHandler(expected).getInvocationContainer().getInvocations();
-		List<Invocation> actualInvocations = MockUtil.getMockHandler(actual).getInvocationContainer().getInvocations();
+		List<Invocation> expectedInvocations = mockUtil.getMockHandler(expected).getInvocationContainer().getInvocations();
+		List<Invocation> actualInvocations = mockUtil.getMockHandler(actual).getInvocationContainer().getInvocations();
 		verifySameInvocations(expectedInvocations, actualInvocations, argumentAdapters);
 	}
 

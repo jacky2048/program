@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.lang.UsesJava8;
 import org.springframework.util.concurrent.CompletableToListenableFutureAdapter;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -31,6 +32,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Juergen Hoeller
  * @since 4.2
  */
+@UsesJava8
 public class CompletableFutureReturnValueHandler extends AbstractAsyncReturnValueHandler {
 
 	@Override
@@ -41,7 +43,7 @@ public class CompletableFutureReturnValueHandler extends AbstractAsyncReturnValu
 	@Override
 	@SuppressWarnings("unchecked")
 	public ListenableFuture<?> toListenableFuture(Object returnValue, MethodParameter returnType) {
-		return new CompletableToListenableFutureAdapter<>((CompletionStage<Object>) returnValue);
+		return new CompletableToListenableFutureAdapter<Object>((CompletionStage<Object>) returnValue);
 	}
 
 }

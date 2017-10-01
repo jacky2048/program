@@ -18,6 +18,7 @@ package org.springframework.web.socket.sockjs.client;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -40,9 +41,11 @@ import io.undertow.util.Methods;
 import io.undertow.util.StringReadChannelListener;
 import org.xnio.ChannelListener;
 import org.xnio.ChannelListeners;
+import org.xnio.IoFuture;
 import org.xnio.IoUtils;
 import org.xnio.OptionMap;
 import org.xnio.Options;
+import org.xnio.Pool;
 import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 import org.xnio.channels.StreamSinkChannel;
@@ -52,6 +55,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.concurrent.SettableListenableFuture;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.socket.CloseStatus;
@@ -64,7 +69,7 @@ import org.springframework.web.socket.sockjs.frame.SockJsFrame;
 
 /**
  * An XHR transport based on Undertow's {@link io.undertow.client.UndertowClient}.
- * Requires Undertow 1.3 or 1.4, including XNIO, as of Spring Framework 5.0.
+ * Compatible with Undertow 1.0 to 1.3, as of Spring Framework 4.2.2.
  *
  * <p>When used for testing purposes (e.g. load testing) or for specific use cases
  * (like HTTPS configuration), a custom OptionMap should be provided:
@@ -89,6 +94,9 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 
 	private static final AttachmentKey<String> RESPONSE_BODY = AttachmentKey.create(String.class);
 
+	private static final boolean undertow13Present = ClassUtils.isPresent(
+			"io.undertow.connector.ByteBufferPool", UndertowXhrTransport.class.getClassLoader());
+
 
 	private final OptionMap optionMap;
 
@@ -96,7 +104,7 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 
 	private final XnioWorker worker;
 
-	private final ByteBufferPool bufferPool;
+	private final UndertowBufferSupport undertowBufferSupport;
 
 
 	public UndertowXhrTransport() throws IOException {
@@ -108,7 +116,8 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 		this.optionMap = optionMap;
 		this.httpClient = UndertowClient.getInstance();
 		this.worker = Xnio.getInstance().createWorker(optionMap);
-		this.bufferPool = new DefaultByteBufferPool(false, 1024, -1, 2);
+		this.undertowBufferSupport =
+				(undertow13Present ? new Undertow13BufferSupport() : new UndertowXnioBufferSupport());
 	}
 
 
@@ -163,7 +172,7 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 			}
 		};
 
-		this.httpClient.connect(clientCallback, url, this.worker, this.bufferPool, this.optionMap);
+		this.undertowBufferSupport.httpClientConnect(this.httpClient, clientCallback, url, worker, this.optionMap);
 	}
 
 	private static void addHttpHeaders(ClientRequest request, HttpHeaders headers) {
@@ -264,11 +273,11 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 
 	protected ResponseEntity<String> executeRequest(URI url, HttpString method, HttpHeaders headers, String body) {
 		CountDownLatch latch = new CountDownLatch(1);
-		List<ClientResponse> responses = new CopyOnWriteArrayList<>();
+		List<ClientResponse> responses = new CopyOnWriteArrayList<ClientResponse>();
 
 		try {
-			ClientConnection connection =
-					this.httpClient.connect(url, this.worker, this.bufferPool, this.optionMap).get();
+			ClientConnection connection = this.undertowBufferSupport
+					.httpClientConnect(this.httpClient, url, this.worker, this.optionMap).get();
 			try {
 				ClientRequest request = new ClientRequest().setMethod(method).setPath(url.getPath());
 				request.getRequestHeaders().add(HttpString.tryFromString(HttpHeaders.HOST), url.getHost());
@@ -285,8 +294,8 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 				HttpHeaders responseHeaders = toHttpHeaders(response.getResponseHeaders());
 				String responseBody = response.getAttachment(RESPONSE_BODY);
 				return (responseBody != null ?
-						new ResponseEntity<>(responseBody, responseHeaders, status) :
-						new ResponseEntity<>(responseHeaders, status));
+						new ResponseEntity<String>(responseBody, responseHeaders, status) :
+						new ResponseEntity<String>(responseHeaders, status));
 			}
 			finally {
 				IoUtils.safeClose(connection);
@@ -308,6 +317,7 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 			public void completed(ClientExchange result) {
 				result.setResponseListener(new ClientCallback<ClientExchange>() {
 					@Override
+					@SuppressWarnings("deprecation")
 					public void completed(final ClientExchange result) {
 						responses.add(result.getResponse());
 						new StringReadChannelListener(result.getConnection().getBufferPool()) {
@@ -400,11 +410,11 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 				throw new SockJsException("Session closed.", this.session.getId(), null);
 			}
 
-			PooledByteBuffer pooled = bufferPool.allocate();
+			Object pooled = undertowBufferSupport.allocatePooledResource();
 			try {
 				int r;
 				do {
-					ByteBuffer buffer = pooled.getBuffer();
+					ByteBuffer buffer = undertowBufferSupport.getByteBuffer(pooled);
 					buffer.clear();
 					r = channel.read(buffer);
 					buffer.flip();
@@ -432,7 +442,7 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 				onFailure(exc);
 			}
 			finally {
-				pooled.close();
+				undertowBufferSupport.closePooledResource(pooled);
 			}
 		}
 
@@ -471,6 +481,120 @@ public class UndertowXhrTransport extends AbstractXhrTransport {
 				this.session.handleTransportError(failure);
 				this.session.afterTransportClosed(new CloseStatus(1006, failure.getMessage()));
 			}
+		}
+	}
+
+
+	private interface UndertowBufferSupport {
+
+		Object allocatePooledResource();
+
+		ByteBuffer getByteBuffer(Object pooled);
+
+		void closePooledResource(Object pooled);
+
+		void httpClientConnect(UndertowClient httpClient, final ClientCallback<ClientConnection> listener,
+				final URI uri, final XnioWorker worker, OptionMap options);
+
+		IoFuture<ClientConnection> httpClientConnect(UndertowClient httpClient, final URI uri,
+				final XnioWorker worker, OptionMap options);
+	}
+
+
+	private class UndertowXnioBufferSupport implements UndertowBufferSupport {
+
+		private final org.xnio.Pool<ByteBuffer> xnioBufferPool;
+
+		private final Method httpClientConnectCallbackMethod;
+
+		private final Method httpClientConnectMethod;
+
+		public UndertowXnioBufferSupport() {
+			this.xnioBufferPool = new org.xnio.ByteBufferSlicePool(1048, 1048);
+			this.httpClientConnectCallbackMethod = ReflectionUtils.findMethod(UndertowClient.class, "connect",
+					ClientCallback.class, URI.class, XnioWorker.class, Pool.class, OptionMap.class);
+			this.httpClientConnectMethod = ReflectionUtils.findMethod(UndertowClient.class, "connect",
+					URI.class, XnioWorker.class, Pool.class, OptionMap.class);
+		}
+
+		@Override
+		public Object allocatePooledResource() {
+			return this.xnioBufferPool.allocate();
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public ByteBuffer getByteBuffer(Object pooled) {
+			return ((org.xnio.Pooled<ByteBuffer>) pooled).getResource();
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public void closePooledResource(Object pooled) {
+			((org.xnio.Pooled<ByteBuffer>) pooled).close();
+		}
+
+		@Override
+		public void httpClientConnect(UndertowClient httpClient, ClientCallback<ClientConnection> listener, URI uri,
+				XnioWorker worker, OptionMap options) {
+			ReflectionUtils.invokeMethod(httpClientConnectCallbackMethod, httpClient, listener, uri, worker,
+					this.xnioBufferPool, options);
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public IoFuture<ClientConnection> httpClientConnect(UndertowClient httpClient, URI uri,
+				XnioWorker worker, OptionMap options) {
+			return (IoFuture<ClientConnection>) ReflectionUtils.invokeMethod(httpClientConnectMethod, httpClient, uri,
+					worker, this.xnioBufferPool, options);
+		}
+	}
+
+
+	private class Undertow13BufferSupport implements UndertowBufferSupport {
+
+		private final ByteBufferPool undertowBufferPool;
+
+		private final Method httpClientConnectCallbackMethod;
+
+		private final Method httpClientConnectMethod;
+
+		public Undertow13BufferSupport() {
+			this.undertowBufferPool = new DefaultByteBufferPool(false, 1024, -1, 2);
+			this.httpClientConnectCallbackMethod = ReflectionUtils.findMethod(UndertowClient.class, "connect",
+					ClientCallback.class, URI.class, XnioWorker.class, ByteBufferPool.class, OptionMap.class);
+			this.httpClientConnectMethod = ReflectionUtils.findMethod(UndertowClient.class, "connect",
+					URI.class, XnioWorker.class, ByteBufferPool.class, OptionMap.class);
+		}
+
+		@Override
+		public Object allocatePooledResource() {
+			return this.undertowBufferPool.allocate();
+		}
+
+		@Override
+		public ByteBuffer getByteBuffer(Object pooled) {
+			return ((PooledByteBuffer) pooled).getBuffer();
+		}
+
+		@Override
+		public void closePooledResource(Object pooled) {
+			((PooledByteBuffer) pooled).close();
+		}
+
+		@Override
+		public void httpClientConnect(UndertowClient httpClient, ClientCallback<ClientConnection> listener, URI uri,
+				XnioWorker worker, OptionMap options) {
+			ReflectionUtils.invokeMethod(httpClientConnectCallbackMethod, httpClient, listener, uri,
+					worker, this.undertowBufferPool, options);
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public IoFuture<ClientConnection> httpClientConnect(UndertowClient httpClient, URI uri,
+				XnioWorker worker, OptionMap options) {
+			return (IoFuture<ClientConnection>) ReflectionUtils.invokeMethod(httpClientConnectMethod, httpClient, uri,
+					worker, this.undertowBufferPool, options);
 		}
 	}
 

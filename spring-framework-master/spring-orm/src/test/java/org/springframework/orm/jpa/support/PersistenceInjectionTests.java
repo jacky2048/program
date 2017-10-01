@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.PersistenceProperty;
 import javax.persistence.PersistenceUnit;
+
+import org.hibernate.ejb.HibernateEntityManager;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -338,7 +340,7 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 
 		EntityManagerFactoryWithInfo mockEmf2 = mock(EntityManagerFactoryWithInfo.class);
 
-		Map<String, String> persistenceUnits = new HashMap<>();
+		Map<String, String> persistenceUnits = new HashMap<String, String>();
 		persistenceUnits.put("", "pu1");
 		persistenceUnits.put("Person", "pu2");
 		ExpectedLookupTemplate jt = new ExpectedLookupTemplate();
@@ -377,7 +379,7 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 	public void testPersistenceUnitsFromJndiWithDefaultUnit() {
 		EntityManagerFactoryWithInfo mockEmf2 = mock(EntityManagerFactoryWithInfo.class);
 
-		Map<String, String> persistenceUnits = new HashMap<>();
+		Map<String, String> persistenceUnits = new HashMap<String, String>();
 		persistenceUnits.put("System", "pu1");
 		persistenceUnits.put("Person", "pu2");
 		ExpectedLookupTemplate jt = new ExpectedLookupTemplate();
@@ -405,7 +407,7 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 
 	@Test
 	public void testSinglePersistenceUnitFromJndi() {
-		Map<String, String> persistenceUnits = new HashMap<>();
+		Map<String, String> persistenceUnits = new HashMap<String, String>();
 		persistenceUnits.put("Person", "pu1");
 		ExpectedLookupTemplate jt = new ExpectedLookupTemplate();
 		jt.addObject("java:comp/env/pu1", mockEmf);
@@ -434,10 +436,10 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 		EntityManager mockEm2 = mock(EntityManager.class);
 		EntityManager mockEm3 = mock(EntityManager.class);
 
-		Map<String, String> persistenceContexts = new HashMap<>();
+		Map<String, String> persistenceContexts = new HashMap<String, String>();
 		persistenceContexts.put("", "pc1");
 		persistenceContexts.put("Person", "pc2");
-		Map<String, String> extendedPersistenceContexts = new HashMap<>();
+		Map<String, String> extendedPersistenceContexts = new HashMap<String, String>();
 		extendedPersistenceContexts .put("", "pc3");
 		ExpectedLookupTemplate jt = new ExpectedLookupTemplate();
 		jt.addObject("java:comp/env/pc1", mockEm);
@@ -474,10 +476,10 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 		EntityManager mockEm2 = mock(EntityManager.class);
 		EntityManager mockEm3 = mock(EntityManager.class);
 
-		Map<String, String> persistenceContexts = new HashMap<>();
+		Map<String, String> persistenceContexts = new HashMap<String, String>();
 		persistenceContexts.put("System", "pc1");
 		persistenceContexts.put("Person", "pc2");
-		Map<String, String> extendedPersistenceContexts = new HashMap<>();
+		Map<String, String> extendedPersistenceContexts = new HashMap<String, String>();
 		extendedPersistenceContexts .put("System", "pc3");
 		ExpectedLookupTemplate jt = new ExpectedLookupTemplate();
 		jt.addObject("java:comp/env/pc1", mockEm);
@@ -514,9 +516,9 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 		EntityManager mockEm = mock(EntityManager.class);
 		EntityManager mockEm2 = mock(EntityManager.class);
 
-		Map<String, String> persistenceContexts = new HashMap<>();
+		Map<String, String> persistenceContexts = new HashMap<String, String>();
 		persistenceContexts.put("System", "pc1");
-		Map<String, String> extendedPersistenceContexts = new HashMap<>();
+		Map<String, String> extendedPersistenceContexts = new HashMap<String, String>();
 		extendedPersistenceContexts .put("System", "pc2");
 		ExpectedLookupTemplate jt = new ExpectedLookupTemplate();
 		jt.addObject("java:comp/env/pc1", mockEm);
@@ -713,8 +715,7 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 	public static class DefaultVendorSpecificPrivatePersistenceContextField {
 
 		@PersistenceContext
-		@SuppressWarnings("deprecation")
-		private org.hibernate.ejb.HibernateEntityManager em;
+		private HibernateEntityManager em;
 	}
 
 
@@ -895,5 +896,4 @@ public class PersistenceInjectionTests extends AbstractEntityManagerFactoryBeanT
 			throw new IllegalStateException();
 		}
 	}
-
 }

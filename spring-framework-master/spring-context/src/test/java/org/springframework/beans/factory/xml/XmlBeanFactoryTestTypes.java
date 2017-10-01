@@ -229,6 +229,7 @@ class DerivedConstructorDependenciesBean extends ConstructorDependenciesBean {
 
 
 /**
+ *
  * @author Rod Johnson
  */
 interface DummyBo {
@@ -238,6 +239,7 @@ interface DummyBo {
 
 
 /**
+ *
  * @author Rod Johnson
  */
 class DummyBoImpl implements DummyBo {
@@ -258,6 +260,12 @@ class DummyBoImpl implements DummyBo {
  * @author Rod Johnson
  */
 class DummyDao {
+
+	DataSource ds;
+
+	public DummyDao(DataSource ds) {
+		this.ds = ds;
+	}
 }
 
 

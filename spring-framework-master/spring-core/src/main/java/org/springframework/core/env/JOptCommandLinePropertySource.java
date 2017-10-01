@@ -82,9 +82,9 @@ public class JOptCommandLinePropertySource extends CommandLinePropertySource<Opt
 
 	@Override
 	public String[] getPropertyNames() {
-		List<String> names = new ArrayList<>();
+		List<String> names = new ArrayList<String>();
 		for (OptionSpec<?> spec : this.source.specs()) {
-			List<String> aliases = new ArrayList<>(spec.options());
+			List<String> aliases = new ArrayList<String>(spec.options());
 			if (!aliases.isEmpty()) {
 				// Only the longest name is used for enumerating
 				names.add(aliases.get(aliases.size() - 1));
@@ -96,12 +96,12 @@ public class JOptCommandLinePropertySource extends CommandLinePropertySource<Opt
 	@Override
 	public List<String> getOptionValues(String name) {
 		List<?> argValues = this.source.valuesOf(name);
-		List<String> stringArgValues = new ArrayList<>();
+		List<String> stringArgValues = new ArrayList<String>();
 		for (Object argValue : argValues) {
 			stringArgValues.add(argValue.toString());
 		}
 		if (stringArgValues.isEmpty()) {
-			return (this.source.has(name) ? Collections.emptyList() : null);
+			return (this.source.has(name) ? Collections.<String>emptyList() : null);
 		}
 		return Collections.unmodifiableList(stringArgValues);
 	}
@@ -109,11 +109,11 @@ public class JOptCommandLinePropertySource extends CommandLinePropertySource<Opt
 	@Override
 	protected List<String> getNonOptionArgs() {
 		List<?> argValues = this.source.nonOptionArguments();
-		List<String> stringArgValues = new ArrayList<>();
+		List<String> stringArgValues = new ArrayList<String>();
 		for (Object argValue : argValues) {
 			stringArgValues.add(argValue.toString());
 		}
-		return (stringArgValues.isEmpty() ? Collections.emptyList() :
+		return (stringArgValues.isEmpty() ? Collections.<String>emptyList() :
 				Collections.unmodifiableList(stringArgValues));
 	}
 

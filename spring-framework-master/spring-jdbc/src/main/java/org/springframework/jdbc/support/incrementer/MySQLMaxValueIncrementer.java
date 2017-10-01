@@ -68,7 +68,7 @@ public class MySQLMaxValueIncrementer extends AbstractColumnMaxValueIncrementer 
 	private long maxId = 0;
 
 	/** Whether or not to use a new connection for the incrementer */
-	private boolean useNewConnection = true;
+	private boolean useNewConnection = false;
 
 
 	/**
@@ -98,7 +98,7 @@ public class MySQLMaxValueIncrementer extends AbstractColumnMaxValueIncrementer 
 	 * {@code false} is sufficient if the storage engine of the sequence table
 	 * is non-transactional (like MYISAM), avoiding the effort of acquiring an
 	 * extra {@code Connection} for the increment operation.
-	 * <p>Default is {@code true} since Spring Framework 5.0.
+	 * <p>Default is {@code false} in the Spring Framework 4.3.x line.
 	 * @since 4.3.6
 	 * @see DataSource#getConnection()
 	 */

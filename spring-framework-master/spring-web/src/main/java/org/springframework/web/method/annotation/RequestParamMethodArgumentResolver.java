@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.Part;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -205,7 +204,8 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 			UriComponentsBuilder builder, Map<String, Object> uriVariables, ConversionService conversionService) {
 
 		Class<?> paramType = parameter.getNestedParameterType();
-		if (Map.class.isAssignableFrom(paramType) || MultipartFile.class == paramType || Part.class == paramType) {
+		if (Map.class.isAssignableFrom(paramType) || MultipartFile.class == paramType ||
+				"javax.servlet.http.Part".equals(paramType.getName())) {
 			return;
 		}
 

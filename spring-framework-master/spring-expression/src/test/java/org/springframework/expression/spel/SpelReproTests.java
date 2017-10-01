@@ -19,7 +19,7 @@ package org.springframework.expression.spel;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -228,7 +228,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 	@Test
 	public void SPR5804() throws Exception {
-		Map<String, String> m = new HashMap<>();
+		Map<String, String> m = new HashMap<String, String>();
 		m.put("foo", "bar");
 		StandardEvaluationContext eContext = new StandardEvaluationContext(m); // root is a map instance
 		eContext.addPropertyAccessor(new MapAccessor());
@@ -550,7 +550,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 		public String floo = "bar";
 
 		public XX() {
-			m = new HashMap<>();
+			m = new HashMap<String, String>();
 			m.put("$foo", "wibble");
 			m.put("bar", "siddle");
 		}
@@ -579,7 +579,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 	static class Holder {
 
-		public Map<String, String> map = new HashMap<>();
+		public Map<String, String> map = new HashMap<String, String>();
 	}
 
 
@@ -783,9 +783,9 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 	@Test
 	public void mapOfMap_SPR7244() throws Exception {
-		Map<String, Object> map = new LinkedHashMap<>();
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		map.put("uri", "http:");
-		Map<String, String> nameMap = new LinkedHashMap<>();
+		Map<String, String> nameMap = new LinkedHashMap<String, String>();
 		nameMap.put("givenName", "Arthur");
 		map.put("value", nameMap);
 
@@ -849,11 +849,11 @@ public class SpelReproTests extends AbstractExpressionTests {
 		public Map<String, String> ms;
 
 		C() {
-			ls = new ArrayList<>();
+			ls = new ArrayList<String>();
 			ls.add("abc");
 			ls.add("def");
 			as = new String[] { "abc", "def" };
-			ms = new HashMap<>();
+			ms = new HashMap<String, String>();
 			ms.put("abc", "xyz");
 			ms.put("def", "pqr");
 		}
@@ -877,7 +877,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 	@Test
 	public void greaterThanWithNulls_SPR7840() throws Exception {
-		List<D> list = new ArrayList<>();
+		List<D> list = new ArrayList<D>();
 		list.add(new D("aaa"));
 		list.add(new D("bbb"));
 		list.add(new D(null));
@@ -937,7 +937,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 		EvaluationContext emptyEvalContext = new StandardEvaluationContext();
 
-		List<TypeDescriptor> args = new ArrayList<>();
+		List<TypeDescriptor> args = new ArrayList<TypeDescriptor>();
 		args.add(TypeDescriptor.forObject(new Integer(42)));
 
 		ConversionPriority1 target = new ConversionPriority1();
@@ -977,7 +977,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 		WideningPrimitiveConversion target = new WideningPrimitiveConversion();
 		EvaluationContext emptyEvalContext = new StandardEvaluationContext();
 
-		List<TypeDescriptor> args = new ArrayList<>();
+		List<TypeDescriptor> args = new ArrayList<TypeDescriptor>();
 		args.add(TypeDescriptor.forObject(INTEGER_VALUE));
 
 		MethodExecutor me = new ReflectiveMethodResolver(true).resolve(emptyEvalContext, target, "getX", args);
@@ -990,10 +990,10 @@ public class SpelReproTests extends AbstractExpressionTests {
 	@Test
 	public void varargsAndPrimitives_SPR8174() throws Exception {
 		EvaluationContext emptyEvalContext = new StandardEvaluationContext();
-		List<TypeDescriptor> args = new ArrayList<>();
+		List<TypeDescriptor> args = new ArrayList<TypeDescriptor>();
 
 		args.add(TypeDescriptor.forObject(34L));
-		ReflectionUtil<Integer> ru = new ReflectionUtil<>();
+		ReflectionUtil<Integer> ru = new ReflectionUtil<Integer>();
 		MethodExecutor me = new ReflectiveMethodResolver().resolve(emptyEvalContext, ru, "methodToCall", args);
 
 		args.set(0, TypeDescriptor.forObject(23));
@@ -1113,7 +1113,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 			public int DIV = 1;
 			public int div = 3;
 
-			public Map<String, String> m = new HashMap<>();
+			public Map<String, String> m = new HashMap<String, String>();
 
 			Reserver() {
 				m.put("NE", "xyz");
@@ -1229,10 +1229,10 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 	class ContextObject {
 
-		public Map<String, String> firstContext = new HashMap<>();
-		public Map<String, String> secondContext = new HashMap<>();
-		public Map<String, String> thirdContext = new HashMap<>();
-		public Map<String, String> fourthContext = new HashMap<>();
+		public Map<String, String> firstContext = new HashMap<String, String>();
+		public Map<String, String> secondContext = new HashMap<String, String>();
+		public Map<String, String> thirdContext = new HashMap<String, String>();
+		public Map<String, String> fourthContext = new HashMap<String, String>();
 
 		public ContextObject() {
 			firstContext.put("shouldBeFirst", "first");
@@ -1276,7 +1276,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 	public void customStaticFunctions_SPR9038() {
 		ExpressionParser parser = new SpelExpressionParser();
 		StandardEvaluationContext context = new StandardEvaluationContext();
-		List<MethodResolver> methodResolvers = new ArrayList<>();
+		List<MethodResolver> methodResolvers = new ArrayList<MethodResolver>();
 		methodResolvers.add(new ReflectiveMethodResolver() {
 			@Override
 			protected Method[] getMethods(Class<?> type) {
@@ -1802,7 +1802,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 	public void SPR9194() {
 		TestClass2 one = new TestClass2("abc");
 		TestClass2 two = new TestClass2("abc");
-		Map<String, TestClass2> map = new HashMap<>();
+		Map<String, TestClass2> map = new HashMap<String, TestClass2>();
 		map.put("one", one);
 		map.put("two", two);
 
@@ -1813,7 +1813,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 	@Test
 	public void SPR11348() {
-		Collection<String> coll = new LinkedHashSet<>();
+		Collection<String> coll = new LinkedHashSet<String>();
 		coll.add("one");
 		coll.add("two");
 		coll = Collections.unmodifiableCollection(coll);
@@ -1905,7 +1905,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 		StandardEvaluationContext sec = new StandardEvaluationContext();
 		sec.setVariable("iterable", Collections.emptyList());
 		SpelExpressionParser parser = new SpelExpressionParser();
-		Expression expression = parser.parseExpression("T(org.springframework.expression.spel.SpelReproTests.FooLists).newArrayList(#iterable)");
+		Expression expression = parser.parseExpression("T(org.springframework.expression.spel.SpelReproTests.GuavaLists).newArrayList(#iterable)");
 		assertTrue(expression.getValue(sec) instanceof ArrayList);
 	}
 
@@ -1927,10 +1927,10 @@ public class SpelReproTests extends AbstractExpressionTests {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void SPR13055() throws Exception {
-		List<Map<String, Object>> myPayload = new ArrayList<>();
+		List<Map<String, Object>> myPayload = new ArrayList<Map<String, Object>>();
 
-		Map<String, Object> v1 = new HashMap<>();
-		Map<String, Object> v2 = new HashMap<>();
+		Map<String, Object> v1 = new HashMap<String, Object>();
+		Map<String, Object> v2 = new HashMap<String, Object>();
 
 		v1.put("test11", "test11");
 		v1.put("test12", "test12");
@@ -1964,7 +1964,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 		assertEquals("custard", expr.getValue(context));
 		expr = new SpelExpressionParser().parseRaw("&foo");
 		assertEquals("foo factory",expr.getValue(context));
-
+	
 		try {
 			expr = new SpelExpressionParser().parseRaw("&@foo");
 			fail("Illegal syntax, error expected");
@@ -1973,7 +1973,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 			assertEquals(SpelMessage.INVALID_BEAN_REFERENCE,spe.getMessageCode());
 			assertEquals(0,spe.getPosition());
 		}
-
+	
 		try {
 			expr = new SpelExpressionParser().parseRaw("@&foo");
 			fail("Illegal syntax, error expected");
@@ -1981,7 +1981,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 		catch (SpelParseException spe) {
 			assertEquals(SpelMessage.INVALID_BEAN_REFERENCE,spe.getMessageCode());
 			assertEquals(0,spe.getPosition());
-		}
+		}	
 	}
 
 	@Test
@@ -2091,7 +2091,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 		Expression ex = parser.parseExpression("T(java.nio.charset.Charset).forName(#encoding)");
 		Object result = ex.getValue(context);
-		assertEquals(StandardCharsets.UTF_8, result);
+		assertEquals(Charset.forName("UTF-8"), result);
 	}
 
 
@@ -2269,7 +2269,7 @@ public class SpelReproTests extends AbstractExpressionTests {
 
 		private String name;
 
-		private List<Item> children = new ArrayList<>();
+		private List<Item> children = new ArrayList<Item>();
 
 		public void setName(String name) {
 			this.name = name;
@@ -2408,10 +2408,10 @@ public class SpelReproTests extends AbstractExpressionTests {
 	}
 
 
-	public static class FooLists {
+	public static class GuavaLists {
 
 		public static <T> List<T> newArrayList(Iterable<T> iterable) {
-			return new ArrayList<>();
+			return new ArrayList<T>();
 		}
 
 		public static <T> List<T> newArrayList(Object... elements) {

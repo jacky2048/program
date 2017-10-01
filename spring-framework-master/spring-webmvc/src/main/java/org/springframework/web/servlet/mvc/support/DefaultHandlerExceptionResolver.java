@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -65,6 +64,7 @@ import org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver;
  * @author Juergen Hoeller
  * @since 3.0
  * @see org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+ * @see #handleNoSuchRequestHandlingMethod
  * @see #handleHttpRequestMethodNotSupported
  * @see #handleHttpMediaTypeNotSupported
  * @see #handleMissingServletRequestParameter
@@ -101,11 +101,16 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 
 
 	@Override
+	@SuppressWarnings("deprecation")
 	protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response,
 			Object handler, Exception ex) {
 
 		try {
-			if (ex instanceof HttpRequestMethodNotSupportedException) {
+			if (ex instanceof org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException) {
+				return handleNoSuchRequestHandlingMethod((org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException) ex,
+						request, response, handler);
+			}
+			else if (ex instanceof HttpRequestMethodNotSupportedException) {
 				return handleHttpRequestMethodNotSupported((HttpRequestMethodNotSupportedException) ex, request,
 						response, handler);
 			}
@@ -166,6 +171,29 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Handle the case where no request handler method was found.
+	 * <p>The default implementation logs a warning, sends an HTTP 404 error, and returns
+	 * an empty {@code ModelAndView}. Alternatively, a fallback view could be chosen,
+	 * or the NoSuchRequestHandlingMethodException could be rethrown as-is.
+	 * @param ex the NoSuchRequestHandlingMethodException to be handled
+	 * @param request current HTTP request
+	 * @param response current HTTP response
+	 * @param handler the executed handler, or {@code null} if none chosen
+	 * at the time of the exception (for example, if multipart resolution failed)
+	 * @return an empty ModelAndView indicating the exception was handled
+	 * @throws IOException potentially thrown from response.sendError()
+	 * @deprecated as of 4.3, along with {@link org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException}
+	 */
+	@Deprecated
+	protected ModelAndView handleNoSuchRequestHandlingMethod(org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException ex,
+			HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+
+		pageNotFoundLogger.warn(ex.getMessage());
+		response.sendError(HttpServletResponse.SC_NOT_FOUND);
+		return new ModelAndView();
 	}
 
 	/**
@@ -355,7 +383,7 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 		if (logger.isWarnEnabled()) {
 			logger.warn("Failed to read HTTP message: " + ex);
 		}
-		response.sendError(ex.getErrorStatus().orElse(HttpStatus.BAD_REQUEST).value());
+		response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 		return new ModelAndView();
 	}
 

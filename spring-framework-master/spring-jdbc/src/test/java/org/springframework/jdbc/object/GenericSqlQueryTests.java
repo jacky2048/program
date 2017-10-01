@@ -98,7 +98,7 @@ public class GenericSqlQueryTests {
 
 		List<?> queryResults;
 		if (namedParameters) {
-			Map<String, Object> params = new HashMap<>(2);
+			Map<String, Object> params = new HashMap<String, Object>(2);
 			params.put("id", 1);
 			params.put("country", "UK");
 			queryResults = query.executeByNamedParam(params);

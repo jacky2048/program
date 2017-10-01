@@ -17,12 +17,10 @@
 package org.springframework.beans.factory.support;
 
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -72,7 +70,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	final Object constructorArgumentLock = new Object();
 
 	/** Package-visible field for caching the resolved constructor or factory method */
-	Executable resolvedConstructorOrFactoryMethod;
+	Object resolvedConstructorOrFactoryMethod;
 
 	/** Package-visible field that marks the constructor arguments as resolved */
 	boolean constructorArgumentsResolved = false;
@@ -119,38 +117,6 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	public RootBeanDefinition(Class<?> beanClass) {
 		super();
 		setBeanClass(beanClass);
-	}
-
-	/**
-	 * Create a new RootBeanDefinition for a singleton bean, constructing each instance
-	 * through calling the given supplier (possibly a lambda or method reference).
-	 * @param beanClass the class of the bean to instantiate
-	 * @param instanceSupplier the supplier to construct a bean instance,
-	 * as an alternative to a declaratively specified factory method
-	 * @since 5.0
-	 * @see #setInstanceSupplier
-	 */
-	public <T> RootBeanDefinition(Class<T> beanClass, Supplier<T> instanceSupplier) {
-		super();
-		setBeanClass(beanClass);
-		setInstanceSupplier(instanceSupplier);
-	}
-
-	/**
-	 * Create a new RootBeanDefinition for a scoped bean, constructing each instance
-	 * through calling the given supplier (possibly a lambda or method reference).
-	 * @param beanClass the class of the bean to instantiate
-	 * @param scope the name of the corresponding scope
-	 * @param instanceSupplier the supplier to construct a bean instance,
-	 * as an alternative to a declaratively specified factory method
-	 * @since 5.0
-	 * @see #setInstanceSupplier
-	 */
-	public <T> RootBeanDefinition(Class<T> beanClass, String scope, Supplier<T> instanceSupplier) {
-		super();
-		setBeanClass(beanClass);
-		setScope(scope);
-		setInstanceSupplier(instanceSupplier);
 	}
 
 	/**
@@ -325,7 +291,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 */
 	public Method getResolvedFactoryMethod() {
 		synchronized (this.constructorArgumentLock) {
-			Executable candidate = this.resolvedConstructorOrFactoryMethod;
+			Object candidate = this.resolvedConstructorOrFactoryMethod;
 			return (candidate instanceof Method ? (Method) candidate : null);
 		}
 	}
@@ -333,7 +299,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	public void registerExternallyManagedConfigMember(Member configMember) {
 		synchronized (this.postProcessingLock) {
 			if (this.externallyManagedConfigMembers == null) {
-				this.externallyManagedConfigMembers = new HashSet<>(1);
+				this.externallyManagedConfigMembers = new HashSet<Member>(1);
 			}
 			this.externallyManagedConfigMembers.add(configMember);
 		}
@@ -349,7 +315,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	public void registerExternallyManagedInitMethod(String initMethod) {
 		synchronized (this.postProcessingLock) {
 			if (this.externallyManagedInitMethods == null) {
-				this.externallyManagedInitMethods = new HashSet<>(1);
+				this.externallyManagedInitMethods = new HashSet<String>(1);
 			}
 			this.externallyManagedInitMethods.add(initMethod);
 		}
@@ -365,7 +331,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	public void registerExternallyManagedDestroyMethod(String destroyMethod) {
 		synchronized (this.postProcessingLock) {
 			if (this.externallyManagedDestroyMethods == null) {
-				this.externallyManagedDestroyMethods = new HashSet<>(1);
+				this.externallyManagedDestroyMethods = new HashSet<String>(1);
 			}
 			this.externallyManagedDestroyMethods.add(destroyMethod);
 		}

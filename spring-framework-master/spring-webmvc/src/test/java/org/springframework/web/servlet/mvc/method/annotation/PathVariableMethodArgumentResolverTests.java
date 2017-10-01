@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,30 +52,34 @@ public class PathVariableMethodArgumentResolverTests {
 
 	private PathVariableMethodArgumentResolver resolver;
 
+	private MethodParameter paramNamedString;
+
+	private MethodParameter paramString;
+
+	private MethodParameter paramNotRequired;
+
+	private MethodParameter paramOptional;
+
 	private ModelAndViewContainer mavContainer;
 
 	private ServletWebRequest webRequest;
 
 	private MockHttpServletRequest request;
 
-	private MethodParameter paramNamedString;
-	private MethodParameter paramString;
-	private MethodParameter paramNotRequired;
-	private MethodParameter paramOptional;
-
 
 	@Before
-	public void setup() throws Exception {
+	public void setUp() throws Exception {
 		resolver = new PathVariableMethodArgumentResolver();
-		mavContainer = new ModelAndViewContainer();
-		request = new MockHttpServletRequest();
-		webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 
 		Method method = ReflectionUtils.findMethod(getClass(), "handle", (Class<?>[]) null);
 		paramNamedString = new SynthesizingMethodParameter(method, 0);
 		paramString = new SynthesizingMethodParameter(method, 1);
 		paramNotRequired = new SynthesizingMethodParameter(method, 2);
 		paramOptional = new SynthesizingMethodParameter(method, 3);
+
+		mavContainer = new ModelAndViewContainer();
+		request = new MockHttpServletRequest();
+		webRequest = new ServletWebRequest(request, new MockHttpServletResponse());
 	}
 
 
@@ -87,7 +91,7 @@ public class PathVariableMethodArgumentResolverTests {
 
 	@Test
 	public void resolveArgument() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
+		Map<String, String> uriTemplateVars = new HashMap<String, String>();
 		uriTemplateVars.put("name", "value");
 		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
 
@@ -141,7 +145,7 @@ public class PathVariableMethodArgumentResolverTests {
 
 	@Test
 	public void resolveArgumentWithExistingPathVars() throws Exception {
-		Map<String, String> uriTemplateVars = new HashMap<>();
+		Map<String, String> uriTemplateVars = new HashMap<String, String>();
 		uriTemplateVars.put("name", "value");
 		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriTemplateVars);
 

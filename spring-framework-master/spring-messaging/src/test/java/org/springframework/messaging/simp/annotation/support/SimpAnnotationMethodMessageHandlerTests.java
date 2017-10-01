@@ -240,7 +240,7 @@ public class SimpAnnotationMethodMessageHandlerTests {
 	public void listenableFutureSuccess() {
 		Message emptyMessage = (Message) MessageBuilder.withPayload(new byte[0]).build();
 		given(this.channel.send(any(Message.class))).willReturn(true);
-		given(this.converter.toMessage(any(), any(MessageHeaders.class))).willReturn(emptyMessage);
+		given(this.converter.toMessage(anyObject(), any(MessageHeaders.class))).willReturn(emptyMessage);
 
 		ListenableFutureController controller = new ListenableFutureController();
 		this.messageHandler.registerHandler(controller);
@@ -260,7 +260,7 @@ public class SimpAnnotationMethodMessageHandlerTests {
 	public void listenableFutureFailure() {
 		Message emptyMessage = (Message) MessageBuilder.withPayload(new byte[0]).build();
 		given(this.channel.send(any(Message.class))).willReturn(true);
-		given(this.converter.toMessage(any(), any(MessageHeaders.class))).willReturn(emptyMessage);
+		given(this.converter.toMessage(anyObject(), any(MessageHeaders.class))).willReturn(emptyMessage);
 
 		ListenableFutureController controller = new ListenableFutureController();
 		this.messageHandler.registerHandler(controller);
@@ -278,7 +278,7 @@ public class SimpAnnotationMethodMessageHandlerTests {
 	public void completableFutureSuccess() {
 		Message emptyMessage = (Message) MessageBuilder.withPayload(new byte[0]).build();
 		given(this.channel.send(any(Message.class))).willReturn(true);
-		given(this.converter.toMessage(any(), any(MessageHeaders.class))).willReturn(emptyMessage);
+		given(this.converter.toMessage(anyObject(), any(MessageHeaders.class))).willReturn(emptyMessage);
 
 		CompletableFutureController controller = new CompletableFutureController();
 		this.messageHandler.registerHandler(controller);
@@ -298,7 +298,7 @@ public class SimpAnnotationMethodMessageHandlerTests {
 	public void completableFutureFailure() {
 		Message emptyMessage = (Message) MessageBuilder.withPayload(new byte[0]).build();
 		given(this.channel.send(any(Message.class))).willReturn(true);
-		given(this.converter.toMessage(any(), any(MessageHeaders.class))).willReturn(emptyMessage);
+		given(this.converter.toMessage(anyObject(), any(MessageHeaders.class))).willReturn(emptyMessage);
 
 		CompletableFutureController controller = new CompletableFutureController();
 		this.messageHandler.registerHandler(controller);

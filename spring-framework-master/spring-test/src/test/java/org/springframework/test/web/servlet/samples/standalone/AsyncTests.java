@@ -17,7 +17,7 @@
 package org.springframework.test.web.servlet.samples.standalone;
 
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -205,7 +205,7 @@ public class AsyncTests {
 
 		@RequestMapping(params = "streaming")
 		public StreamingResponseBody getStreaming() {
-			return os -> os.write("name=Joe".getBytes(StandardCharsets.UTF_8));
+			return os -> os.write("name=Joe".getBytes(Charset.forName("UTF-8")));
 		}
 
 		@RequestMapping(params = "streamingSlow")
@@ -214,7 +214,7 @@ public class AsyncTests {
 				os.write("name=Joe".getBytes());
 				try {
 					Thread.sleep(200);
-					os.write("&someBoolean=true".getBytes(StandardCharsets.UTF_8));
+					os.write("&someBoolean=true".getBytes(Charset.forName("UTF-8")));
 				}
 				catch (InterruptedException e) {
 					/* no-op */
@@ -225,7 +225,7 @@ public class AsyncTests {
 		@RequestMapping(params = "streamingJson")
 		public ResponseEntity<StreamingResponseBody> getStreamingJson() {
 			return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8)
-					.body(os -> os.write("{\"name\":\"Joe\",\"someDouble\":0.5}".getBytes(StandardCharsets.UTF_8)));
+					.body(os -> os.write("{\"name\":\"Joe\",\"someDouble\":0.5}".getBytes(Charset.forName("UTF-8"))));
 		}
 
 		@RequestMapping(params = "deferredResult")

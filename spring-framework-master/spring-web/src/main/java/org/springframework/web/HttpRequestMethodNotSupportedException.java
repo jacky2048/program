@@ -112,7 +112,7 @@ public class HttpRequestMethodNotSupportedException extends ServletException {
 		if (this.supportedMethods == null) {
 			return null;
 		}
-		List<HttpMethod> supportedMethods = new LinkedList<>();
+		List<HttpMethod> supportedMethods = new LinkedList<HttpMethod>();
 		for (String value : this.supportedMethods) {
 			HttpMethod resolved = HttpMethod.resolve(value);
 			if (resolved != null) {

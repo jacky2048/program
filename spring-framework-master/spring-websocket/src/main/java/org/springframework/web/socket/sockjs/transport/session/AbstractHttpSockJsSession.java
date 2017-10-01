@@ -78,7 +78,7 @@ public abstract class AbstractHttpSockJsSession extends AbstractSockJsSession {
 			WebSocketHandler wsHandler, Map<String, Object> attributes) {
 
 		super(id, config, wsHandler, attributes);
-		this.messageCache = new LinkedBlockingQueue<>(config.getHttpMessageCacheSize());
+		this.messageCache = new LinkedBlockingQueue<String>(config.getHttpMessageCacheSize());
 	}
 
 
@@ -164,6 +164,12 @@ public abstract class AbstractHttpSockJsSession extends AbstractSockJsSession {
 	public List<WebSocketExtension> getExtensions() {
 		return Collections.emptyList();
 	}
+
+	/**
+	 * @deprecated as of 4.2, since this method is no longer used.
+	 */
+	@Deprecated
+	protected abstract boolean isStreaming();
 
 
 	/**
@@ -298,6 +304,14 @@ public abstract class AbstractHttpSockJsSession extends AbstractSockJsSession {
 	 */
 	protected abstract void flushCache() throws SockJsTransportFailureException;
 
+
+	/**
+	 * @deprecated as of 4.2 this method is deprecated since the prelude is written
+	 * in {@link #handleRequestInternal} of the StreamingSockJsSession subclass.
+	 */
+	@Deprecated
+	protected void writePrelude(ServerHttpRequest request, ServerHttpResponse response) throws IOException {
+	}
 
 	@Override
 	protected void disconnect(CloseStatus status) {

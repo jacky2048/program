@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.springframework.http.converter.xml;
 
-import static org.junit.Assert.*;
-import static org.xmlunit.diff.ComparisonType.*;
-import static org.xmlunit.diff.DifferenceEvaluators.*;
-import static org.xmlunit.matchers.CompareMatcher.*;
-
-import java.nio.charset.StandardCharsets;
-
+import java.nio.charset.Charset;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -36,7 +30,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.xmlunit.diff.DifferenceEvaluator;
 
 import org.springframework.aop.framework.AdvisedSupport;
 import org.springframework.aop.framework.AopProxy;
@@ -47,6 +40,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.MockHttpInputMessage;
 import org.springframework.http.MockHttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+
+import static org.custommonkey.xmlunit.XMLAssert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link Jaxb2RootElementHttpMessageConverter}.
@@ -177,9 +175,8 @@ public class Jaxb2RootElementHttpMessageConverterTests {
 		converter.write(rootElement, null, outputMessage);
 		assertEquals("Invalid content-type", new MediaType("application", "xml"),
 				outputMessage.getHeaders().getContentType());
-		DifferenceEvaluator ev = chain(Default, downgradeDifferencesToEqual(XML_STANDALONE));
-		assertThat("Invalid result", outputMessage.getBodyAsString(StandardCharsets.UTF_8),
-				isSimilarTo("<rootElement><type s=\"Hello World\"/></rootElement>").withDifferenceEvaluator(ev));
+		assertXMLEqual("Invalid result", "<rootElement><type s=\"Hello World\"/></rootElement>",
+				outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 	}
 
 	@Test
@@ -188,9 +185,8 @@ public class Jaxb2RootElementHttpMessageConverterTests {
 		converter.write(rootElementCglib, null, outputMessage);
 		assertEquals("Invalid content-type", new MediaType("application", "xml"),
 				outputMessage.getHeaders().getContentType());
-		DifferenceEvaluator ev = chain(Default, downgradeDifferencesToEqual(XML_STANDALONE));
-		assertThat("Invalid result", outputMessage.getBodyAsString(StandardCharsets.UTF_8),
-				isSimilarTo("<rootElement><type s=\"Hello World\"/></rootElement>").withDifferenceEvaluator(ev));
+		assertXMLEqual("Invalid result", "<rootElement><type s=\"Hello World\"/></rootElement>",
+				outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 	}
 
 	// SPR-11488
@@ -200,9 +196,8 @@ public class Jaxb2RootElementHttpMessageConverterTests {
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		MyJaxb2RootElementHttpMessageConverter myConverter = new MyJaxb2RootElementHttpMessageConverter();
 		myConverter.write(new MyRootElement(new MyCustomElement("a", "b")), null, outputMessage);
-		DifferenceEvaluator ev = chain(Default, downgradeDifferencesToEqual(XML_STANDALONE));
-		assertThat("Invalid result", outputMessage.getBodyAsString(StandardCharsets.UTF_8),
-				isSimilarTo("<myRootElement><element>a|||b</element></myRootElement>").withDifferenceEvaluator(ev));
+		assertXMLEqual("Invalid result", "<myRootElement><element>a|||b</element></myRootElement>",
+				outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 	}
 
 	@Test

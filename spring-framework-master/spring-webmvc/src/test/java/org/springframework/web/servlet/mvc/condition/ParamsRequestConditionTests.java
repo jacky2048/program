@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.springframework.web.servlet.mvc.condition.ParamsRequestCondition.Para
 import static org.junit.Assert.*;
 
 /**
- * Unit tests for {@link ParamsRequestCondition}.
  * @author Arjen Poutsma
  */
 public class ParamsRequestConditionTests {
@@ -37,28 +36,34 @@ public class ParamsRequestConditionTests {
 		assertFalse(new ParamsRequestCondition("foo").equals(new ParamsRequestCondition("bar")));
 		assertFalse(new ParamsRequestCondition("foo").equals(new ParamsRequestCondition("FOO")));
 		assertEquals(new ParamsRequestCondition("foo=bar"), new ParamsRequestCondition("foo=bar"));
-		assertFalse(new ParamsRequestCondition("foo=bar").equals(new ParamsRequestCondition("FOO=bar")));
+		assertFalse(
+				new ParamsRequestCondition("foo=bar").equals(new ParamsRequestCondition("FOO=bar")));
 	}
 
 	@Test
 	public void paramPresent() {
+		ParamsRequestCondition condition = new ParamsRequestCondition("foo");
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addParameter("foo", "");
 
-		assertNotNull(new ParamsRequestCondition("foo").getMatchingCondition(request));
+		assertNotNull(condition.getMatchingCondition(request));
 	}
 
 	@Test
 	public void paramPresentNoMatch() {
+		ParamsRequestCondition condition = new ParamsRequestCondition("foo");
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader("bar", "");
 
-		assertNull(new ParamsRequestCondition("foo").getMatchingCondition(request));
+		assertNull(condition.getMatchingCondition(request));
 	}
 
 	@Test
 	public void paramNotPresent() {
 		ParamsRequestCondition condition = new ParamsRequestCondition("!foo");
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 
 		assertNotNull(condition.getMatchingCondition(request));
@@ -66,18 +71,22 @@ public class ParamsRequestConditionTests {
 
 	@Test
 	public void paramValueMatch() {
+		ParamsRequestCondition condition = new ParamsRequestCondition("foo=bar");
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addParameter("foo", "bar");
 
-		assertNotNull(new ParamsRequestCondition("foo=bar").getMatchingCondition(request));
+		assertNotNull(condition.getMatchingCondition(request));
 	}
 
 	@Test
 	public void paramValueNoMatch() {
+		ParamsRequestCondition condition = new ParamsRequestCondition("foo=bar");
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addParameter("foo", "bazz");
 
-		assertNull(new ParamsRequestCondition("foo=bar").getMatchingCondition(request));
+		assertNull(condition.getMatchingCondition(request));
 	}
 
 	@Test
@@ -102,6 +111,22 @@ public class ParamsRequestConditionTests {
 		ParamsRequestCondition result = condition1.combine(condition2);
 		Collection<ParamExpression> conditions = result.getContent();
 		assertEquals(2, conditions.size());
+	}
+
+	@Test
+	public void getMatchingCondition() {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.addParameter("foo", "bar");
+
+		ParamsRequestCondition condition = new ParamsRequestCondition("foo");
+
+		ParamsRequestCondition result = condition.getMatchingCondition(request);
+		assertEquals(condition, result);
+
+		condition = new ParamsRequestCondition("bar");
+
+		result = condition.getMatchingCondition(request);
+		assertNull(result);
 	}
 
 }

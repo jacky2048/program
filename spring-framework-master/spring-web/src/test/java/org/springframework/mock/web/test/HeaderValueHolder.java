@@ -35,7 +35,7 @@ import org.springframework.util.CollectionUtils;
  */
 class HeaderValueHolder {
 
-	private final List<Object> values = new LinkedList<>();
+	private final List<Object> values = new LinkedList<Object>();
 
 
 	public void setValue(Object value) {
@@ -60,7 +60,7 @@ class HeaderValueHolder {
 	}
 
 	public List<String> getStringValues() {
-		List<String> stringList = new ArrayList<>(this.values.size());
+		List<String> stringList = new ArrayList<String>(this.values.size());
 		for (Object value : this.values) {
 			stringList.add(value.toString());
 		}

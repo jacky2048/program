@@ -33,15 +33,17 @@ import javax.validation.ConstraintValidatorContext;
 import javax.validation.ConstraintViolation;
 import javax.validation.Payload;
 import javax.validation.Valid;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.HibernateValidatorFactory;
 import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
@@ -75,6 +77,12 @@ public class ValidatorFactoryTests {
 				fail("Invalid constraint violation with path '" + path + "'");
 			}
 		}
+
+		Validator nativeValidator = validator.unwrap(Validator.class);
+		assertTrue(nativeValidator.getClass().getName().startsWith("org.hibernate"));
+		assertTrue(validator.unwrap(ValidatorFactory.class) instanceof HibernateValidatorFactory);
+		assertTrue(validator.unwrap(HibernateValidatorFactory.class) instanceof HibernateValidatorFactory);
+
 		validator.destroy();
 	}
 
@@ -96,6 +104,12 @@ public class ValidatorFactoryTests {
 				fail("Invalid constraint violation with path '" + path + "'");
 			}
 		}
+
+		Validator nativeValidator = validator.unwrap(Validator.class);
+		assertTrue(nativeValidator.getClass().getName().startsWith("org.hibernate"));
+		assertTrue(validator.unwrap(ValidatorFactory.class) instanceof HibernateValidatorFactory);
+		assertTrue(validator.unwrap(HibernateValidatorFactory.class) instanceof HibernateValidatorFactory);
+
 		validator.destroy();
 	}
 
@@ -256,23 +270,6 @@ public class ValidatorFactoryTests {
 		assertNull(rejected);
 	}
 
-	@Test
-	public void testListValidation() throws Exception {
-		LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
-		validator.afterPropertiesSet();
-
-		ListContainer listContainer = new ListContainer();
-		listContainer.addString("A");
-		listContainer.addString("X");
-
-		BeanPropertyBindingResult errors = new BeanPropertyBindingResult(listContainer, "listContainer");
-		errors.initConversion(new DefaultConversionService());
-		validator.validate(listContainer, errors);
-
-		FieldError fieldError = errors.getFieldError("list[1]");
-		assertEquals("X", errors.getFieldValue("list[1]"));
-	}
-
 
 	@NameAddressValid
 	public static class ValidPerson {
@@ -370,7 +367,7 @@ public class ValidatorFactoryTests {
 			boolean valid = (value.name == null || !value.address.street.contains(value.name));
 			if (!valid && "Phil".equals(value.name)) {
 				context.buildConstraintViolationWithTemplate(
-						context.getDefaultConstraintMessageTemplate()).addPropertyNode("address").addConstraintViolation().disableDefaultConstraintViolation();
+						context.getDefaultConstraintMessageTemplate()).addNode("address").addConstraintViolation().disableDefaultConstraintViolation();
 			}
 			return valid;
 		}
@@ -435,59 +432,10 @@ public class ValidatorFactoryTests {
 		public boolean isValid(InnerBean bean, ConstraintValidatorContext context) {
 			context.disableDefaultConstraintViolation();
 			if (bean.getValue() == null) {
-				context.buildConstraintViolationWithTemplate("NULL").addPropertyNode("value").addConstraintViolation();
+				context.buildConstraintViolationWithTemplate("NULL").addNode("value").addConstraintViolation();
 				return false;
 			}
 			return true;
-		}
-	}
-
-
-	public static class ListContainer {
-
-		@NotXList
-		private List<String> list = new LinkedList<>();
-
-		public void addString(String value) {
-			list.add(value);
-		}
-
-		public List<String> getList() {
-			return list;
-		}
-	}
-
-
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.FIELD)
-	@Constraint(validatedBy = NotXListValidator.class)
-	public @interface NotXList {
-
-		String message() default "Should not be X";
-
-		Class<?>[] groups() default { };
-
-		Class<? extends Payload>[] payload() default {};
-	}
-
-
-	public static class NotXListValidator implements ConstraintValidator<NotXList, List<String>> {
-
-		@Override
-		public void initialize(NotXList constraintAnnotation) {
-		}
-
-		@Override
-		public boolean isValid(List<String> list, ConstraintValidatorContext context) {
-			context.disableDefaultConstraintViolation();
-			boolean valid = true;
-			for (int i = 0; i < list.size(); i++) {
-				if ("X".equals(list.get(i))) {
-					context.buildConstraintViolationWithTemplate(context.getDefaultConstraintMessageTemplate()).addBeanNode().inIterable().atIndex(i).addConstraintViolation();
-					valid = false;
-				}
-			}
-			return valid;
 		}
 	}
 

@@ -32,7 +32,6 @@ import static org.junit.Assert.*;
  * @author Arjen Poutsma
  * @author Stephane Nicoll
  */
-@SuppressWarnings("deprecation")
 public class HttpComponentsAsyncClientHttpRequestFactoryTests extends AbstractAsyncHttpRequestFactoryTestCase {
 
 	@Override

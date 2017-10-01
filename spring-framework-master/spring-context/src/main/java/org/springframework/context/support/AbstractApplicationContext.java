@@ -173,7 +173,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ConfigurableEnvironment environment;
 
 	/** BeanFactoryPostProcessors to apply on refresh */
-	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
+	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors =
+			new ArrayList<BeanFactoryPostProcessor>();
 
 	/** System time in milliseconds when this context started */
 	private long startupDate;
@@ -203,7 +204,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
 	/** Statically specified listeners */
-	private final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<>();
+	private final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<ApplicationListener<?>>();
 
 	/** ApplicationEvents published early */
 	private Set<ApplicationEvent> earlyApplicationEvents;
@@ -280,8 +281,22 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
-	 * {@inheritDoc}
-	 * <p>If {@code null}, a new environment will be initialized via
+	 * Set the {@code Environment} for this application context.
+	 * <p>Default value is determined by {@link #createEnvironment()}. Replacing the
+	 * default with this method is one option but configuration through {@link
+	 * #getEnvironment()} should also be considered. In either case, such modifications
+	 * should be performed <em>before</em> {@link #refresh()}.
+	 * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
+	 */
+	@Override
+	public void setEnvironment(ConfigurableEnvironment environment) {
+		this.environment = environment;
+	}
+
+	/**
+	 * Return the {@code Environment} for this application context in configurable
+	 * form, allowing for further customization.
+	 * <p>If none specified, a default environment will be initialized via
 	 * {@link #createEnvironment()}.
 	 */
 	@Override
@@ -293,16 +308,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	}
 
 	/**
-	 * {@inheritDoc}
-	 * <p>Default value is determined by {@link #createEnvironment()}. Replacing the
-	 * default with this method is one option but configuration through {@link
-	 * #getEnvironment()} should also be considered. In either case, such modifications
-	 * should be performed <em>before</em> {@link #refresh()}.
-	 * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
+	 * Create and return a new {@link StandardEnvironment}.
+	 * <p>Subclasses may override this method in order to supply
+	 * a custom {@link ConfigurableEnvironment} implementation.
 	 */
-	@Override
-	public void setEnvironment(ConfigurableEnvironment environment) {
-		this.environment = environment;
+	protected ConfigurableEnvironment createEnvironment() {
+		return new StandardEnvironment();
 	}
 
 	/**
@@ -368,7 +379,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			applicationEvent = (ApplicationEvent) event;
 		}
 		else {
-			applicationEvent = new PayloadApplicationEvent<>(this, event);
+			applicationEvent = new PayloadApplicationEvent<Object>(this, event);
 			if (eventType == null) {
 				eventType = ((PayloadApplicationEvent)applicationEvent).getResolvableType();
 			}
@@ -443,7 +454,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	//---------------------------------------------------------------------
 
 	/**
-	 * {@inheritDoc}
+	 * Set the parent of this application context.
 	 * <p>The parent {@linkplain ApplicationContext#getEnvironment() environment} is
 	 * {@linkplain ConfigurableEnvironment#merge(ConfigurableEnvironment) merged} with
 	 * this (child) application context environment if the parent is non-{@code null} and
@@ -492,15 +503,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	public Collection<ApplicationListener<?>> getApplicationListeners() {
 		return this.applicationListeners;
-	}
-
-	/**
-	 * Create and return a new {@link StandardEnvironment}.
-	 * <p>Subclasses may override this method in order to supply
-	 * a custom {@link ConfigurableEnvironment} implementation.
-	 */
-	protected ConfigurableEnvironment createEnvironment() {
-		return new StandardEnvironment();
 	}
 
 	@Override
@@ -590,7 +592,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
-		this.earlyApplicationEvents = new LinkedHashSet<>();
+		this.earlyApplicationEvents = new LinkedHashSet<ApplicationEvent>();
 	}
 
 	/**
@@ -871,9 +873,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * {@link org.springframework.context.event.ContextRefreshedEvent}.
 	 */
 	protected void finishRefresh() {
-		// Clear context-level resource caches (such as ASM metadata from scanning).
-		clearResourceCaches();
-
 		// Initialize lifecycle processor for this context.
 		initLifecycleProcessor();
 

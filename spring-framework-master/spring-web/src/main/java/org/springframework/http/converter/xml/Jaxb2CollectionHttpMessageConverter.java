@@ -45,7 +45,6 @@ import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -166,7 +165,8 @@ public class Jaxb2CollectionHttpMessageConverter<T extends Collection>
 			return result;
 		}
 		catch (UnmarshalException ex) {
-			throw new HttpMessageNotReadableException("Could not unmarshal to [" + elementClass + "]: " + ex.getMessage(), ex);
+			throw new HttpMessageNotReadableException(
+					"Could not unmarshal to [" + elementClass + "]: " + ex.getMessage(), ex);
 		}
 		catch (JAXBException ex) {
 			throw new HttpMessageConversionException("Could not instantiate JAXBContext: " + ex.getMessage(), ex);
@@ -186,7 +186,7 @@ public class Jaxb2CollectionHttpMessageConverter<T extends Collection>
 	protected T createCollection(Class<?> collectionClass) {
 		if (!collectionClass.isInterface()) {
 			try {
-				return (T) ReflectionUtils.accessibleConstructor(collectionClass).newInstance();
+				return (T) collectionClass.newInstance();
 			}
 			catch (Throwable ex) {
 				throw new IllegalArgumentException(

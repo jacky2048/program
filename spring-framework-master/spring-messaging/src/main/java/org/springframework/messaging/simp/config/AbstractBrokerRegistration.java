@@ -51,7 +51,7 @@ public abstract class AbstractBrokerRegistration {
 		this.clientOutboundChannel = clientOutboundChannel;
 
 		this.destinationPrefixes = (destinationPrefixes != null ?
-				Arrays.asList(destinationPrefixes) : Collections.emptyList());
+				Arrays.asList(destinationPrefixes) : Collections.<String>emptyList());
 	}
 
 

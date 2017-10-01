@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,27 +43,22 @@ import org.springframework.web.socket.server.HandshakeFailureException;
  */
 public class GlassFishRequestUpgradeStrategy extends AbstractTyrusRequestUpgradeStrategy {
 
-	private static final Constructor<?> constructor;
+	private static final TyrusEndpointHelper endpointHelper = new Tyrus17EndpointHelper();
 
-	static {
-		try {
-			ClassLoader classLoader = GlassFishRequestUpgradeStrategy.class.getClassLoader();
-			Class<?> type = classLoader.loadClass("org.glassfish.tyrus.servlet.TyrusServletWriter");
-			constructor = type.getDeclaredConstructor(TyrusHttpUpgradeHandler.class);
-			ReflectionUtils.makeAccessible(constructor);
-		}
-		catch (Exception ex) {
-			throw new IllegalStateException("No compatible Tyrus version found", ex);
-		}
+	private static final GlassFishServletWriterHelper servletWriterHelper = new GlassFishServletWriterHelper();
+
+
+	@Override
+	protected TyrusEndpointHelper getEndpointHelper() {
+		return endpointHelper;
 	}
-
 
 	@Override
 	protected void handleSuccess(HttpServletRequest request, HttpServletResponse response,
 			UpgradeInfo upgradeInfo, TyrusUpgradeResponse upgradeResponse) throws IOException, ServletException {
 
 		TyrusHttpUpgradeHandler handler = request.upgrade(TyrusHttpUpgradeHandler.class);
-		Writer servletWriter = newServletWriter(handler);
+		Writer servletWriter = servletWriterHelper.newInstance(handler);
 		handler.preInit(upgradeInfo, servletWriter, request.getUserPrincipal() != null);
 
 		response.setStatus(upgradeResponse.getStatus());
@@ -73,12 +68,33 @@ public class GlassFishRequestUpgradeStrategy extends AbstractTyrusRequestUpgrade
 		response.flushBuffer();
 	}
 
-	private Writer newServletWriter(TyrusHttpUpgradeHandler handler) {
-		try {
-			return (Writer) constructor.newInstance(handler);
+
+	/**
+	 * Helps to create and invoke {@code org.glassfish.tyrus.servlet.TyrusServletWriter}.
+	 */
+	private static class GlassFishServletWriterHelper {
+
+		private static final Constructor<?> constructor;
+
+		static {
+			try {
+				ClassLoader classLoader = GlassFishRequestUpgradeStrategy.class.getClassLoader();
+				Class<?> type = classLoader.loadClass("org.glassfish.tyrus.servlet.TyrusServletWriter");
+				constructor = type.getDeclaredConstructor(TyrusHttpUpgradeHandler.class);
+				ReflectionUtils.makeAccessible(constructor);
+			}
+			catch (Exception ex) {
+				throw new IllegalStateException("No compatible Tyrus version found", ex);
+			}
 		}
-		catch (Exception ex) {
-			throw new HandshakeFailureException("Failed to instantiate TyrusServletWriter", ex);
+
+		private Writer newInstance(TyrusHttpUpgradeHandler handler) {
+			try {
+				return (Writer) constructor.newInstance(handler);
+			}
+			catch (Exception ex) {
+				throw new HandshakeFailureException("Failed to instantiate TyrusServletWriter", ex);
+			}
 		}
 	}
 

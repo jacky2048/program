@@ -25,7 +25,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -33,6 +32,7 @@ import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.comparator.CompoundComparator;
 
 /**
  * A sub-class of {@link MimeType} that adds support for quality parameters as defined
@@ -42,7 +42,6 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
  * @author Sebastien Deleuze
- * @author Kazuki Shimizu
  * @since 3.0
  * @see <a href="http://tools.ietf.org/html/rfc7231#section-3.1.1.1">HTTP 1.1: Semantics and Content, section 3.1.1.1</a>
  */
@@ -135,18 +134,6 @@ public class MediaType extends MimeType implements Serializable {
 	 * @since 4.3.6
 	 */
 	public final static String APPLICATION_RSS_XML_VALUE = "application/rss+xml";
-
-	/**
-	 * Public constant media type for {@code application/stream+json}.
-	 * @since 5.0
-	 */
-	public final static MediaType APPLICATION_STREAM_JSON;
-
-	/**
-	 * A String equivalent of {@link MediaType#APPLICATION_STREAM_JSON}.
-	 * @since 5.0
-	 */
-	public final static String APPLICATION_STREAM_JSON_VALUE = "application/stream+json";
 
 	/**
 	 * Public constant media type for {@code application/xhtml+xml}.
@@ -263,31 +250,6 @@ public class MediaType extends MimeType implements Serializable {
 	 */
 	public final static String TEXT_XML_VALUE = "text/xml";
 
-	/**
-	 * Public constant media type for {@code application/problem+json}.
-	 * @since 5.0
-	 * @see <a href="https://tools.ietf.org/html/rfc7807#section-6.1">Problem Details for HTTP APIs, 6.1. application/problem+json</a>
-	 */
-	public final static MediaType APPLICATION_PROBLEM_JSON;
-
-	/**
-	 * A String equivalent of {@link MediaType#APPLICATION_PROBLEM_JSON}.
-	 * @since 5.0
-	 */
-	public final static String APPLICATION_PROBLEM_JSON_VALUE = "application/problem+json";
-
-	/**
-	 * Public constant media type for {@code application/problem+xml}.
-	 * @since 5.0
-	 * @see <a href="https://tools.ietf.org/html/rfc7807#section-6.2">Problem Details for HTTP APIs, 6.2. application/problem+xml</a>
-	 */
-	public final static MediaType APPLICATION_PROBLEM_XML;
-
-	/**
-	 * A String equivalent of {@link MediaType#APPLICATION_PROBLEM_XML}.
-	 * @since 5.0
-	 */
-	public final static String APPLICATION_PROBLEM_XML_VALUE = "application/problem+xml";
 
 	private static final String PARAM_QUALITY_FACTOR = "q";
 
@@ -300,10 +262,7 @@ public class MediaType extends MimeType implements Serializable {
 		APPLICATION_JSON_UTF8 = valueOf(APPLICATION_JSON_UTF8_VALUE);
 		APPLICATION_OCTET_STREAM = valueOf(APPLICATION_OCTET_STREAM_VALUE);
 		APPLICATION_PDF = valueOf(APPLICATION_PDF_VALUE);
-		APPLICATION_PROBLEM_JSON = valueOf(APPLICATION_PROBLEM_JSON_VALUE);
-		APPLICATION_PROBLEM_XML = valueOf(APPLICATION_PROBLEM_XML_VALUE);
 		APPLICATION_RSS_XML = valueOf(APPLICATION_RSS_XML_VALUE);
-		APPLICATION_STREAM_JSON = valueOf(APPLICATION_STREAM_JSON_VALUE);
 		APPLICATION_XHTML_XML = valueOf(APPLICATION_XHTML_XML_VALUE);
 		APPLICATION_XML = valueOf(APPLICATION_XML_VALUE);
 		IMAGE_GIF = valueOf(IMAGE_GIF_VALUE);
@@ -336,7 +295,7 @@ public class MediaType extends MimeType implements Serializable {
 	 * @throws IllegalArgumentException if any of the parameters contain illegal characters
 	 */
 	public MediaType(String type, String subtype) {
-		super(type, subtype, Collections.emptyMap());
+		super(type, subtype, Collections.<String, String>emptyMap());
 	}
 
 	/**
@@ -447,7 +406,7 @@ public class MediaType extends MimeType implements Serializable {
 		if (!mediaType.getParameters().containsKey(PARAM_QUALITY_FACTOR)) {
 			return this;
 		}
-		Map<String, String> params = new LinkedHashMap<>(getParameters());
+		Map<String, String> params = new LinkedHashMap<String, String>(getParameters());
 		params.put(PARAM_QUALITY_FACTOR, mediaType.getParameters().get(PARAM_QUALITY_FACTOR));
 		return new MediaType(this, params);
 	}
@@ -460,7 +419,7 @@ public class MediaType extends MimeType implements Serializable {
 		if (!getParameters().containsKey(PARAM_QUALITY_FACTOR)) {
 			return this;
 		}
-		Map<String, String> params = new LinkedHashMap<>(getParameters());
+		Map<String, String> params = new LinkedHashMap<String, String>(getParameters());
 		params.remove(PARAM_QUALITY_FACTOR);
 		return new MediaType(this, params);
 	}
@@ -512,7 +471,7 @@ public class MediaType extends MimeType implements Serializable {
 			return Collections.emptyList();
 		}
 		String[] tokens = StringUtils.tokenizeToStringArray(mediaTypes, ",");
-		List<MediaType> result = new ArrayList<>(tokens.length);
+		List<MediaType> result = new ArrayList<MediaType>(tokens.length);
 		for (String token : tokens) {
 			result.add(parseMediaType(token));
 		}
@@ -530,37 +489,18 @@ public class MediaType extends MimeType implements Serializable {
 	 */
 	public static List<MediaType> parseMediaTypes(List<String> mediaTypes) {
 		if (CollectionUtils.isEmpty(mediaTypes)) {
-			return Collections.emptyList();
+			return Collections.<MediaType>emptyList();
 		}
 		else if (mediaTypes.size() == 1) {
 			return parseMediaTypes(mediaTypes.get(0));
 		}
 		else {
-			List<MediaType> result = new ArrayList<>(8);
+			List<MediaType> result = new ArrayList<MediaType>(8);
 			for (String mediaType : mediaTypes) {
 				result.addAll(parseMediaTypes(mediaType));
 			}
 			return result;
 		}
-	}
-
-	/**
-	 * Re-create the given mime types as media types.
-	 * @since 5.0
-	 */
-	public static List<MediaType> asMediaTypes(List<MimeType> mimeTypes) {
-		return mimeTypes.stream().map(MediaType::asMediaType).collect(Collectors.toList());
-	}
-
-	/**
-	 * Re-create the given mime type as a media type.
-	 * @since 5.0
-	 */
-	public static MediaType asMediaType(MimeType mimeType) {
-		if (mimeType instanceof MediaType) {
-			return (MediaType) mimeType;
-		}
-		return new MediaType(mimeType.getType(), mimeType.getSubtype(), mimeType.getParameters());
 	}
 
 	/**
@@ -643,8 +583,8 @@ public class MediaType extends MimeType implements Serializable {
 	public static void sortBySpecificityAndQuality(List<MediaType> mediaTypes) {
 		Assert.notNull(mediaTypes, "'mediaTypes' must not be null");
 		if (mediaTypes.size() > 1) {
-			Collections.sort(mediaTypes,
-					MediaType.SPECIFICITY_COMPARATOR.thenComparing(MediaType.QUALITY_VALUE_COMPARATOR));
+			Collections.sort(mediaTypes, new CompoundComparator<MediaType>(
+					MediaType.SPECIFICITY_COMPARATOR, MediaType.QUALITY_VALUE_COMPARATOR));
 		}
 	}
 

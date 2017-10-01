@@ -17,6 +17,7 @@
 package org.springframework.orm.jpa.persistenceunit;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.persistence.Converter;
 import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
@@ -40,8 +40,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.index.CandidateComponentsIndex;
-import org.springframework.context.index.CandidateComponentsIndexLoader;
 import org.springframework.context.weaving.LoadTimeWeaverAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -75,10 +73,10 @@ import org.springframework.util.ResourceUtils;
  * DataSource names are by default interpreted as JNDI names, and no load time weaving
  * is available (which requires weaving to be turned off in the persistence provider).
  *
- * <p><b>NOTE: Spring's JPA support requires JPA 2.1 or higher, as of Spring 5.0.</b>
+ * <p><b>NOTE: Spring's JPA support requires JPA 2.0 or higher, as of Spring 4.0.</b>
+ * Spring's persistence unit bootstrapping automatically detects JPA 2.1 at runtime.
  *
  * @author Juergen Hoeller
- * @author Stephane Nicoll
  * @since 2.0
  * @see #setPersistenceXmlLocations
  * @see #setDataSourceLookup
@@ -111,14 +109,22 @@ public class DefaultPersistenceUnitManager
 	public final static String ORIGINAL_DEFAULT_PERSISTENCE_UNIT_NAME = "default";
 
 
-	private static final Set<AnnotationTypeFilter> entityTypeFilters;
+	private static final Set<TypeFilter> entityTypeFilters;
 
 	static {
-		entityTypeFilters = new LinkedHashSet<>(4);
+		entityTypeFilters = new LinkedHashSet<TypeFilter>(4);
 		entityTypeFilters.add(new AnnotationTypeFilter(Entity.class, false));
 		entityTypeFilters.add(new AnnotationTypeFilter(Embeddable.class, false));
 		entityTypeFilters.add(new AnnotationTypeFilter(MappedSuperclass.class, false));
-		entityTypeFilters.add(new AnnotationTypeFilter(Converter.class, false));
+		try {
+			@SuppressWarnings("unchecked")
+			Class<? extends Annotation> converterAnnotation = (Class<? extends Annotation>)
+					ClassUtils.forName("javax.persistence.Converter", DefaultPersistenceUnitManager.class.getClassLoader());
+			entityTypeFilters.add(new AnnotationTypeFilter(converterAnnotation, false));
+		}
+		catch (ClassNotFoundException ex) {
+			// JPA 2.1 API not available
+		}
 	}
 
 
@@ -150,11 +156,9 @@ public class DefaultPersistenceUnitManager
 
 	private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
-	private CandidateComponentsIndex componentsIndex;
+	private final Set<String> persistenceUnitInfoNames = new HashSet<String>();
 
-	private final Set<String> persistenceUnitInfoNames = new HashSet<>();
-
-	private final Map<String, PersistenceUnitInfo> persistenceUnitInfos = new HashMap<>();
+	private final Map<String, PersistenceUnitInfo> persistenceUnitInfos = new HashMap<String, PersistenceUnitInfo>();
 
 
 	/**
@@ -411,7 +415,6 @@ public class DefaultPersistenceUnitManager
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourcePatternResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
-		this.componentsIndex = CandidateComponentsIndexLoader.loadIndex(resourceLoader.getClassLoader());
 	}
 
 
@@ -477,7 +480,7 @@ public class DefaultPersistenceUnitManager
 	 * as defined in the JPA specification.
 	 */
 	private List<SpringPersistenceUnitInfo> readPersistenceUnitInfos() {
-		List<SpringPersistenceUnitInfo> infos = new LinkedList<>();
+		List<SpringPersistenceUnitInfo> infos = new LinkedList<SpringPersistenceUnitInfo>();
 		String defaultName = this.defaultPersistenceUnitName;
 		boolean buildDefaultUnit = (this.packagesToScan != null || this.mappingResources != null);
 		boolean foundDefaultUnit = false;
@@ -516,11 +519,33 @@ public class DefaultPersistenceUnitManager
 
 		if (this.packagesToScan != null) {
 			for (String pkg : this.packagesToScan) {
-				if (this.componentsIndex != null) {
-					addPackageFromIndex(scannedUnit, pkg);
+				try {
+					String pattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
+							ClassUtils.convertClassNameToResourcePath(pkg) + CLASS_RESOURCE_PATTERN;
+					Resource[] resources = this.resourcePatternResolver.getResources(pattern);
+					MetadataReaderFactory readerFactory = new CachingMetadataReaderFactory(this.resourcePatternResolver);
+					for (Resource resource : resources) {
+						if (resource.isReadable()) {
+							MetadataReader reader = readerFactory.getMetadataReader(resource);
+							String className = reader.getClassMetadata().getClassName();
+							if (matchesFilter(reader, readerFactory)) {
+								scannedUnit.addManagedClassName(className);
+								if (scannedUnit.getPersistenceUnitRootUrl() == null) {
+									URL url = resource.getURL();
+									if (ResourceUtils.isJarURL(url)) {
+										scannedUnit.setPersistenceUnitRootUrl(ResourceUtils.extractJarFileURL(url));
+									}
+								}
+							}
+							else if (className.endsWith(PACKAGE_INFO_SUFFIX)) {
+								scannedUnit.addManagedPackage(
+										className.substring(0, className.length() - PACKAGE_INFO_SUFFIX.length()));
+							}
+						}
+					}
 				}
-				else {
-					scanPackage(scannedUnit, pkg);
+				catch (IOException ex) {
+					throw new PersistenceException("Failed to scan classpath for unlisted entity classes", ex);
 				}
 			}
 		}
@@ -547,48 +572,6 @@ public class DefaultPersistenceUnitManager
 		}
 
 		return scannedUnit;
-	}
-
-	private void addPackageFromIndex(SpringPersistenceUnitInfo scannedUnit, String pkg) {
-		Set<String> candidates = new HashSet<>();
-		for (AnnotationTypeFilter filter : entityTypeFilters) {
-			candidates.addAll(this.componentsIndex
-					.getCandidateTypes(pkg, filter.getAnnotationType().getName()));
-		}
-		candidates.forEach(scannedUnit::addManagedClassName);
-		Set<String> managedPackages = this.componentsIndex.getCandidateTypes(pkg, "package-info");
-		managedPackages.forEach(scannedUnit::addManagedPackage);
-	}
-
-	private void scanPackage(SpringPersistenceUnitInfo scannedUnit, String pkg) {
-		try {
-			String pattern = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
-					ClassUtils.convertClassNameToResourcePath(pkg) + CLASS_RESOURCE_PATTERN;
-			Resource[] resources = this.resourcePatternResolver.getResources(pattern);
-			MetadataReaderFactory readerFactory = new CachingMetadataReaderFactory(this.resourcePatternResolver);
-			for (Resource resource : resources) {
-				if (resource.isReadable()) {
-					MetadataReader reader = readerFactory.getMetadataReader(resource);
-					String className = reader.getClassMetadata().getClassName();
-					if (matchesFilter(reader, readerFactory)) {
-						scannedUnit.addManagedClassName(className);
-						if (scannedUnit.getPersistenceUnitRootUrl() == null) {
-							URL url = resource.getURL();
-							if (ResourceUtils.isJarURL(url)) {
-								scannedUnit.setPersistenceUnitRootUrl(ResourceUtils.extractJarFileURL(url));
-							}
-						}
-					}
-					else if (className.endsWith(PACKAGE_INFO_SUFFIX)) {
-						scannedUnit.addManagedPackage(
-								className.substring(0, className.length() - PACKAGE_INFO_SUFFIX.length()));
-					}
-				}
-			}
-		}
-		catch (IOException ex) {
-			throw new PersistenceException("Failed to scan classpath for unlisted entity classes", ex);
-		}
 	}
 
 	/**

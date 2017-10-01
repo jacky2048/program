@@ -20,7 +20,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,9 +54,9 @@ public class WebContentInterceptor extends WebContentGenerator implements Handle
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
-	private Map<String, Integer> cacheMappings = new HashMap<>();
+	private Map<String, Integer> cacheMappings = new HashMap<String, Integer>();
 
-	private Map<String, CacheControl> cacheControlMappings = new HashMap<>();
+	private Map<String, CacheControl> cacheControlMappings = new HashMap<String, CacheControl>();
 
 
 	public WebContentInterceptor() {

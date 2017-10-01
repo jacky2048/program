@@ -51,7 +51,7 @@ class DatabasePopulatorConfigUtils {
 		boolean ignoreFailedDrops = element.getAttribute("ignore-failures").equals("DROPS");
 		boolean continueOnError = element.getAttribute("ignore-failures").equals("ALL");
 
-		ManagedList<BeanMetadataElement> delegates = new ManagedList<>();
+		ManagedList<BeanMetadataElement> delegates = new ManagedList<BeanMetadataElement>();
 		for (Element scriptElement : scripts) {
 			String executionAttr = scriptElement.getAttribute("execution");
 			if (!StringUtils.hasText(executionAttr)) {

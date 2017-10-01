@@ -131,7 +131,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 
 	private void startBeans(boolean autoStartupOnly) {
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
-		Map<Integer, LifecycleGroup> phases = new HashMap<>();
+		Map<Integer, LifecycleGroup> phases = new HashMap<Integer, LifecycleGroup>();
 		for (Map.Entry<String, ? extends Lifecycle> entry : lifecycleBeans.entrySet()) {
 			Lifecycle bean = entry.getValue();
 			if (!autoStartupOnly || (bean instanceof SmartLifecycle && ((SmartLifecycle) bean).isAutoStartup())) {
@@ -145,7 +145,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			}
 		}
 		if (!phases.isEmpty()) {
-			List<Integer> keys = new ArrayList<>(phases.keySet());
+			List<Integer> keys = new ArrayList<Integer>(phases.keySet());
 			Collections.sort(keys);
 			for (Integer key : keys) {
 				phases.get(key).start();
@@ -186,7 +186,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 
 	private void stopBeans() {
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
-		Map<Integer, LifecycleGroup> phases = new HashMap<>();
+		Map<Integer, LifecycleGroup> phases = new HashMap<Integer, LifecycleGroup>();
 		for (Map.Entry<String, Lifecycle> entry : lifecycleBeans.entrySet()) {
 			Lifecycle bean = entry.getValue();
 			int shutdownOrder = getPhase(bean);
@@ -198,7 +198,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			group.add(entry.getKey(), bean);
 		}
 		if (!phases.isEmpty()) {
-			List<Integer> keys = new ArrayList<>(phases.keySet());
+			List<Integer> keys = new ArrayList<Integer>(phases.keySet());
 			Collections.sort(keys, Collections.reverseOrder());
 			for (Integer key : keys) {
 				phases.get(key).stop();
@@ -271,7 +271,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * @return the Map of applicable beans, with bean names as keys and bean instances as values
 	 */
 	protected Map<String, Lifecycle> getLifecycleBeans() {
-		Map<String, Lifecycle> beans = new LinkedHashMap<>();
+		Map<String, Lifecycle> beans = new LinkedHashMap<String, Lifecycle>();
 		String[] beanNames = this.beanFactory.getBeanNamesForType(Lifecycle.class, false, false);
 		for (String beanName : beanNames) {
 			String beanNameToRegister = BeanFactoryUtils.transformedBeanName(beanName);
@@ -309,7 +309,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 */
 	private class LifecycleGroup {
 
-		private final List<LifecycleGroupMember> members = new ArrayList<>();
+		private final List<LifecycleGroupMember> members = new ArrayList<LifecycleGroupMember>();
 
 		private final int phase;
 

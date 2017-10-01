@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class ControlFlowPointcutTests {
+public final class ControlFlowPointcutTests {
 
 	@Test
 	public void testMatches() {

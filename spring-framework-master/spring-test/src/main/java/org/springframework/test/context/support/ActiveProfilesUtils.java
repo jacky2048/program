@@ -69,7 +69,7 @@ abstract class ActiveProfilesUtils {
 	static String[] resolveActiveProfiles(Class<?> testClass) {
 		Assert.notNull(testClass, "Class must not be null");
 
-		final List<String[]> profileArrays = new ArrayList<>();
+		final List<String[]> profileArrays = new ArrayList<String[]>();
 
 		Class<ActiveProfiles> annotationType = ActiveProfiles.class;
 		AnnotationDescriptor<ActiveProfiles> descriptor =
@@ -124,7 +124,7 @@ abstract class ActiveProfilesUtils {
 		// Reverse the list so that we can traverse "down" the hierarchy.
 		Collections.reverse(profileArrays);
 
-		final Set<String> activeProfiles = new LinkedHashSet<>();
+		final Set<String> activeProfiles = new LinkedHashSet<String>();
 		for (String[] profiles : profileArrays) {
 			for (String profile : profiles) {
 				if (StringUtils.hasText(profile)) {

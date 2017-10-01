@@ -17,7 +17,7 @@
 package org.springframework.web.multipart.support;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
@@ -104,13 +104,13 @@ public class RequestPartServletServerHttpRequestTests {
 			@Override
 			public HttpHeaders getMultipartHeaders(String paramOrFileName) {
 				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(new MediaType("application", "octet-stream", StandardCharsets.ISO_8859_1));
+				headers.setContentType(new MediaType("application", "octet-stream", Charset.forName("iso-8859-1")));
 				return headers;
 			}
 		};
 
 		byte[] bytes = {(byte) 0xC4};
-		mockRequest.setParameter("part", new String(bytes, StandardCharsets.ISO_8859_1));
+		mockRequest.setParameter("part", new String(bytes, Charset.forName("ISO-8859-1")));
 		ServerHttpRequest request = new RequestPartServletServerHttpRequest(mockRequest, "part");
 		byte[] result = FileCopyUtils.copyToByteArray(request.getBody());
 		assertArrayEquals(bytes, result);
@@ -128,7 +128,7 @@ public class RequestPartServletServerHttpRequestTests {
 		};
 
 		byte[] bytes = {(byte) 0xC4};
-		mockRequest.setParameter("part", new String(bytes, StandardCharsets.ISO_8859_1));
+		mockRequest.setParameter("part", new String(bytes, Charset.forName("ISO-8859-1")));
 		mockRequest.setCharacterEncoding("iso-8859-1");
 		ServerHttpRequest request = new RequestPartServletServerHttpRequest(mockRequest, "part");
 		byte[] result = FileCopyUtils.copyToByteArray(request.getBody());

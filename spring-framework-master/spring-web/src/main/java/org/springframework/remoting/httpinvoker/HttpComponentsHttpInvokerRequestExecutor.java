@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import org.springframework.context.i18n.LocaleContext;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.remoting.support.RemoteInvocationResult;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -68,6 +69,20 @@ public class HttpComponentsHttpInvokerRequestExecutor extends AbstractHttpInvoke
 	private static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 5;
 
 	private static final int DEFAULT_READ_TIMEOUT_MILLISECONDS = (60 * 1000);
+
+
+	private static Class<?> abstractHttpClientClass;
+
+	static {
+		try {
+			// Looking for AbstractHttpClient class (deprecated as of HttpComponents 4.3)
+			abstractHttpClientClass = ClassUtils.forName("org.apache.http.impl.client.AbstractHttpClient",
+					HttpComponentsHttpInvokerRequestExecutor.class.getClassLoader());
+		}
+		catch (ClassNotFoundException ex) {
+			// Probably removed from HttpComponents in the meantime...
+		}
+	}
 
 
 	private HttpClient httpClient;
@@ -138,6 +153,28 @@ public class HttpComponentsHttpInvokerRequestExecutor extends AbstractHttpInvoke
 	public void setConnectTimeout(int timeout) {
 		Assert.isTrue(timeout >= 0, "Timeout must be a non-negative value");
 		this.requestConfig = cloneRequestConfig().setConnectTimeout(timeout).build();
+		setLegacyConnectionTimeout(getHttpClient(), timeout);
+	}
+
+	/**
+	 * Apply the specified connection timeout to deprecated {@link HttpClient}
+	 * implementations.
+	 * <p>As of HttpClient 4.3, default parameters have to be exposed through a
+	 * {@link RequestConfig} instance instead of setting the parameters on the
+	 * client. Unfortunately, this behavior is not backward-compatible and older
+	 * {@link HttpClient} implementations will ignore the {@link RequestConfig}
+	 * object set in the context.
+	 * <p>If the specified client is an older implementation, we set the custom
+	 * connection timeout through the deprecated API. Otherwise, we just return
+	 * as it is set through {@link RequestConfig} with newer clients.
+	 * @param client the client to configure
+	 * @param timeout the custom connection timeout
+	 */
+	@SuppressWarnings("deprecation")
+	private void setLegacyConnectionTimeout(HttpClient client, int timeout) {
+		if (abstractHttpClientClass != null && abstractHttpClientClass.isInstance(client)) {
+			client.getParams().setIntParameter(org.apache.http.params.CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
+		}
 	}
 
 	/**
@@ -165,6 +202,21 @@ public class HttpComponentsHttpInvokerRequestExecutor extends AbstractHttpInvoke
 	public void setReadTimeout(int timeout) {
 		Assert.isTrue(timeout >= 0, "Timeout must be a non-negative value");
 		this.requestConfig = cloneRequestConfig().setSocketTimeout(timeout).build();
+		setLegacySocketTimeout(getHttpClient(), timeout);
+	}
+
+	/**
+	 * Apply the specified socket timeout to deprecated {@link HttpClient}
+	 * implementations. See {@link #setLegacyConnectionTimeout}.
+	 * @param client the client to configure
+	 * @param timeout the custom socket timeout
+	 * @see #setLegacyConnectionTimeout
+	 */
+	@SuppressWarnings("deprecation")
+	private void setLegacySocketTimeout(HttpClient client, int timeout) {
+		if (abstractHttpClientClass != null && abstractHttpClientClass.isInstance(client)) {
+			client.getParams().setIntParameter(org.apache.http.params.CoreConnectionPNames.SO_TIMEOUT, timeout);
+		}
 	}
 
 	private RequestConfig.Builder cloneRequestConfig() {
@@ -211,10 +263,12 @@ public class HttpComponentsHttpInvokerRequestExecutor extends AbstractHttpInvoke
 	 */
 	protected HttpPost createHttpPost(HttpInvokerClientConfiguration config) throws IOException {
 		HttpPost httpPost = new HttpPost(config.getServiceUrl());
+
 		RequestConfig requestConfig = createRequestConfig(config);
 		if (requestConfig != null) {
 			httpPost.setConfig(requestConfig);
 		}
+
 		LocaleContext localeContext = LocaleContextHolder.getLocaleContext();
 		if (localeContext != null) {
 			Locale locale = localeContext.getLocale();
@@ -222,9 +276,11 @@ public class HttpComponentsHttpInvokerRequestExecutor extends AbstractHttpInvoke
 				httpPost.addHeader(HTTP_HEADER_ACCEPT_LANGUAGE, StringUtils.toLanguageTag(locale));
 			}
 		}
+
 		if (isAcceptGzipEncoding()) {
 			httpPost.addHeader(HTTP_HEADER_ACCEPT_ENCODING, ENCODING_GZIP);
 		}
+
 		return httpPost;
 	}
 
@@ -248,9 +304,10 @@ public class HttpComponentsHttpInvokerRequestExecutor extends AbstractHttpInvoke
 	}
 
 	private RequestConfig mergeRequestConfig(RequestConfig defaultRequestConfig) {
-		if (this.requestConfig == null) { // nothing to merge
+		if (this.requestConfig == null) {  // nothing to merge
 			return defaultRequestConfig;
 		}
+
 		RequestConfig.Builder builder = RequestConfig.copy(defaultRequestConfig);
 		int connectTimeout = this.requestConfig.getConnectTimeout();
 		if (connectTimeout >= 0) {

@@ -35,6 +35,7 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -79,6 +80,10 @@ public class ServletWebRequest extends ServletRequestAttributes implements Nativ
 	};
 
 	private static TimeZone GMT = TimeZone.getTimeZone("GMT");
+
+	/** Checking for Servlet 3.0+ HttpServletResponse.getHeader(String) */
+	private static final boolean servlet3Present =
+			ClassUtils.hasMethod(HttpServletResponse.class, "getHeader", String.class);
 
 	private boolean notModified = false;
 
@@ -209,7 +214,7 @@ public class ServletWebRequest extends ServletRequestAttributes implements Nativ
 	@Override
 	public boolean checkNotModified(String etag, long lastModifiedTimestamp) {
 		HttpServletResponse response = getResponse();
-		if (this.notModified || HttpStatus.OK.value() != response.getStatus()) {
+		if (this.notModified || !isStatusOK(response)) {
 			return this.notModified;
 		}
 
@@ -237,15 +242,31 @@ public class ServletWebRequest extends ServletRequestAttributes implements Nativ
 					HttpStatus.NOT_MODIFIED.value() : HttpStatus.PRECONDITION_FAILED.value());
 		}
 		if (isHttpGetOrHead) {
-			if(lastModifiedTimestamp > 0 && parseDateValue(response.getHeader(LAST_MODIFIED)) == -1) {
+			if(lastModifiedTimestamp > 0 && isHeaderAbsent(response, LAST_MODIFIED)) {
 				response.setDateHeader(LAST_MODIFIED, lastModifiedTimestamp);
 			}
-			if (StringUtils.hasLength(etag) && response.getHeader(ETAG) == null) {
+			if (StringUtils.hasLength(etag) && isHeaderAbsent(response, ETAG)) {
 				response.setHeader(ETAG, padEtagIfNecessary(etag));
 			}
 		}
 
 		return this.notModified;
+	}
+
+	private boolean isStatusOK(HttpServletResponse response) {
+		if (response == null || !servlet3Present) {
+			// Can't check response.getStatus() - let's assume we're good
+			return true;
+		}
+		return response.getStatus() == 200;
+	}
+
+	private boolean isHeaderAbsent(HttpServletResponse response, String header) {
+		if (response == null || !servlet3Present) {
+			// Can't check response.getHeader(header) - let's assume it's not set
+			return true;
+		}
+		return (response.getHeader(header) == null);
 	}
 
 	private boolean validateIfUnmodifiedSince(long lastModifiedTimestamp) {

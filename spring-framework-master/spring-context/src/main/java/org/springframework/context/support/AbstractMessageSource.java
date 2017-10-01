@@ -321,7 +321,7 @@ public abstract class AbstractMessageSource extends MessageSourceSupport impleme
 		if (args == null) {
 			return new Object[0];
 		}
-		List<Object> resolvedArgs = new ArrayList<>(args.length);
+		List<Object> resolvedArgs = new ArrayList<Object>(args.length);
 		for (Object arg : args) {
 			if (arg instanceof MessageSourceResolvable) {
 				resolvedArgs.add(getMessage((MessageSourceResolvable) arg, locale));

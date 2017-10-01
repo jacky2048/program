@@ -20,6 +20,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
+import org.springframework.lang.UsesJava8;
+
 /**
  * {@link ParameterNameDiscoverer} implementation which uses JDK 8's reflection facilities
  * for introspecting parameter names (based on the "-parameters" compiler flag).
@@ -29,6 +31,7 @@ import java.lang.reflect.Parameter;
  * @see java.lang.reflect.Method#getParameters()
  * @see java.lang.reflect.Parameter#getName()
  */
+@UsesJava8
 public class StandardReflectionParameterNameDiscoverer implements ParameterNameDiscoverer {
 
 	@Override

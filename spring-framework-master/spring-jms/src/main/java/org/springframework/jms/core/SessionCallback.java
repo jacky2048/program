@@ -29,7 +29,6 @@ import javax.jms.Session;
  * @since 1.1
  * @see JmsTemplate#execute(SessionCallback)
  */
-@FunctionalInterface
 public interface SessionCallback<T> {
 
 	/**

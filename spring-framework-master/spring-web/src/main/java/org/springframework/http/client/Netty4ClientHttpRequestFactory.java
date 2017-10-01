@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,9 +56,7 @@ import org.springframework.util.Assert;
  * @author Brian Clozel
  * @author Mark Paluch
  * @since 4.1.2
- * @deprecated as of Spring 5.0, in favor of {@link org.springframework.http.client.reactive.ReactorClientHttpConnector}
  */
-@Deprecated
 public class Netty4ClientHttpRequestFactory implements ClientHttpRequestFactory,
 		AsyncClientHttpRequestFactory, InitializingBean, DisposableBean {
 
@@ -190,7 +188,7 @@ public class Netty4ClientHttpRequestFactory implements ClientHttpRequestFactory,
 		}
 	}
 
-	private Bootstrap buildBootstrap(URI uri, boolean isSecure) {
+	private Bootstrap buildBootstrap(final URI uri, final boolean isSecure) {
 		Bootstrap bootstrap = new Bootstrap();
 		bootstrap.group(this.eventLoopGroup).channel(NioSocketChannel.class)
 				.handler(new ChannelInitializer<SocketChannel>() {

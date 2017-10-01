@@ -7,12 +7,12 @@
 		<property name="beans">
 			<map>
 				<entry key="bean:name=testBean3">
-					<ref bean="testBean"/>
+					<ref local="testBean"/>
 				</entry>
 			</map>
 		</property>
 		<property name="assembler">
-			<ref bean="metadataAssembler"/>
+			<ref local="metadataAssembler"/>
 		</property>
 	</bean>
 

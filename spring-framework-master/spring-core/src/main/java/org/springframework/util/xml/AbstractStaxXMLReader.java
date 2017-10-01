@@ -57,7 +57,7 @@ abstract class AbstractStaxXMLReader extends AbstractXMLReader {
 
 	private Boolean isStandalone;
 
-	private final Map<String, String> namespaces = new LinkedHashMap<>();
+	private final Map<String, String> namespaces = new LinkedHashMap<String, String>();
 
 
 	@Override

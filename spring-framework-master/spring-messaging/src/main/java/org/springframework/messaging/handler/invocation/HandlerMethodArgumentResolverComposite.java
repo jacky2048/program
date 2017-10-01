@@ -37,10 +37,10 @@ import org.springframework.util.Assert;
  */
 public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgumentResolver {
 
-	private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<>();
+	private final List<HandlerMethodArgumentResolver> argumentResolvers = new LinkedList<HandlerMethodArgumentResolver>();
 
 	private final Map<MethodParameter, HandlerMethodArgumentResolver> argumentResolverCache =
-			new ConcurrentHashMap<>(256);
+			new ConcurrentHashMap<MethodParameter, HandlerMethodArgumentResolver>(256);
 
 
 	/**

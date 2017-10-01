@@ -245,11 +245,11 @@ public abstract class AbstractMessageBrokerConfiguration implements ApplicationC
 		handler.setMessageConverter(brokerMessageConverter());
 		handler.setValidator(simpValidator());
 
-		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>();
+		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
 		addArgumentResolvers(argumentResolvers);
 		handler.setCustomArgumentResolvers(argumentResolvers);
 
-		List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
+		List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<HandlerMethodReturnValueHandler>();
 		addReturnValueHandlers(returnValueHandlers);
 		handler.setCustomReturnValueHandlers(returnValueHandlers);
 
@@ -289,7 +289,7 @@ public abstract class AbstractMessageBrokerConfiguration implements ApplicationC
 		if (handler == null) {
 			return new NoOpBrokerMessageHandler();
 		}
-		Map<String, MessageHandler> subscriptions = new HashMap<>(1);
+		Map<String, MessageHandler> subscriptions = new HashMap<String, MessageHandler>(1);
 		String destination = getBrokerRegistry().getUserDestinationBroadcast();
 		if (destination != null) {
 			subscriptions.put(destination, userDestinationMessageHandler());
@@ -346,7 +346,7 @@ public abstract class AbstractMessageBrokerConfiguration implements ApplicationC
 
 	@Bean
 	public CompositeMessageConverter brokerMessageConverter() {
-		List<MessageConverter> converters = new ArrayList<>();
+		List<MessageConverter> converters = new ArrayList<MessageConverter>();
 		boolean registerDefaults = configureMessageConverters(converters);
 		if (registerDefaults) {
 			converters.add(new StringMessageConverter());
@@ -397,6 +397,18 @@ public abstract class AbstractMessageBrokerConfiguration implements ApplicationC
 	 * Create the user registry that provides access to the local users.
 	 */
 	protected abstract SimpUserRegistry createLocalUserRegistry();
+
+	/**
+	 * As of 4.2, {@code UserSessionRegistry} is deprecated in favor of {@link SimpUserRegistry}
+	 * exposing information about all connected users. The {@link MultiServerUserRegistry}
+	 * implementation in combination with {@link UserRegistryMessageHandler} can be used
+	 * to share user registries across multiple servers.
+	 */
+	@Deprecated
+	@SuppressWarnings("deprecation")
+	protected org.springframework.messaging.simp.user.UserSessionRegistry userSessionRegistry() {
+		return null;
+	}
 
 	/**
 	 * Return a {@link org.springframework.validation.Validator}s instance for validating

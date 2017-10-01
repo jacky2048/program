@@ -16,6 +16,8 @@
 
 package org.springframework.orm.jpa;
 
+import javax.persistence.PersistenceException;
+
 import org.springframework.dao.UncategorizedDataAccessException;
 
 /**
@@ -29,6 +31,11 @@ import org.springframework.dao.UncategorizedDataAccessException;
  */
 @SuppressWarnings("serial")
 public class JpaSystemException extends UncategorizedDataAccessException {
+
+	@Deprecated
+	public JpaSystemException(PersistenceException ex) {
+		super(ex.getMessage(), ex);
+	}
 
 	public JpaSystemException(RuntimeException ex) {
 		super(ex.getMessage(), ex);

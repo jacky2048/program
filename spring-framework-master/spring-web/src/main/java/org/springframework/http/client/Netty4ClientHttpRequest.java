@@ -50,9 +50,7 @@ import org.springframework.util.concurrent.SettableListenableFuture;
  * @author Rossen Stoyanchev
  * @author Brian Clozel
  * @since 4.1.2
- * @deprecated as of Spring 5.0, in favor of {@link org.springframework.http.client.reactive.ReactorClientHttpConnector}
  */
-@Deprecated
 class Netty4ClientHttpRequest extends AbstractAsyncClientHttpRequest implements ClientHttpRequest {
 
 	private final Bootstrap bootstrap;
@@ -107,7 +105,8 @@ class Netty4ClientHttpRequest extends AbstractAsyncClientHttpRequest implements 
 
 	@Override
 	protected ListenableFuture<ClientHttpResponse> executeInternal(final HttpHeaders headers) throws IOException {
-		final SettableListenableFuture<ClientHttpResponse> responseFuture = new SettableListenableFuture<>();
+		final SettableListenableFuture<ClientHttpResponse> responseFuture =
+				new SettableListenableFuture<ClientHttpResponse>();
 
 		ChannelFutureListener connectionListener = new ChannelFutureListener() {
 			@Override
@@ -137,7 +136,7 @@ class Netty4ClientHttpRequest extends AbstractAsyncClientHttpRequest implements 
 		FullHttpRequest nettyRequest = new DefaultFullHttpRequest(
 				HttpVersion.HTTP_1_1, nettyMethod, path, this.body.buffer());
 
-		nettyRequest.headers().set(HttpHeaders.HOST, this.uri.getHost());
+		nettyRequest.headers().set(HttpHeaders.HOST, this.uri.getHost() + ":" + getPort(uri));
 		nettyRequest.headers().set(HttpHeaders.CONNECTION, "close");
 		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
 			nettyRequest.headers().add(entry.getKey(), entry.getValue());

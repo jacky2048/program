@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,12 +63,12 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 		implements HandlerMethodReturnValueHandler {
 
 	/* Extensions associated with the built-in message converters */
-	private static final Set<String> WHITELISTED_EXTENSIONS = new HashSet<>(Arrays.asList(
+	private static final Set<String> WHITELISTED_EXTENSIONS = new HashSet<String>(Arrays.asList(
 			"txt", "text", "yml", "properties", "csv",
 			"json", "xml", "atom", "rss",
 			"png", "jpe", "jpeg", "jpg", "gif", "wbmp", "bmp"));
 
-	private static final Set<String> WHITELISTED_MEDIA_BASE_TYPES = new HashSet<>(
+	private static final Set<String> WHITELISTED_MEDIA_BASE_TYPES = new HashSet<String>(
 			Arrays.asList("audio", "image", "video"));
 
 	private static final MediaType MEDIA_TYPE_APPLICATION = new MediaType("application");
@@ -87,7 +87,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 
 	private final PathExtensionContentNegotiationStrategy pathStrategy;
 
-	private final Set<String> safeExtensions = new HashSet<>();
+	private final Set<String> safeExtensions = new HashSet<String>();
 
 
 	/**
@@ -156,8 +156,8 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	 * @param inputMessage the input messages. Used to inspect the {@code Accept} header.
 	 * @param outputMessage the output message to write to
 	 * @throws IOException thrown in case of I/O errors
-	 * @throws HttpMediaTypeNotAcceptableException thrown when the conditions indicated by {@code Accept} header on
-	 * the request cannot be met by the message converters
+	 * @throws HttpMediaTypeNotAcceptableException thrown when the conditions indicated
+	 * by the {@code Accept} header on the request cannot be met by the message converters
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T> void writeWithMessageConverters(T value, MethodParameter returnType,
@@ -187,7 +187,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			throw new IllegalArgumentException("No converter found for return value of type: " + valueType);
 		}
 
-		Set<MediaType> compatibleMediaTypes = new LinkedHashSet<>();
+		Set<MediaType> compatibleMediaTypes = new LinkedHashSet<MediaType>();
 		for (MediaType requestedType : requestedMediaTypes) {
 			for (MediaType producibleType : producibleMediaTypes) {
 				if (requestedType.isCompatibleWith(producibleType)) {
@@ -202,7 +202,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 			return;
 		}
 
-		List<MediaType> mediaTypes = new ArrayList<>(compatibleMediaTypes);
+		List<MediaType> mediaTypes = new ArrayList<MediaType>(compatibleMediaTypes);
 		MediaType.sortBySpecificityAndQuality(mediaTypes);
 
 		MediaType selectedMediaType = null;
@@ -304,10 +304,10 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	protected List<MediaType> getProducibleMediaTypes(HttpServletRequest request, Class<?> valueClass, Type declaredType) {
 		Set<MediaType> mediaTypes = (Set<MediaType>) request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 		if (!CollectionUtils.isEmpty(mediaTypes)) {
-			return new ArrayList<>(mediaTypes);
+			return new ArrayList<MediaType>(mediaTypes);
 		}
 		else if (!this.allSupportedMediaTypes.isEmpty()) {
-			List<MediaType> result = new ArrayList<>();
+			List<MediaType> result = new ArrayList<MediaType>();
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
 				if (converter instanceof GenericHttpMessageConverter && declaredType != null) {
 					if (((GenericHttpMessageConverter<?>) converter).canWrite(declaredType, valueClass, null)) {

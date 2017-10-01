@@ -36,7 +36,6 @@ import javax.jms.Session;
  * @see JmsTemplate#execute(javax.jms.Destination, ProducerCallback)
  * @see JmsTemplate#execute(String, ProducerCallback)
  */
-@FunctionalInterface
 public interface ProducerCallback<T> {
 
 	/**

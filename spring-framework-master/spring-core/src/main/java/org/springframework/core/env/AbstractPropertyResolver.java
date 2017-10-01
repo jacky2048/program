@@ -55,7 +55,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 
 	private String valueSeparator = SystemPropertyUtils.VALUE_SEPARATOR;
 
-	private final Set<String> requiredProperties = new LinkedHashSet<>();
+	private final Set<String> requiredProperties = new LinkedHashSet<String>();
 
 
 	@Override
@@ -168,6 +168,12 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
 		T value = getProperty(key, targetType);
 		return (value != null ? value : defaultValue);
+	}
+
+	@Override
+	@Deprecated
+	public <T> Class<T> getPropertyAsClass(String key, Class<T> targetValueType) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

@@ -74,7 +74,7 @@ public class WebSocketTransport implements Transport, Lifecycle {
 
 	@Override
 	public ListenableFuture<WebSocketSession> connect(TransportRequest request, WebSocketHandler handler) {
-		final SettableListenableFuture<WebSocketSession> future = new SettableListenableFuture<>();
+		final SettableListenableFuture<WebSocketSession> future = new SettableListenableFuture<WebSocketSession>();
 		WebSocketClientSockJsSession session = new WebSocketClientSockJsSession(request, handler, future);
 		handler = new ClientSockJsWebSocketHandler(session);
 		request.addTimeoutTask(session.getTimeoutTask());

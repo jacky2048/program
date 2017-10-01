@@ -134,7 +134,9 @@ public class MessageListenerAdapter extends AbstractAdaptableMessageListener imp
 	/**
 	 * Create a new {@link MessageListenerAdapter} with default settings.
 	 */
+	@SuppressWarnings("deprecation")
 	public MessageListenerAdapter() {
+		initDefaultStrategies();
 		this.delegate = this;
 	}
 
@@ -142,10 +144,21 @@ public class MessageListenerAdapter extends AbstractAdaptableMessageListener imp
 	 * Create a new {@link MessageListenerAdapter} for the given delegate.
 	 * @param delegate the delegate object
 	 */
+	@SuppressWarnings("deprecation")
 	public MessageListenerAdapter(Object delegate) {
+		initDefaultStrategies();
 		setDelegate(delegate);
 	}
 
+
+	/**
+	 * Initialize the default implementations for the adapter's strategies.
+	 * @deprecated as of 4.1, in favor of calling the corresponding setters
+	 * in the subclass constructor
+	 */
+	@Deprecated
+	protected void initDefaultStrategies() {
+	}
 
 	/**
 	 * Set a target object to delegate message listening to.

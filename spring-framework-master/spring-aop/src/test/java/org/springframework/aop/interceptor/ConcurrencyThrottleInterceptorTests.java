@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * @author Chris Beams
  * @since 06.04.2004
  */
-public class ConcurrencyThrottleInterceptorTests {
+public final class ConcurrencyThrottleInterceptorTests {
 
 	protected static final Log logger = LogFactory.getLog(ConcurrencyThrottleInterceptorTests.class);
 

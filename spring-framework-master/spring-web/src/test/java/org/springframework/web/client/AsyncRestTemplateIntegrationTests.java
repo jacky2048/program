@@ -18,7 +18,8 @@ package org.springframework.web.client;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
@@ -61,7 +62,6 @@ import static org.junit.Assert.fail;
  * @author Arjen Poutsma
  * @author Sebastien Deleuze
  */
-@SuppressWarnings("deprecation")
 public class AsyncRestTemplateIntegrationTests extends AbstractMockWebServerTestCase {
 
 	private final AsyncRestTemplate template = new AsyncRestTemplate(
@@ -182,7 +182,7 @@ public class AsyncRestTemplateIntegrationTests extends AbstractMockWebServerTest
 	@Test
 	public void postForLocation() throws Exception  {
 		HttpHeaders entityHeaders = new HttpHeaders();
-		entityHeaders.setContentType(new MediaType("text", "plain", StandardCharsets.ISO_8859_1));
+		entityHeaders.setContentType(new MediaType("text", "plain", Charset.forName("ISO-8859-1")));
 		HttpEntity<String> entity = new HttpEntity<>(helloWorld, entityHeaders);
 		Future<URI> locationFuture = template.postForLocation(baseUrl + "/{method}", entity, "post");
 		URI location = locationFuture.get();
@@ -192,7 +192,7 @@ public class AsyncRestTemplateIntegrationTests extends AbstractMockWebServerTest
 	@Test
 	public void postForLocationCallback() throws Exception  {
 		HttpHeaders entityHeaders = new HttpHeaders();
-		entityHeaders.setContentType(new MediaType("text", "plain", StandardCharsets.ISO_8859_1));
+		entityHeaders.setContentType(new MediaType("text", "plain", Charset.forName("ISO-8859-1")));
 		HttpEntity<String> entity = new HttpEntity<>(helloWorld, entityHeaders);
 		final URI expected = new URI(baseUrl + "/post/1");
 		ListenableFuture<URI> locationFuture = template.postForLocation(baseUrl + "/{method}", entity, "post");
@@ -212,7 +212,7 @@ public class AsyncRestTemplateIntegrationTests extends AbstractMockWebServerTest
 	@Test
 	public void postForLocationCallbackWithLambdas() throws Exception  {
 		HttpHeaders entityHeaders = new HttpHeaders();
-		entityHeaders.setContentType(new MediaType("text", "plain", StandardCharsets.ISO_8859_1));
+		entityHeaders.setContentType(new MediaType("text", "plain", Charset.forName("ISO-8859-1")));
 		HttpEntity<String> entity = new HttpEntity<>(helloWorld, entityHeaders);
 		final URI expected = new URI(baseUrl + "/post/1");
 		ListenableFuture<URI> locationFuture = template.postForLocation(baseUrl + "/{method}", entity, "post");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 
 /**
  * A {@code ResourceResolver} that delegates to the chain to locate a resource
@@ -78,7 +76,7 @@ public class GzipResourceResolver extends AbstractResourceResolver {
 	}
 
 
-	static final class GzippedResource extends AbstractResource implements HttpResource {
+	private static final class GzippedResource extends AbstractResource implements EncodedResource {
 
 		private final Resource original;
 
@@ -103,11 +101,6 @@ public class GzipResourceResolver extends AbstractResourceResolver {
 
 		public boolean isOpen() {
 			return this.gzipped.isOpen();
-		}
-
-		@Override
-		public boolean isFile() {
-			return this.gzipped.isFile();
 		}
 
 		public URL getURL() throws IOException {
@@ -142,19 +135,9 @@ public class GzipResourceResolver extends AbstractResourceResolver {
 			return this.gzipped.getDescription();
 		}
 
-		@Override
-		public HttpHeaders getResponseHeaders() {
-			HttpHeaders headers;
-			if(this.original instanceof HttpResource) {
-				headers = ((HttpResource) this.original).getResponseHeaders();
-			}
-			else {
-				headers = new HttpHeaders();
-			}
-			headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
-			return headers;
+		public String getContentEncoding() {
+			return "gzip";
 		}
-
 	}
 
 }

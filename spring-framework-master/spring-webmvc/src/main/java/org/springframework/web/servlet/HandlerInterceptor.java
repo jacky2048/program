@@ -84,7 +84,6 @@ public interface HandlerInterceptor {
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
-	 * <p>The default implementation returns {@code true}.
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler chosen handler to execute, for type and/or instance evaluation
@@ -93,11 +92,8 @@ public interface HandlerInterceptor {
 	 * that this interceptor has already dealt with the response itself.
 	 * @throws Exception in case of errors
 	 */
-	default boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-			throws Exception {
-
-		return true;
-	}
+	boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception;
 
 	/**
 	 * Intercept the execution of a handler. Called after HandlerAdapter actually
@@ -110,7 +106,6 @@ public interface HandlerInterceptor {
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
-	 * <p>The default implementation is empty.
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler handler (or {@link HandlerMethod}) that started asynchronous
@@ -119,10 +114,9 @@ public interface HandlerInterceptor {
 	 * (can also be {@code null})
 	 * @throws Exception in case of errors
 	 */
-	default void postHandle(
+	void postHandle(
 			HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView)
-			throws Exception {
-	}
+			throws Exception;
 
 	/**
 	 * Callback after completion of request processing, that is, after rendering
@@ -136,7 +130,6 @@ public interface HandlerInterceptor {
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
-	 * <p>The default implementation is empty.
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler handler (or {@link HandlerMethod}) that started asynchronous
@@ -144,9 +137,8 @@ public interface HandlerInterceptor {
 	 * @param ex exception thrown on handler execution, if any
 	 * @throws Exception in case of errors
 	 */
-	default void afterCompletion(
+	void afterCompletion(
 			HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-			throws Exception {
-	}
+			throws Exception;
 
 }

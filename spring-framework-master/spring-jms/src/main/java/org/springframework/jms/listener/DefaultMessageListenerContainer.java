@@ -189,7 +189,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 
 	private int idleTaskExecutionLimit = 1;
 
-	private final Set<AsyncMessageListenerInvoker> scheduledInvokers = new HashSet<>();
+	private final Set<AsyncMessageListenerInvoker> scheduledInvokers = new HashSet<AsyncMessageListenerInvoker>();
 
 	private int activeInvokerCount = 0;
 

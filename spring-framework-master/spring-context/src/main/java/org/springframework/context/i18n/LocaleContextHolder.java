@@ -44,10 +44,10 @@ import org.springframework.core.NamedThreadLocal;
 public abstract class LocaleContextHolder {
 
 	private static final ThreadLocal<LocaleContext> localeContextHolder =
-			new NamedThreadLocal<>("LocaleContext");
+			new NamedThreadLocal<LocaleContext>("LocaleContext");
 
 	private static final ThreadLocal<LocaleContext> inheritableLocaleContextHolder =
-			new NamedInheritableThreadLocal<>("LocaleContext");
+			new NamedInheritableThreadLocal<LocaleContext>("LocaleContext");
 
 	// Shared default locale at the framework level
 	private static Locale defaultLocale;

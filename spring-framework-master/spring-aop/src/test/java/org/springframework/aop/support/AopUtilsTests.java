@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  * @author Rod Johnson
  * @author Chris Beams
  */
-public class AopUtilsTests {
+public final class AopUtilsTests {
 
 	@Test
 	public void testPointcutCanNeverApply() {

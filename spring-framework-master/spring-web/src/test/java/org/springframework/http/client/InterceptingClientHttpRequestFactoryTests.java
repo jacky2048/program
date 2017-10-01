@@ -53,7 +53,7 @@ public class InterceptingClientHttpRequestFactoryTests {
 
 	@Test
 	public void basic() throws Exception {
-		List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+		List<ClientHttpRequestInterceptor> interceptors = new ArrayList<ClientHttpRequestInterceptor>();
 		interceptors.add(new NoOpInterceptor());
 		interceptors.add(new NoOpInterceptor());
 		interceptors.add(new NoOpInterceptor());
@@ -71,7 +71,8 @@ public class InterceptingClientHttpRequestFactoryTests {
 
 	@Test
 	public void noExecution() throws Exception {
-		List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+		List<ClientHttpRequestInterceptor> interceptors = new ArrayList<ClientHttpRequestInterceptor>();
+
 		interceptors.add(new ClientHttpRequestInterceptor() {
 			@Override
 			public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)

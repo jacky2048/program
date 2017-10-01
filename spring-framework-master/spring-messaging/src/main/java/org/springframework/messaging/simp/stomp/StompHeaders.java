@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2017 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,13 +105,13 @@ public class StompHeaders implements MultiValueMap<String, String>, Serializable
 	 * Create a new instance to be populated with new header values.
 	 */
 	public StompHeaders() {
-		this(new LinkedMultiValueMap<>(4), false);
+		this(new LinkedMultiValueMap<String, String>(4), false);
 	}
 
 	private StompHeaders(Map<String, List<String>> headers, boolean readOnly) {
 		Assert.notNull(headers, "'headers' must not be null");
 		if (readOnly) {
-			Map<String, List<String>> map = new LinkedMultiValueMap<>(headers.size());
+			Map<String, List<String>> map = new LinkedMultiValueMap<String, String>(headers.size());
 			for (Entry<String, List<String>> entry : headers.entrySet()) {
 				List<String> values = Collections.unmodifiableList(entry.getValue());
 				map.put(entry.getKey(), values);
@@ -397,14 +397,12 @@ public class StompHeaders implements MultiValueMap<String, String>, Serializable
 	 */
 	@Override
 	public void add(String headerName, String headerValue) {
-		List<String> headerValues = headers.computeIfAbsent(headerName, k -> new LinkedList<>());
+		List<String> headerValues = headers.get(headerName);
+		if (headerValues == null) {
+			headerValues = new LinkedList<String>();
+			this.headers.put(headerName, headerValues);
+		}
 		headerValues.add(headerValue);
-	}
-
-	@Override
-	public void addAll(String headerName, List<String> headerValues) {
-		List<String> currentValues = headers.computeIfAbsent(headerName, k -> new LinkedList<>());
-		currentValues.addAll(headerValues);
 	}
 
 	/**
@@ -417,7 +415,7 @@ public class StompHeaders implements MultiValueMap<String, String>, Serializable
 	 */
 	@Override
 	public void set(String headerName, String headerValue) {
-		List<String> headerValues = new LinkedList<>();
+		List<String> headerValues = new LinkedList<String>();
 		headerValues.add(headerValue);
 		headers.put(headerName, headerValues);
 	}
@@ -431,7 +429,7 @@ public class StompHeaders implements MultiValueMap<String, String>, Serializable
 
 	@Override
 	public Map<String, String> toSingleValueMap() {
-		LinkedHashMap<String, String> singleValueMap = new LinkedHashMap<>(this.headers.size());
+		LinkedHashMap<String, String> singleValueMap = new LinkedHashMap<String,String>(this.headers.size());
 		for (Entry<String, List<String>> entry : headers.entrySet()) {
 			singleValueMap.put(entry.getKey(), entry.getValue().get(0));
 		}

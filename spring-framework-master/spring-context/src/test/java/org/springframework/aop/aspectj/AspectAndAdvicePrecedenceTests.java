@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * @author Adrian Colyer
  * @author Chris Beams
  */
-public class AspectAndAdvicePrecedenceTests {
+public final class AspectAndAdvicePrecedenceTests {
 
 	private PrecedenceTestAspect highPrecedenceAspect;
 

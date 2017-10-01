@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
  * @author Rick Evans
  * @author Stephane Nicoll
  */
-public class OrderComparatorTests {
+public final class OrderComparatorTests {
 
 	private final OrderComparator comparator = new OrderComparator();
 

@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  * @author Juergen Hoeller
  * @author Chris Beams
  */
-public class LookupMethodWrappedByCglibProxyTests {
+public final class LookupMethodWrappedByCglibProxyTests {
 
 	private static final Class<?> CLASS = LookupMethodWrappedByCglibProxyTests.class;
 	private static final String CLASSNAME = CLASS.getSimpleName();

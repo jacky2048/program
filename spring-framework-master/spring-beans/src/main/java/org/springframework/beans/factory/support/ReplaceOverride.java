@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class ReplaceOverride extends MethodOverride {
 
 	private final String methodReplacerBeanName;
 
-	private List<String> typeIdentifiers = new LinkedList<>();
+	private List<String> typeIdentifiers = new LinkedList<String>();
 
 
 	/**
@@ -79,7 +79,7 @@ public class ReplaceOverride extends MethodOverride {
 			return true;
 		}
 		// If we get here, we need to insist on precise argument matching...
-		if (this.typeIdentifiers.size() != method.getParameterCount()) {
+		if (this.typeIdentifiers.size() != method.getParameterTypes().length) {
 			return false;
 		}
 		for (int i = 0; i < this.typeIdentifiers.size(); i++) {

@@ -17,11 +17,6 @@
 				<property name="generateDdl" value="true"/>
 			</bean>
 		</property>
-		<property name="jpaPropertyMap">
-			<props>
-				<prop key="eclipselink.weaving">false</prop>
-			</props>
-		</property>
 	</bean>
 
 </beans>

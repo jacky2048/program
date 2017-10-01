@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * @author Ramnivas Laddad
  * @author Chris Beams
  */
-public class GenericParameterMatchingTests {
+public final class GenericParameterMatchingTests {
 
 	private CounterAspect counterAspect;
 

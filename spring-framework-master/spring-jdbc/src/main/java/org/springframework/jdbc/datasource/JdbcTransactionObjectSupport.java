@@ -106,10 +106,6 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 				throw new NestedTransactionNotSupportedException(
 						"Cannot create a nested transaction because savepoints are not supported by your JDBC driver");
 			}
-			if (conHolder.isRollbackOnly()) {
-				throw new CannotCreateTransactionException(
-						"Cannot create savepoint for transaction which is already marked as rollback-only");
-			}
 			return conHolder.createSavepoint();
 		}
 		catch (SQLException ex) {
@@ -126,7 +122,6 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 		ConnectionHolder conHolder = getConnectionHolderForSavepoint();
 		try {
 			conHolder.getConnection().rollback((Savepoint) savepoint);
-			conHolder.resetRollbackOnly();
 		}
 		catch (Throwable ex) {
 			throw new TransactionSystemException("Could not roll back to JDBC savepoint", ex);

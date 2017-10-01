@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +44,9 @@ import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.format.Formatter;
 import org.springframework.format.support.FormatterPropertyEditorAdapter;
+import org.springframework.lang.UsesJava8;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
@@ -89,7 +92,8 @@ import org.springframework.util.StringUtils;
  *
  * <p>This generic data binder can be used in any kind of environment.
  * It is typically used by Spring web MVC controllers, via the web-specific
- * subclass {@link org.springframework.web.bind.ServletRequestDataBinder}.
+ * subclasses {@link org.springframework.web.bind.ServletRequestDataBinder}
+ * and {@link org.springframework.web.portlet.bind.PortletRequestDataBinder}.
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
@@ -122,6 +126,19 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 */
 	protected static final Log logger = LogFactory.getLog(DataBinder.class);
 
+	private static Class<?> javaUtilOptionalClass = null;
+
+	static {
+		try {
+			javaUtilOptionalClass =
+					ClassUtils.forName("java.util.Optional", DataBinder.class.getClassLoader());
+		}
+		catch (ClassNotFoundException ex) {
+			// Java 8 not available - Optional references simply not supported then.
+		}
+	}
+
+
 	private final Object target;
 
 	private final String objectName;
@@ -150,7 +167,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 
 	private BindingErrorProcessor bindingErrorProcessor = new DefaultBindingErrorProcessor();
 
-	private final List<Validator> validators = new ArrayList<>();
+	private final List<Validator> validators = new ArrayList<Validator>();
 
 
 	/**
@@ -170,7 +187,12 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @param objectName the name of the target object
 	 */
 	public DataBinder(Object target, String objectName) {
-		this.target = ObjectUtils.unwrapOptional(target);
+		if (target != null && target.getClass() == javaUtilOptionalClass) {
+			this.target = OptionalUnwrapper.unwrap(target);
+		}
+		else {
+			this.target = target;
+		}
 		this.objectName = objectName;
 	}
 
@@ -481,6 +503,20 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	}
 
 	/**
+	 * Set whether to extract the old field value when applying a
+	 * property editor to a new value for a field.
+	 * <p>Default is "true", exposing previous field values to custom editors.
+	 * Turn this to "false" to avoid side effects caused by getters.
+	 * @deprecated as of Spring 4.3.5, in favor of customizing this in
+	 * {@link #createBeanPropertyBindingResult()} or
+	 * {@link #createDirectFieldBindingResult()} itself
+	 */
+	@Deprecated
+	public void setExtractOldValueForEditor(boolean extractOldValueForEditor) {
+		getPropertyAccessor().setExtractOldValueForEditor(extractOldValueForEditor);
+	}
+
+	/**
 	 * Set the strategy to use for resolving errors into message codes.
 	 * Applies the given strategy to the underlying errors holder.
 	 * <p>Default is a DefaultMessageCodesResolver.
@@ -773,7 +809,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	protected void checkRequiredFields(MutablePropertyValues mpvs) {
 		String[] requiredFields = getRequiredFields();
 		if (!ObjectUtils.isEmpty(requiredFields)) {
-			Map<String, PropertyValue> propertyValues = new HashMap<>();
+			Map<String, PropertyValue> propertyValues = new HashMap<String, PropertyValue>();
 			PropertyValue[] pvs = mpvs.getPropertyValues();
 			for (PropertyValue pv : pvs) {
 				String canonicalName = PropertyAccessorUtils.canonicalPropertyName(pv.getName());
@@ -872,6 +908,24 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 			throw new BindException(getBindingResult());
 		}
 		return getBindingResult().getModel();
+	}
+
+
+	/**
+	 * Inner class to avoid a hard dependency on Java 8.
+	 */
+	@UsesJava8
+	private static class OptionalUnwrapper {
+
+		public static Object unwrap(Object optionalObject) {
+			Optional<?> optional = (Optional<?>) optionalObject;
+			if (!optional.isPresent()) {
+				return null;
+			}
+			Object result = optional.get();
+			Assert.isTrue(!(result instanceof Optional), "Multi-level Optional usage not supported");
+			return result;
+		}
 	}
 
 }

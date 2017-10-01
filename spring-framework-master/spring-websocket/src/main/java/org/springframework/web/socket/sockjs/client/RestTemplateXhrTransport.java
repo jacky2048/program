@@ -153,11 +153,11 @@ public class RestTemplateXhrTransport extends AbstractXhrTransport {
 				@Override
 				public ResponseEntity<String> extractData(ClientHttpResponse response) throws IOException {
 					if (response.getBody() == null) {
-						return new ResponseEntity<>(response.getHeaders(), response.getStatusCode());
+						return new ResponseEntity<String>(response.getHeaders(), response.getStatusCode());
 					}
 					else {
 						String body = StreamUtils.copyToString(response.getBody(), SockJsFrame.CHARSET);
-						return new ResponseEntity<>(body, response.getHeaders(), response.getStatusCode());
+						return new ResponseEntity<String>(body, response.getHeaders(), response.getStatusCode());
 					}
 				}
 			};

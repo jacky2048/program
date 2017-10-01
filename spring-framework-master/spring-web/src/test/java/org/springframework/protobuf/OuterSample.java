@@ -3,7 +3,7 @@
 
 package org.springframework.protobuf;
 
-public class OuterSample {
+public final class OuterSample {
   private OuterSample() {}
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {

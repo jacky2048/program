@@ -18,6 +18,8 @@ package org.springframework.web.servlet.mvc;
 
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 import org.springframework.mock.web.test.MockHttpServletRequest;
 import org.springframework.mock.web.test.MockHttpServletResponse;
 import org.springframework.ui.ModelMap;
@@ -26,10 +28,6 @@ import org.springframework.util.PathMatcher;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Juergen Hoeller

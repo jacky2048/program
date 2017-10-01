@@ -74,9 +74,9 @@ public abstract class NamedParameterUtils {
 	public static ParsedSql parseSqlStatement(final String sql) {
 		Assert.notNull(sql, "SQL must not be null");
 
-		Set<String> namedParameters = new HashSet<>();
+		Set<String> namedParameters = new HashSet<String>();
 		String sqlToUse = sql;
-		List<ParameterHolder> parameterList = new ArrayList<>();
+		List<ParameterHolder> parameterList = new ArrayList<ParameterHolder>();
 
 		char[] statement = sql.toCharArray();
 		int namedParameterCount = 0;
@@ -416,7 +416,7 @@ public abstract class NamedParameterUtils {
 	 */
 	public static List<SqlParameter> buildSqlParameterList(ParsedSql parsedSql, SqlParameterSource paramSource) {
 		List<String> paramNames = parsedSql.getParameterNames();
-		List<SqlParameter> params = new LinkedList<>();
+		List<SqlParameter> params = new LinkedList<SqlParameter>();
 		for (String paramName : paramNames) {
 			params.add(new SqlParameter(paramName, paramSource.getSqlType(paramName), paramSource.getTypeName(paramName)));
 		}

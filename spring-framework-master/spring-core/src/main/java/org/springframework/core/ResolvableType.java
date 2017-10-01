@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2016 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class ResolvableType implements Serializable {
 	private static final ResolvableType[] EMPTY_TYPES_ARRAY = new ResolvableType[0];
 
 	private static final ConcurrentReferenceHashMap<ResolvableType, ResolvableType> cache =
-			new ConcurrentReferenceHashMap<>(256);
+			new ConcurrentReferenceHashMap<ResolvableType, ResolvableType>(256);
 
 
 	/**
@@ -334,7 +334,7 @@ public class ResolvableType implements Serializable {
 				return false;
 			}
 			if (matchedBefore == null) {
-				matchedBefore = new IdentityHashMap<>(1);
+				matchedBefore = new IdentityHashMap<Type, Type>(1);
 			}
 			matchedBefore.put(this.type, other.type);
 			for (int i = 0; i < ourGenerics.length; i++) {
@@ -1356,11 +1356,12 @@ public class ResolvableType implements Serializable {
 	}
 
 	/**
-	 * Clear the internal {@code ResolvableType} cache.
+	 * Clear the internal {@code ResolvableType}/{@code SerializableTypeWrapper} cache.
 	 * @since 4.2
 	 */
 	public static void clearCache() {
 		cache.clear();
+		SerializableTypeWrapper.cache.clear();
 	}
 
 

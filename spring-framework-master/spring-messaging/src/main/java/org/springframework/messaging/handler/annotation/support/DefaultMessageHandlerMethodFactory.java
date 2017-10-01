@@ -149,7 +149,7 @@ public class DefaultMessageHandlerMethodFactory implements MessageHandlerMethodF
 	}
 
 	protected List<HandlerMethodArgumentResolver> initArgumentResolvers() {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
 		ConfigurableBeanFactory cbf = (this.beanFactory instanceof ConfigurableBeanFactory ?
 				(ConfigurableBeanFactory) this.beanFactory : null);
 

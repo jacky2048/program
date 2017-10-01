@@ -87,7 +87,7 @@ class MapAnnotationAttributeExtractor extends AbstractAliasAwareAnnotationAttrib
 	private static Map<String, Object> enrichAndValidateAttributes(
 			Map<String, Object> originalAttributes, Class<? extends Annotation> annotationType) {
 
-		Map<String, Object> attributes = new LinkedHashMap<>(originalAttributes);
+		Map<String, Object> attributes = new LinkedHashMap<String, Object>(originalAttributes);
 		Map<String, List<String>> attributeAliasMap = AnnotationUtils.getAttributeAliasMap(annotationType);
 
 		for (Method attributeMethod : AnnotationUtils.getAttributeMethods(annotationType)) {
@@ -119,9 +119,11 @@ class MapAnnotationAttributeExtractor extends AbstractAliasAwareAnnotationAttrib
 			}
 
 			// if still null
-			Assert.notNull(attributeValue, () -> String.format(
-					"Attributes map %s returned null for required attribute '%s' defined by annotation type [%s].",
-					attributes, attributeName, annotationType.getName()));
+			if (attributeValue == null) {
+				throw new IllegalArgumentException(String.format(
+						"Attributes map %s returned null for required attribute '%s' defined by annotation type [%s].",
+						attributes, attributeName, annotationType.getName()));
+			}
 
 			// finally, ensure correct type
 			Class<?> requiredReturnType = attributeMethod.getReturnType();
@@ -159,11 +161,13 @@ class MapAnnotationAttributeExtractor extends AbstractAliasAwareAnnotationAttrib
 					converted = true;
 				}
 
-				Assert.isTrue(converted, () -> String.format(
-						"Attributes map %s returned a value of type [%s] for attribute '%s', " +
-						"but a value of type [%s] is required as defined by annotation type [%s].",
-						attributes, actualReturnType.getName(), attributeName, requiredReturnType.getName(),
-						annotationType.getName()));
+				if (!converted) {
+					throw new IllegalArgumentException(String.format(
+							"Attributes map %s returned a value of type [%s] for attribute '%s', " +
+							"but a value of type [%s] is required as defined by annotation type [%s].",
+							attributes, actualReturnType.getName(), attributeName, requiredReturnType.getName(),
+							annotationType.getName()));
+				}
 			}
 		}
 

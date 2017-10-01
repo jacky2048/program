@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,10 @@ import org.springframework.tests.sample.beans.TestBean;
 import static org.junit.Assert.*;
 
 /**
- * Tested against Hibernate Validator 5.x.
+ * Tested against Hibernate Validator 4.3, as of Spring 4.0.
  *
  * @author Juergen Hoeller
+ * @since 3.0
  */
 public class BeanValidationPostProcessorTests {
 
@@ -51,7 +52,6 @@ public class BeanValidationPostProcessorTests {
 			assertTrue(ex.getRootCause().getMessage().contains("testBean"));
 			assertTrue(ex.getRootCause().getMessage().contains("invalid"));
 		}
-		ac.close();
 	}
 
 	@Test
@@ -63,7 +63,6 @@ public class BeanValidationPostProcessorTests {
 		bd.getPropertyValues().add("testBean", new TestBean());
 		ac.registerBeanDefinition("bean", bd);
 		ac.refresh();
-		ac.close();
 	}
 
 	@Test
@@ -75,7 +74,6 @@ public class BeanValidationPostProcessorTests {
 		ac.registerBeanDefinition("capp", new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class));
 		ac.registerBeanDefinition("bean", new RootBeanDefinition(AfterInitConstraintBean.class));
 		ac.refresh();
-		ac.close();
 	}
 
 	@Test
@@ -94,7 +92,6 @@ public class BeanValidationPostProcessorTests {
 			assertTrue(ex.getRootCause().getMessage().contains("stringValue"));
 			assertTrue(ex.getRootCause().getMessage().contains("invalid"));
 		}
-		ac.close();
 	}
 
 	@Test
@@ -106,7 +103,6 @@ public class BeanValidationPostProcessorTests {
 		bd.getPropertyValues().add("stringValue", "ss");
 		ac.registerBeanDefinition("bean", bd);
 		ac.refresh();
-		ac.close();
 	}
 
 

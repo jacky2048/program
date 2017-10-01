@@ -119,9 +119,11 @@ public class ScheduledAnnotationBeanPostProcessor
 
 	private final ScheduledTaskRegistrar registrar = new ScheduledTaskRegistrar();
 
-	private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
+	private final Set<Class<?>> nonAnnotatedClasses =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(64));
 
-	private final Map<Object, Set<ScheduledTask>> scheduledTasks = new IdentityHashMap<>(16);
+	private final Map<Object, Set<ScheduledTask>> scheduledTasks =
+			new IdentityHashMap<Object, Set<ScheduledTask>>(16);
 
 
 	@Override
@@ -219,6 +221,7 @@ public class ScheduledAnnotationBeanPostProcessor
 				this.registrar.setTaskScheduler(resolveSchedulerBean(TaskScheduler.class, false));
 			}
 			catch (NoUniqueBeanDefinitionException ex) {
+				logger.debug("Could not find unique TaskScheduler bean", ex);
 				try {
 					this.registrar.setTaskScheduler(resolveSchedulerBean(TaskScheduler.class, true));
 				}
@@ -239,6 +242,7 @@ public class ScheduledAnnotationBeanPostProcessor
 					this.registrar.setScheduler(resolveSchedulerBean(ScheduledExecutorService.class, false));
 				}
 				catch (NoUniqueBeanDefinitionException ex2) {
+					logger.debug("Could not find unique ScheduledExecutorService bean", ex2);
 					try {
 						this.registrar.setScheduler(resolveSchedulerBean(ScheduledExecutorService.class, true));
 					}
@@ -333,7 +337,7 @@ public class ScheduledAnnotationBeanPostProcessor
 
 	protected void processScheduled(Scheduled scheduled, Method method, Object bean) {
 		try {
-			Assert.isTrue(method.getParameterCount() == 0,
+			Assert.isTrue(method.getParameterTypes().length == 0,
 					"Only no-arg methods may be annotated with @Scheduled");
 
 			Method invocableMethod = AopUtils.selectInvocableMethod(method, bean.getClass());
@@ -342,7 +346,7 @@ public class ScheduledAnnotationBeanPostProcessor
 			String errorMessage =
 					"Exactly one of the 'cron', 'fixedDelay(String)', or 'fixedRate(String)' attributes is required";
 
-			Set<ScheduledTask> tasks = new LinkedHashSet<>(4);
+			Set<ScheduledTask> tasks = new LinkedHashSet<ScheduledTask>(4);
 
 			// Determine initial delay
 			long initialDelay = scheduled.initialDelay();
@@ -441,7 +445,7 @@ public class ScheduledAnnotationBeanPostProcessor
 			synchronized (this.scheduledTasks) {
 				Set<ScheduledTask> registeredTasks = this.scheduledTasks.get(bean);
 				if (registeredTasks == null) {
-					registeredTasks = new LinkedHashSet<>(4);
+					registeredTasks = new LinkedHashSet<ScheduledTask>(4);
 					this.scheduledTasks.put(bean, registeredTasks);
 				}
 				registeredTasks.addAll(tasks);

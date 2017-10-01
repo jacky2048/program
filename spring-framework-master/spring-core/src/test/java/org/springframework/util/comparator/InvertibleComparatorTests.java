@@ -30,7 +30,6 @@ import static org.junit.Assert.*;
  * @author Chris Beams
  * @author Phillip Webb
  */
-@Deprecated
 public class InvertibleComparatorTests {
 
 	private final Comparator<Integer> comparator = new ComparableComparator<>();

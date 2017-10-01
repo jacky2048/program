@@ -40,7 +40,7 @@ import org.xml.sax.ext.LexicalHandler;
  */
 abstract class AbstractStaxHandler implements ContentHandler, LexicalHandler {
 
-	private final List<Map<String, String>> namespaceMappings = new ArrayList<>();
+	private final List<Map<String, String>> namespaceMappings = new ArrayList<Map<String, String>>();
 
 	private boolean inCData;
 
@@ -233,7 +233,7 @@ abstract class AbstractStaxHandler implements ContentHandler, LexicalHandler {
 	}
 
 	private void newNamespaceMapping() {
-		this.namespaceMappings.add(new HashMap<>());
+		this.namespaceMappings.add(new HashMap<String, String>());
 	}
 
 	private void removeNamespaceMapping() {

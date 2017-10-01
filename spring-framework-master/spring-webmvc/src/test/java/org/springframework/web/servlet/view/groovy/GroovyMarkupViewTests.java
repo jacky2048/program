@@ -67,7 +67,7 @@ public class GroovyMarkupViewTests {
 	public void missingGroovyMarkupConfig() throws Exception {
 		GroovyMarkupView view = new GroovyMarkupView();
 		given(this.webAppContext.getBeansOfType(GroovyMarkupConfig.class, true, false))
-				.willReturn(new HashMap<>());
+				.willReturn(new HashMap<String, GroovyMarkupConfig>());
 
 		view.setUrl("sampleView");
 		try {

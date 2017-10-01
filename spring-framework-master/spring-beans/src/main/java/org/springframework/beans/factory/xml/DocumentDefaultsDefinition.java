@@ -34,6 +34,8 @@ public class DocumentDefaultsDefinition implements DefaultsDefinition {
 
 	private String autowire;
 
+	private String dependencyCheck;
+
 	private String autowireCandidates;
 
 	private String initMethod;
@@ -83,6 +85,20 @@ public class DocumentDefaultsDefinition implements DefaultsDefinition {
 	 */
 	public String getAutowire() {
 		return this.autowire;
+	}
+
+	/**
+	 * Set the default dependency-check setting for the document that's currently parsed.
+	 */
+	public void setDependencyCheck(String dependencyCheck) {
+		this.dependencyCheck = dependencyCheck;
+	}
+
+	/**
+	 * Return the default dependency-check setting for the document that's currently parsed.
+	 */
+	public String getDependencyCheck() {
+		return this.dependencyCheck;
 	}
 
 	/**

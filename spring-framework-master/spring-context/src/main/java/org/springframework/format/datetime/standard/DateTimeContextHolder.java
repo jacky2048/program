@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import org.springframework.core.NamedThreadLocal;
+import org.springframework.lang.UsesJava8;
 
 /**
  * A holder for a thread-local user {@link DateTimeContext}.
@@ -28,10 +29,11 @@ import org.springframework.core.NamedThreadLocal;
  * @since 4.0
  * @see org.springframework.context.i18n.LocaleContextHolder
  */
+@UsesJava8
 public final class DateTimeContextHolder {
 
 	private static final ThreadLocal<DateTimeContext> dateTimeContextHolder =
-			new NamedThreadLocal<>("DateTimeContext");
+			new NamedThreadLocal<DateTimeContext>("DateTimeContext");
 
 
 	/**

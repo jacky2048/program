@@ -17,7 +17,7 @@
 package org.springframework.messaging.simp.stomp;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -47,12 +47,15 @@ import static org.junit.Assert.*;
  */
 public class StompHeaderAccessorTests {
 
+	private static final Charset UTF_8 = Charset.forName("UTF-8");
+
+
 	@Test
 	public void createWithCommand() {
 		StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECTED);
 		assertEquals(StompCommand.CONNECTED, accessor.getCommand());
 
-		accessor = StompHeaderAccessor.create(StompCommand.CONNECTED, new LinkedMultiValueMap<>());
+		accessor = StompHeaderAccessor.create(StompCommand.CONNECTED, new LinkedMultiValueMap<String, String>());
 		assertEquals(StompCommand.CONNECTED, accessor.getCommand());
 	}
 
@@ -237,7 +240,7 @@ public class StompHeaderAccessorTests {
 		accessor.setDestination("/foo");
 		accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
 		accessor.setSessionId("123");
-		String actual = accessor.getShortLogMessage("payload".getBytes(StandardCharsets.UTF_8));
+		String actual = accessor.getShortLogMessage("payload".getBytes(Charset.forName("UTF-8")));
 		assertEquals("SEND /foo session=123 application/json payload=payload", actual);
 
 		StringBuilder sb = new StringBuilder();
@@ -245,7 +248,7 @@ public class StompHeaderAccessorTests {
 			sb.append("a");
 		}
 		final String payload = sb.toString() + " > 80";
-		actual = accessor.getShortLogMessage(payload.getBytes(StandardCharsets.UTF_8));
+		actual = accessor.getShortLogMessage(payload.getBytes(UTF_8));
 		assertEquals("SEND /foo session=123 application/json payload=" + sb + "...(truncated)", actual);
 	}
 

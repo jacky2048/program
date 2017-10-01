@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
  * @author Ramnivas Laddad
  * @author Chris Beams
  */
-public class ThisAndTargetSelectionOnlyPointcutsTests {
+public final class ThisAndTargetSelectionOnlyPointcutsTests {
 
 	private TestInterface testBean;
 

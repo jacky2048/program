@@ -58,11 +58,14 @@ public class WebMvcStompEndpointRegistry implements StompEndpointRegistry {
 	private final StompSubProtocolHandler stompHandler;
 
 	private final List<WebMvcStompWebSocketEndpointRegistration> registrations =
-			new ArrayList<>();
+			new ArrayList<WebMvcStompWebSocketEndpointRegistration>();
 
 
+	@SuppressWarnings("deprecation")
 	public WebMvcStompEndpointRegistry(WebSocketHandler webSocketHandler,
-			WebSocketTransportRegistration transportRegistration, TaskScheduler defaultSockJsTaskScheduler) {
+			WebSocketTransportRegistration transportRegistration,
+			org.springframework.messaging.simp.user.UserSessionRegistry userSessionRegistry,
+			TaskScheduler defaultSockJsTaskScheduler) {
 
 		Assert.notNull(webSocketHandler, "WebSocketHandler is required ");
 		Assert.notNull(transportRegistration, "WebSocketTransportRegistration is required");
@@ -78,6 +81,7 @@ public class WebMvcStompEndpointRegistry implements StompEndpointRegistry {
 		}
 
 		this.stompHandler = new StompSubProtocolHandler();
+		this.stompHandler.setUserSessionRegistry(userSessionRegistry);
 
 		if (transportRegistration.getMessageSizeLimit() != null) {
 			this.stompHandler.setMessageSizeLimit(transportRegistration.getMessageSizeLimit());
@@ -142,12 +146,13 @@ public class WebMvcStompEndpointRegistry implements StompEndpointRegistry {
 		this.stompHandler.setApplicationEventPublisher(applicationContext);
 	}
 
+
 	/**
 	 * Return a handler mapping with the mapped ViewControllers; or {@code null}
 	 * in case of no registrations.
 	 */
 	public AbstractHandlerMapping getHandlerMapping() {
-		Map<String, Object> urlMap = new LinkedHashMap<>();
+		Map<String, Object> urlMap = new LinkedHashMap<String, Object>();
 		for (WebMvcStompWebSocketEndpointRegistration registration : this.registrations) {
 			MultiValueMap<HttpRequestHandler, String> mappings = registration.getMappings();
 			for (HttpRequestHandler httpHandler : mappings.keySet()) {

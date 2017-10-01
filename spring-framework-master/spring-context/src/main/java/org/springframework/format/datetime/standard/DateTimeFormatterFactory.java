@@ -22,6 +22,7 @@ import java.time.format.ResolverStyle;
 import java.util.TimeZone;
 
 import org.springframework.format.annotation.DateTimeFormat.ISO;
+import org.springframework.lang.UsesJava8;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -43,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @see #setDateTimeStyle
  * @see DateTimeFormatterFactoryBean
  */
+@UsesJava8
 public class DateTimeFormatterFactory {
 
 	private String pattern;

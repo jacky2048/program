@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.lang.UsesJava8;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -50,7 +51,10 @@ public class TypeDescriptor implements Serializable {
 
 	static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
 
-	private static final Map<Class<?>, TypeDescriptor> commonTypesCache = new HashMap<>(18);
+	private static final boolean streamAvailable = ClassUtils.isPresent(
+			"java.util.stream.Stream", TypeDescriptor.class.getClassLoader());
+
+	private static final Map<Class<?>, TypeDescriptor> commonTypesCache = new HashMap<Class<?>, TypeDescriptor>(18);
 
 	private static final Class<?>[] CACHED_COMMON_TYPES = {
 			boolean.class, Boolean.class, byte.class, Byte.class, char.class, Character.class,
@@ -327,8 +331,8 @@ public class TypeDescriptor implements Serializable {
 		if (getResolvableType().isArray()) {
 			return new TypeDescriptor(getResolvableType().getComponentType(), null, getAnnotations());
 		}
-		if (Stream.class.isAssignableFrom(getType())) {
-			return getRelatedIfResolvable(this, getResolvableType().as(Stream.class).getGeneric(0));
+		if (streamAvailable && StreamDelegate.isStream(getType())) {
+			return StreamDelegate.getStreamElementType(this);
 		}
 		return getRelatedIfResolvable(this, getResolvableType().asCollection().getGeneric(0));
 	}
@@ -769,6 +773,22 @@ public class TypeDescriptor implements Serializable {
 		@Override
 		public String toString() {
 			return TypeDescriptor.this.toString();
+		}
+	}
+
+
+	/**
+	 * Inner class to avoid a hard dependency on Java 8.
+	 */
+	@UsesJava8
+	private static class StreamDelegate {
+
+		public static boolean isStream(Class<?> type) {
+			return Stream.class.isAssignableFrom(type);
+		}
+
+		public static TypeDescriptor getStreamElementType(TypeDescriptor source) {
+			return getRelatedIfResolvable(source, source.getResolvableType().as(Stream.class).getGeneric(0));
 		}
 	}
 

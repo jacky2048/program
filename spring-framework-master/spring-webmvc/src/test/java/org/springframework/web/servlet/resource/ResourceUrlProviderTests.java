@@ -137,9 +137,8 @@ public class ResourceUrlProviderTests {
 	}
 
 
-	@Configuration
-	@SuppressWarnings({"unused", "WeakerAccess"})
-	static class HandlerMappingConfiguration {
+	@Configuration @SuppressWarnings("unused")
+	public static class HandlerMappingConfiguration {
 
 		@Bean
 		public SimpleUrlHandlerMapping simpleUrlHandlerMapping() {

@@ -22,7 +22,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import com.rometools.rome.feed.WireFeed;
 import com.rometools.rome.io.FeedException;
@@ -51,7 +50,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractWireFeedHttpMessageConverter<T extends WireFeed> extends AbstractHttpMessageConverter<T> {
 
-	public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 
 
 	protected AbstractWireFeedHttpMessageConverter(MediaType supportedMediaType) {

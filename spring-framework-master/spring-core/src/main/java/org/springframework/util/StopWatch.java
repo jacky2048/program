@@ -49,7 +49,7 @@ public class StopWatch {
 
 	private boolean keepTaskList = true;
 
-	private final List<TaskInfo> taskList = new LinkedList<>();
+	private final List<TaskInfo> taskList = new LinkedList<TaskInfo>();
 
 	/** Start time of the current task */
 	private long startTimeMillis;

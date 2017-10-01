@@ -82,7 +82,7 @@ public class SetFactoryBean extends AbstractFactoryBean<Set<Object>> {
 			result = BeanUtils.instantiateClass(this.targetSetClass);
 		}
 		else {
-			result = new LinkedHashSet<>(this.sourceSet.size());
+			result = new LinkedHashSet<Object>(this.sourceSet.size());
 		}
 		Class<?> valueType = null;
 		if (this.targetSetClass != null) {

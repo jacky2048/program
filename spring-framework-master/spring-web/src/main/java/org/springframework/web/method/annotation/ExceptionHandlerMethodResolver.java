@@ -60,10 +60,10 @@ public class ExceptionHandlerMethodResolver {
 
 
 	private final Map<Class<? extends Throwable>, Method> mappedMethods =
-			new ConcurrentHashMap<>(16);
+			new ConcurrentHashMap<Class<? extends Throwable>, Method>(16);
 
 	private final Map<Class<? extends Throwable>, Method> exceptionLookupCache =
-			new ConcurrentHashMap<>(16);
+			new ConcurrentHashMap<Class<? extends Throwable>, Method>(16);
 
 
 	/**
@@ -85,7 +85,7 @@ public class ExceptionHandlerMethodResolver {
 	 */
 	@SuppressWarnings("unchecked")
 	private List<Class<? extends Throwable>> detectExceptionMappings(Method method) {
-		List<Class<? extends Throwable>> result = new ArrayList<>();
+		List<Class<? extends Throwable>> result = new ArrayList<Class<? extends Throwable>>();
 		detectAnnotationExceptionMappings(method, result);
 		if (result.isEmpty()) {
 			for (Class<?> paramType : method.getParameterTypes()) {
@@ -125,17 +125,6 @@ public class ExceptionHandlerMethodResolver {
 	 * @return a Method to handle the exception, or {@code null} if none found
 	 */
 	public Method resolveMethod(Exception exception) {
-		return resolveMethodByThrowable(exception);
-	}
-
-	/**
-	 * Find a {@link Method} to handle the given Throwable.
-	 * Use {@link ExceptionDepthComparator} if more than one match is found.
-	 * @param exception the exception
-	 * @return a Method to handle the exception, or {@code null} if none found
-	 * @since 5.0
-	 */
-	public Method resolveMethodByThrowable(Throwable exception) {
 		Method method = resolveMethodByExceptionType(exception.getClass());
 		if (method == null) {
 			Throwable cause = exception.getCause();
@@ -165,7 +154,7 @@ public class ExceptionHandlerMethodResolver {
 	 * Return the {@link Method} mapped to the given exception type, or {@code null} if none.
 	 */
 	private Method getMappedMethod(Class<? extends Throwable> exceptionType) {
-		List<Class<? extends Throwable>> matches = new ArrayList<>();
+		List<Class<? extends Throwable>> matches = new ArrayList<Class<? extends Throwable>>();
 		for (Class<? extends Throwable> mappedException : this.mappedMethods.keySet()) {
 			if (mappedException.isAssignableFrom(exceptionType)) {
 				matches.add(mappedException);

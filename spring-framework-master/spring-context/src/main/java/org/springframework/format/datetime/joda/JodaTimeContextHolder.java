@@ -34,7 +34,7 @@ import org.springframework.core.NamedThreadLocal;
 public final class JodaTimeContextHolder {
 
 	private static final ThreadLocal<JodaTimeContext> jodaTimeContextHolder =
-			new NamedThreadLocal<>("JodaTimeContext");
+			new NamedThreadLocal<JodaTimeContext>("JodaTimeContext");
 
 
 	/**

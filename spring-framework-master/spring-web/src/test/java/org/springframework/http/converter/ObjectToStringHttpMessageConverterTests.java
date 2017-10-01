@@ -18,7 +18,7 @@ package org.springframework.http.converter;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Locale;
 
@@ -97,8 +97,9 @@ public class ObjectToStringHttpMessageConverterTests {
 
 	@Test
 	public void defaultCharsetModified() throws IOException {
+		Charset charset = Charset.forName("UTF-16");
 		ConversionService cs = new DefaultConversionService();
-		ObjectToStringHttpMessageConverter converter = new ObjectToStringHttpMessageConverter(cs, StandardCharsets.UTF_16);
+		ObjectToStringHttpMessageConverter converter = new ObjectToStringHttpMessageConverter(cs, charset);
 		converter.write((byte) 31, null, this.response);
 
 		assertEquals("UTF-16", this.servletResponse.getCharacterEncoding());
@@ -152,7 +153,7 @@ public class ObjectToStringHttpMessageConverterTests {
 
 	@Test
 	public void writeUtf16() throws IOException {
-		MediaType contentType = new MediaType("text", "plain", StandardCharsets.UTF_16);
+		MediaType contentType = new MediaType("text", "plain", Charset.forName("UTF-16"));
 		this.converter.write(Integer.valueOf(958), contentType, this.response);
 
 		assertEquals("UTF-16", this.servletResponse.getCharacterEncoding());

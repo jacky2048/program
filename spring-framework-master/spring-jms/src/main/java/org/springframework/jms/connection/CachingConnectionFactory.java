@@ -40,7 +40,9 @@ import javax.jms.Topic;
 import javax.jms.TopicSession;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link SingleConnectionFactory} subclass that adds {@link javax.jms.Session}
@@ -76,6 +78,15 @@ import org.springframework.util.ObjectUtils;
  */
 public class CachingConnectionFactory extends SingleConnectionFactory {
 
+	/** The JMS 2.0 Session.createSharedConsumer method, if available */
+	private static final Method createSharedConsumerMethod = ClassUtils.getMethodIfAvailable(
+			Session.class, "createSharedConsumer", Topic.class, String.class, String.class);
+
+	/** The JMS 2.0 Session.createSharedDurableConsumer method, if available */
+	private static final Method createSharedDurableConsumerMethod = ClassUtils.getMethodIfAvailable(
+			Session.class, "createSharedDurableConsumer", Topic.class, String.class, String.class);
+
+
 	private int sessionCacheSize = 1;
 
 	private boolean cacheProducers = true;
@@ -85,7 +96,7 @@ public class CachingConnectionFactory extends SingleConnectionFactory {
 	private volatile boolean active = true;
 
 	private final Map<Integer, LinkedList<Session>> cachedSessions =
-			new HashMap<>();
+			new HashMap<Integer, LinkedList<Session>>();
 
 
 	/**
@@ -205,7 +216,7 @@ public class CachingConnectionFactory extends SingleConnectionFactory {
 		synchronized (this.cachedSessions) {
 			sessionList = this.cachedSessions.get(mode);
 			if (sessionList == null) {
-				sessionList = new LinkedList<>();
+				sessionList = new LinkedList<Session>();
 				this.cachedSessions.put(mode, sessionList);
 			}
 		}
@@ -240,7 +251,7 @@ public class CachingConnectionFactory extends SingleConnectionFactory {
 	 * @return the wrapped Session
 	 */
 	protected Session getCachedSessionProxy(Session target, LinkedList<Session> sessionList) {
-		List<Class<?>> classes = new ArrayList<>(3);
+		List<Class<?>> classes = new ArrayList<Class<?>>(3);
 		classes.add(SessionProxy.class);
 		if (target instanceof QueueSession) {
 			classes.add(QueueSession.class);
@@ -265,10 +276,10 @@ public class CachingConnectionFactory extends SingleConnectionFactory {
 		private final LinkedList<Session> sessionList;
 
 		private final Map<DestinationCacheKey, MessageProducer> cachedProducers =
-				new HashMap<>();
+				new HashMap<DestinationCacheKey, MessageProducer>();
 
 		private final Map<ConsumerCacheKey, MessageConsumer> cachedConsumers =
-				new HashMap<>();
+				new HashMap<ConsumerCacheKey, MessageConsumer>();
 
 		private boolean transactionOpen = false;
 
@@ -394,7 +405,7 @@ public class CachingConnectionFactory extends SingleConnectionFactory {
 				}
 				this.cachedProducers.put(cacheKey, producer);
 			}
-			return new CachedMessageProducer(producer);
+			return new CachedMessageProducer(producer).getProxyIfNecessary();
 		}
 
 		private MessageConsumer getCachedConsumer(
@@ -410,9 +421,21 @@ public class CachingConnectionFactory extends SingleConnectionFactory {
 			else {
 				if (dest instanceof Topic) {
 					if (noLocal == null) {
-						consumer = (durable ?
-								this.target.createSharedDurableConsumer((Topic) dest, subscription, selector) :
-								this.target.createSharedConsumer((Topic) dest, subscription, selector));
+						// createSharedConsumer((Topic) dest, subscription, selector);
+						// createSharedDurableConsumer((Topic) dest, subscription, selector);
+						Method method = (durable ? createSharedDurableConsumerMethod : createSharedConsumerMethod);
+						try {
+							consumer = (MessageConsumer) method.invoke(this.target, dest, subscription, selector);
+						}
+						catch (InvocationTargetException ex) {
+							if (ex.getTargetException() instanceof JMSException) {
+								throw (JMSException) ex.getTargetException();
+							}
+							ReflectionUtils.handleInvocationTargetException(ex);
+						}
+						catch (IllegalAccessException ex) {
+							throw new IllegalStateException("Could not access JMS 2.0 API method: " + ex.getMessage());
+						}
 					}
 					else {
 						consumer = (durable ?

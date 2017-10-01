@@ -95,7 +95,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 	protected static final Log logger = LogFactory.getLog(CglibAopProxy.class);
 
 	/** Keeps track of the Classes that we have validated for final methods */
-	private static final Map<Class<?>, Boolean> validatedClasses = new WeakHashMap<>();
+	private static final Map<Class<?>, Boolean> validatedClasses = new WeakHashMap<Class<?>, Boolean>();
 
 
 	/** The configuration used to configure this proxy */
@@ -200,7 +200,13 @@ class CglibAopProxy implements AopProxy, Serializable {
 			// Generate the proxy class and create a proxy instance.
 			return createProxyClassAndInstance(enhancer, callbacks);
 		}
-		catch (CodeGenerationException | IllegalArgumentException ex) {
+		catch (CodeGenerationException ex) {
+			throw new AopConfigException("Could not generate CGLIB subclass of class [" +
+					this.advised.getTargetClass() + "]: " +
+					"Common causes of this problem include using a final class or a non-visible class",
+					ex);
+		}
+		catch (IllegalArgumentException ex) {
 			throw new AopConfigException("Could not generate CGLIB subclass of class [" +
 					this.advised.getTargetClass() + "]: " +
 					"Common causes of this problem include using a final class or a non-visible class",
@@ -320,7 +326,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		if (isStatic && isFrozen) {
 			Method[] methods = rootClass.getMethods();
 			Callback[] fixedCallbacks = new Callback[methods.length];
-			this.fixedInterceptorMap = new HashMap<>(methods.length);
+			this.fixedInterceptorMap = new HashMap<String, Integer>(methods.length);
 
 			// TODO: small memory optimization here (can skip creation for methods with no advice)
 			for (int x = 0; x < methods.length; x++) {

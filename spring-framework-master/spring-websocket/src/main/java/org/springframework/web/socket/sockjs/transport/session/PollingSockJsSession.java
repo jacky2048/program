@@ -42,6 +42,15 @@ public class PollingSockJsSession extends AbstractHttpSockJsSession {
 	}
 
 
+	/**
+	 * @deprecated as of 4.2 this method is no longer used.
+	 */
+	@Override
+	@Deprecated
+	protected boolean isStreaming() {
+		return false;
+	}
+
 	@Override
 	protected void handleRequestInternal(ServerHttpRequest request, ServerHttpResponse response,
 			boolean initialRequest) throws IOException {
@@ -75,3 +84,4 @@ public class PollingSockJsSession extends AbstractHttpSockJsSession {
 	}
 
 }
+

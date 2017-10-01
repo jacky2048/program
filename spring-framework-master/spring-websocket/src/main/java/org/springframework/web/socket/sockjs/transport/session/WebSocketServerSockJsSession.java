@@ -51,7 +51,7 @@ public class WebSocketServerSockJsSession extends AbstractSockJsSession implemen
 
 	private volatile boolean openFrameSent;
 
-	private final Queue<String> initSessionCache = new LinkedBlockingDeque<>();
+	private final Queue<String> initSessionCache = new LinkedBlockingDeque<String>();
 
 	private final Object initSessionLock = new Object();
 

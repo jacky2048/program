@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -86,25 +87,25 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	private ContentNegotiationManager contentNegotiationManager = new ContentNegotiationManager();
 
-	private final List<Object> responseBodyAdvice = new ArrayList<>();
+	private final List<Object> responseBodyAdvice = new ArrayList<Object>();
 
 	private ApplicationContext applicationContext;
 
 	private final Map<Class<?>, ExceptionHandlerMethodResolver> exceptionHandlerCache =
-			new ConcurrentHashMap<>(64);
+			new ConcurrentHashMap<Class<?>, ExceptionHandlerMethodResolver>(64);
 
 	private final Map<ControllerAdviceBean, ExceptionHandlerMethodResolver> exceptionHandlerAdviceCache =
-			new LinkedHashMap<>();
+			new LinkedHashMap<ControllerAdviceBean, ExceptionHandlerMethodResolver>();
 
 
 	public ExceptionHandlerExceptionResolver() {
 		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
 		stringHttpMessageConverter.setWriteAcceptCharset(false);  // see SPR-7316
 
-		this.messageConverters = new ArrayList<>();
+		this.messageConverters = new ArrayList<HttpMessageConverter<?>>();
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
 		this.messageConverters.add(stringHttpMessageConverter);
-		this.messageConverters.add(new SourceHttpMessageConverter<>());
+		this.messageConverters.add(new SourceHttpMessageConverter<Source>());
 		this.messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 	}
 
@@ -296,7 +297,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * and custom resolvers provided via {@link #setCustomArgumentResolvers}.
 	 */
 	protected List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
-		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
+		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<HandlerMethodArgumentResolver>();
 
 		// Annotation-based argument resolution
 		resolvers.add(new SessionAttributeMethodArgumentResolver());
@@ -321,7 +322,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * custom handlers provided via {@link #setReturnValueHandlers}.
 	 */
 	protected List<HandlerMethodReturnValueHandler> getDefaultReturnValueHandlers() {
-		List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
+		List<HandlerMethodReturnValueHandler> handlers = new ArrayList<HandlerMethodReturnValueHandler>();
 
 		// Single-purpose return value types
 		handlers.add(new ModelAndViewMethodReturnValueHandler());

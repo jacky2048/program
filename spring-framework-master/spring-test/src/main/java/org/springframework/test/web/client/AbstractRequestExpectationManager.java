@@ -38,15 +38,14 @@ import org.springframework.util.Assert;
  * to expectations following the order of declaration or not.
  *
  * @author Rossen Stoyanchev
+ * @author Juergen Hoeller
  * @since 4.3
  */
 public abstract class AbstractRequestExpectationManager implements RequestExpectationManager {
 
-	private final List<RequestExpectation> expectations = new LinkedList<>();
+	private final List<RequestExpectation> expectations = new LinkedList<RequestExpectation>();
 
-	private final List<ClientHttpRequest> requests = new LinkedList<>();
-
-	private final Object lock = new Object();
+	private final List<ClientHttpRequest> requests = new LinkedList<ClientHttpRequest>();
 
 
 	protected List<RequestExpectation> getExpectations() {
@@ -68,12 +67,13 @@ public abstract class AbstractRequestExpectationManager implements RequestExpect
 
 	@Override
 	public ClientHttpResponse validateRequest(ClientHttpRequest request) throws IOException {
-		synchronized (this.lock) {
-			if (getRequests().isEmpty()) {
+		List<ClientHttpRequest> requests = getRequests();
+		synchronized (requests) {
+			if (requests.isEmpty()) {
 				afterExpectationsDeclared();
 			}
 			ClientHttpResponse response = validateRequestInternal(request);
-			getRequests().add(request);
+			requests.add(request);
 			return response;
 		}
 	}
@@ -151,7 +151,7 @@ public abstract class AbstractRequestExpectationManager implements RequestExpect
 	 */
 	protected static class RequestExpectationGroup {
 
-		private final Set<RequestExpectation> expectations = new LinkedHashSet<>();
+		private final Set<RequestExpectation> expectations = new LinkedHashSet<RequestExpectation>();
 
 		public Set<RequestExpectation> getExpectations() {
 			return this.expectations;
@@ -186,7 +186,7 @@ public abstract class AbstractRequestExpectationManager implements RequestExpect
 		}
 
 		public void reset() {
-			this.expectations.clear();
+			getExpectations().clear();
 		}
 	}
 

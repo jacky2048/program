@@ -60,7 +60,8 @@ public class EventListenerMethodProcessor implements SmartInitializingSingleton,
 
 	private final EventExpressionEvaluator evaluator = new EventExpressionEvaluator();
 
-	private final Set<Class<?>> nonAnnotatedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>(64));
+	private final Set<Class<?>> nonAnnotatedClasses =
+			Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>(64));
 
 
 	@Override
@@ -118,7 +119,7 @@ public class EventListenerMethodProcessor implements SmartInitializingSingleton,
 	 */
 	protected List<EventListenerFactory> getEventListenerFactories() {
 		Map<String, EventListenerFactory> beans = this.applicationContext.getBeansOfType(EventListenerFactory.class);
-		List<EventListenerFactory> allFactories = new ArrayList<>(beans.values());
+		List<EventListenerFactory> allFactories = new ArrayList<EventListenerFactory>(beans.values());
 		AnnotationAwareOrderComparator.sort(allFactories);
 		return allFactories;
 	}

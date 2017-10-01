@@ -192,7 +192,7 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 			return allMatches;
 		}
 		EvaluationContext context = null;
-		MultiValueMap<String, String> result = new LinkedMultiValueMap<>(allMatches.size());
+		MultiValueMap<String, String> result = new LinkedMultiValueMap<String, String>(allMatches.size());
 		for (String sessionId : allMatches.keySet()) {
 			for (String subId : allMatches.get(sessionId)) {
 				SessionSubscriptionInfo info = this.subscriptionRegistry.getSubscriptions(sessionId);
@@ -244,7 +244,7 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 
 		/** Map from destination -> <sessionId, subscriptionId> for fast look-ups */
 		private final Map<String, LinkedMultiValueMap<String, String>> accessCache =
-				new ConcurrentHashMap<>(DEFAULT_CACHE_LIMIT);
+				new ConcurrentHashMap<String, LinkedMultiValueMap<String, String>>(DEFAULT_CACHE_LIMIT);
 
 		/** Map from destination -> <sessionId, subscriptionId> with locking */
 		@SuppressWarnings("serial")
@@ -267,7 +267,7 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 			LinkedMultiValueMap<String, String> result = this.accessCache.get(destination);
 			if (result == null) {
 				synchronized (this.updateCache) {
-					result = new LinkedMultiValueMap<>();
+					result = new LinkedMultiValueMap<String, String>();
 					for (SessionSubscriptionInfo info : subscriptionRegistry.getAllSubscriptions()) {
 						for (String destinationPattern : info.getDestinations()) {
 							if (getPathMatcher().match(destinationPattern, destination)) {
@@ -292,8 +292,12 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 					String cachedDestination = entry.getKey();
 					if (getPathMatcher().match(destination, cachedDestination)) {
 						LinkedMultiValueMap<String, String> subs = entry.getValue();
-						subs.add(sessionId, subsId);
-						this.accessCache.put(cachedDestination, subs.deepCopy());
+						// Subscription id's may also be populated via getSubscriptions()
+						List<String> subsForSession = subs.get(sessionId);
+						if (subsForSession == null || !subsForSession.contains(subsId)) {
+							subs.add(sessionId, subsId);
+							this.accessCache.put(cachedDestination, subs.deepCopy());
+						}
 					}
 				}
 			}
@@ -301,7 +305,7 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 
 		public void updateAfterRemovedSubscription(String sessionId, String subsId) {
 			synchronized (this.updateCache) {
-				Set<String> destinationsToRemove = new HashSet<>();
+				Set<String> destinationsToRemove = new HashSet<String>();
 				for (Map.Entry<String, LinkedMultiValueMap<String, String>> entry : this.updateCache.entrySet()) {
 					String destination = entry.getKey();
 					LinkedMultiValueMap<String, String> sessionMap = entry.getValue();
@@ -328,7 +332,7 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 
 		public void updateAfterRemovedSession(SessionSubscriptionInfo info) {
 			synchronized (this.updateCache) {
-				Set<String> destinationsToRemove = new HashSet<>();
+				Set<String> destinationsToRemove = new HashSet<String>();
 				for (Map.Entry<String, LinkedMultiValueMap<String, String>> entry : this.updateCache.entrySet()) {
 					String destination = entry.getKey();
 					LinkedMultiValueMap<String, String> sessionMap = entry.getValue();
@@ -361,7 +365,8 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 	private static class SessionSubscriptionRegistry {
 
 		// sessionId -> SessionSubscriptionInfo
-		private final ConcurrentMap<String, SessionSubscriptionInfo> sessions = new ConcurrentHashMap<>();
+		private final ConcurrentMap<String, SessionSubscriptionInfo> sessions =
+				new ConcurrentHashMap<String, SessionSubscriptionInfo>();
 
 		public SessionSubscriptionInfo getSubscriptions(String sessionId) {
 			return this.sessions.get(sessionId);
@@ -405,7 +410,8 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 		private final String sessionId;
 
 		// destination -> subscriptions
-		private final Map<String, Set<Subscription>> destinationLookup = new ConcurrentHashMap<>(4);
+		private final Map<String, Set<Subscription>> destinationLookup =
+				new ConcurrentHashMap<String, Set<Subscription>>(4);
 
 		public SessionSubscriptionInfo(String sessionId) {
 			Assert.notNull(sessionId, "'sessionId' must not be null");
@@ -425,8 +431,8 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 		}
 
 		public Subscription getSubscription(String subscriptionId) {
-			for (String destination : this.destinationLookup.keySet()) {
-				Set<Subscription> subs = this.destinationLookup.get(destination);
+			for (Map.Entry<String, Set<DefaultSubscriptionRegistry.Subscription>> destinationEntry : this.destinationLookup.entrySet()) {
+				Set<Subscription> subs = destinationEntry.getValue();
 				if (subs != null) {
 					for (Subscription sub : subs) {
 						if (sub.getId().equalsIgnoreCase(subscriptionId)) {
@@ -444,7 +450,7 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 				synchronized (this.destinationLookup) {
 					subs = this.destinationLookup.get(destination);
 					if (subs == null) {
-						subs = new CopyOnWriteArraySet<>();
+						subs = new CopyOnWriteArraySet<Subscription>();
 						this.destinationLookup.put(destination, subs);
 					}
 				}
@@ -453,17 +459,17 @@ public class DefaultSubscriptionRegistry extends AbstractSubscriptionRegistry {
 		}
 
 		public String removeSubscription(String subscriptionId) {
-			for (String destination : this.destinationLookup.keySet()) {
-				Set<Subscription> subs = this.destinationLookup.get(destination);
+			for (Map.Entry<String, Set<DefaultSubscriptionRegistry.Subscription>> destinationEntry : this.destinationLookup.entrySet()) {
+				Set<Subscription> subs = destinationEntry.getValue();
 				if (subs != null) {
 					for (Subscription sub : subs) {
 						if (sub.getId().equals(subscriptionId) && subs.remove(sub)) {
 							synchronized (this.destinationLookup) {
 								if (subs.isEmpty()) {
-									this.destinationLookup.remove(destination);
+									this.destinationLookup.remove(destinationEntry.getKey());
 								}
 							}
-							return destination;
+							return destinationEntry.getKey();
 						}
 					}
 				}

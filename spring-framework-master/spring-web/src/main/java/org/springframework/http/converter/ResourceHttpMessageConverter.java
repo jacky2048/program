@@ -26,15 +26,16 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StreamUtils;
 
 /**
  * Implementation of {@link HttpMessageConverter} that can read/write {@link Resource Resources}
  * and supports byte range requests.
  *
- * <p>By default, this converter can read all media types. The {@link MediaTypeFactory} is used
- * to determine the {@code Content-Type} of written resources.
+ * <p>By default, this converter can read all media types. The Java Activation Framework (JAF) -
+ * if available - is used to determine the {@code Content-Type} of written resources.
+ * If JAF is not available, {@code application/octet-stream} is used.
  *
  * @author Arjen Poutsma
  * @author Juergen Hoeller
@@ -43,28 +44,12 @@ import org.springframework.util.StreamUtils;
  */
 public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<Resource> {
 
-	private final boolean supportsReadStreaming;
+	private static final boolean jafPresent = ClassUtils.isPresent(
+			"javax.activation.FileTypeMap", ResourceHttpMessageConverter.class.getClassLoader());
 
 
-	/**
-	 * Create a new instance of the {@code ResourceHttpMessageConverter}
-	 * that supports read streaming, i.e. can convert an
-	 * {@code HttpInputMessage} to {@code InputStreamResource}.
-	 */
 	public ResourceHttpMessageConverter() {
 		super(MediaType.ALL);
-		this.supportsReadStreaming = true;
-	}
-
-	/**
-	 * Create a new instance of the {@code ResourceHttpMessageConverter}.
-	 * @param supportsReadStreaming whether the converter should support
-	 * read streaming, i.e. convert to {@code InputStreamResource}
-	 * @since 5.0
-	 */
-	public ResourceHttpMessageConverter(boolean supportsReadStreaming) {
-		super(MediaType.ALL);
-		this.supportsReadStreaming = supportsReadStreaming;
 	}
 
 
@@ -77,23 +62,12 @@ public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<R
 	protected Resource readInternal(Class<? extends Resource> clazz, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
 
-		final String filename = inputMessage.getHeaders().getContentDisposition().getFilename();
-		if (this.supportsReadStreaming && InputStreamResource.class == clazz) {
-			return new InputStreamResource(inputMessage.getBody()) {
-				@Override
-				public String getFilename() {
-					return filename;
-				}
-			};
+		if (InputStreamResource.class == clazz) {
+			return new InputStreamResource(inputMessage.getBody());
 		}
 		else if (clazz.isAssignableFrom(ByteArrayResource.class)) {
 			byte[] body = StreamUtils.copyToByteArray(inputMessage.getBody());
-			return new ByteArrayResource(body) {
-				@Override
-				public String getFilename() {
-					return filename;
-				}
-			};
+			return new ByteArrayResource(body);
 		}
 		else {
 			throw new IllegalStateException("Unsupported resource class: " + clazz);
@@ -102,7 +76,12 @@ public class ResourceHttpMessageConverter extends AbstractHttpMessageConverter<R
 
 	@Override
 	protected MediaType getDefaultContentType(Resource resource) {
-		return MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM);
+		if (jafPresent) {
+			return ActivationMediaTypeFactory.getMediaType(resource);
+		}
+		else {
+			return MediaType.APPLICATION_OCTET_STREAM;
+		}
 	}
 
 	@Override

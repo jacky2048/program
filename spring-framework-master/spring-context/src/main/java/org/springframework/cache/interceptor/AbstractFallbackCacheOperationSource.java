@@ -70,7 +70,8 @@ public abstract class AbstractFallbackCacheOperationSource implements CacheOpera
 	 * <p>As this base class is not marked Serializable, the cache will be recreated
 	 * after serialization - provided that the concrete subclass is Serializable.
 	 */
-	private final Map<Object, Collection<CacheOperation>> attributeCache = new ConcurrentHashMap<>(1024);
+	private final Map<Object, Collection<CacheOperation>> attributeCache =
+			new ConcurrentHashMap<Object, Collection<CacheOperation>>(1024);
 
 
 	/**

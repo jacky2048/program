@@ -20,6 +20,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.springframework.jdbc.support.nativejdbc.NativeJdbcExtractor;
+
 /**
  * Interface specifying the API to be implemented by a class providing table metadata.
  * This is intended for internal use by the Simple JDBC classes.
@@ -112,5 +114,10 @@ public interface TableMetaDataProvider {
 	 * @return List of {@link TableParameterMetaData}
 	 */
 	List<TableParameterMetaData> getTableParameterMetaData();
+
+	/**
+	 * Set the {@link NativeJdbcExtractor} to use to retrieve the native connection if necessary
+	 */
+	void setNativeJdbcExtractor(NativeJdbcExtractor nativeJdbcExtractor);
 
 }

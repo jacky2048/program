@@ -55,9 +55,9 @@ public class BatchSqlUpdate extends SqlUpdate {
 
 	private boolean trackRowsAffected = true;
 
-	private final LinkedList<Object[]> parameterQueue = new LinkedList<>();
+	private final LinkedList<Object[]> parameterQueue = new LinkedList<Object[]>();
 
-	private final List<Integer> rowsAffected = new ArrayList<>();
+	private final List<Integer> rowsAffected = new ArrayList<Integer>();
 
 
 	/**

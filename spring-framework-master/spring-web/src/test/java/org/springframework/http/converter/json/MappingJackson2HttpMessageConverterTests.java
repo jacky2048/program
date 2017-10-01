@@ -18,7 +18,7 @@ package org.springframework.http.converter.json;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.junit.Test;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.MockHttpInputMessage;
 import org.springframework.http.MockHttpOutputMessage;
@@ -119,24 +118,26 @@ public class MappingJackson2HttpMessageConverterTests {
 		body.setBool(true);
 		body.setBytes(new byte[]{0x1, 0x2});
 		converter.write(body, null, outputMessage);
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		Charset utf8 = Charset.forName("UTF-8");
+		String result = outputMessage.getBodyAsString(utf8);
 		assertTrue(result.contains("\"string\":\"Foo\""));
 		assertTrue(result.contains("\"number\":42"));
 		assertTrue(result.contains("fraction\":42.0"));
 		assertTrue(result.contains("\"array\":[\"Foo\",\"Bar\"]"));
 		assertTrue(result.contains("\"bool\":true"));
 		assertTrue(result.contains("\"bytes\":\"AQI=\""));
-		assertEquals("Invalid content-type", new MediaType("application", "json", StandardCharsets.UTF_8),
+		assertEquals("Invalid content-type", new MediaType("application", "json", utf8),
 				outputMessage.getHeaders().getContentType());
 	}
 
 	@Test
 	public void writeUTF16() throws IOException {
-		MediaType contentType = new MediaType("application", "json", StandardCharsets.UTF_16BE);
+		Charset utf16 = Charset.forName("UTF-16BE");
+		MediaType contentType = new MediaType("application", "json", utf16);
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		String body = "H\u00e9llo W\u00f6rld";
 		converter.write(body, contentType, outputMessage);
-		assertEquals("Invalid result", "\"" + body + "\"", outputMessage.getBodyAsString(StandardCharsets.UTF_16BE));
+		assertEquals("Invalid result", "\"" + body + "\"", outputMessage.getBodyAsString(utf16));
 		assertEquals("Invalid content-type", contentType, outputMessage.getHeaders().getContentType());
 	}
 
@@ -218,7 +219,7 @@ public class MappingJackson2HttpMessageConverterTests {
 
 		this.converter.setPrettyPrint(true);
 		this.converter.writeInternal(bean, null, outputMessage);
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 
 		assertEquals("{" + NEWLINE_SYSTEM_PROPERTY + "  \"name\" : \"Jason\"" + NEWLINE_SYSTEM_PROPERTY + "}", result);
 	}
@@ -226,13 +227,13 @@ public class MappingJackson2HttpMessageConverterTests {
 	@Test
 	public void prettyPrintWithSse() throws Exception {
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
-		outputMessage.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+		outputMessage.getHeaders().setContentType(new MediaType("text", "event-stream"));
 		PrettyPrintBean bean = new PrettyPrintBean();
 		bean.setName("Jason");
 
 		this.converter.setPrettyPrint(true);
 		this.converter.writeInternal(bean, null, outputMessage);
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 
 		assertEquals("{\ndata:  \"name\" : \"Jason\"\ndata:}", result);
 	}
@@ -243,7 +244,7 @@ public class MappingJackson2HttpMessageConverterTests {
 		this.converter.setPrefixJson(true);
 		this.converter.writeInternal("foo", null, outputMessage);
 
-		assertEquals(")]}', \"foo\"", outputMessage.getBodyAsString(StandardCharsets.UTF_8));
+		assertEquals(")]}', \"foo\"", outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 	}
 
 	@Test
@@ -252,11 +253,11 @@ public class MappingJackson2HttpMessageConverterTests {
 		this.converter.setJsonPrefix(")))");
 		this.converter.writeInternal("foo", null, outputMessage);
 
-		assertEquals(")))\"foo\"", outputMessage.getBodyAsString(StandardCharsets.UTF_8));
+		assertEquals(")))\"foo\"", outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 	}
 
 	@Test
-	public void fieldLevelJsonView() throws Exception {
+	public void jsonView() throws Exception {
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		JacksonViewBean bean = new JacksonViewBean();
 		bean.setWithView1("with");
@@ -267,28 +268,10 @@ public class MappingJackson2HttpMessageConverterTests {
 		jacksonValue.setSerializationView(MyJacksonView1.class);
 		this.converter.writeInternal(jacksonValue, null, outputMessage);
 
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 		assertThat(result, containsString("\"withView1\":\"with\""));
 		assertThat(result, not(containsString("\"withView2\":\"with\"")));
 		assertThat(result, not(containsString("\"withoutView\":\"without\"")));
-	}
-
-	@Test
-	public void classLevelJsonView() throws Exception {
-		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
-		JacksonViewBean bean = new JacksonViewBean();
-		bean.setWithView1("with");
-		bean.setWithView2("with");
-		bean.setWithoutView("without");
-
-		MappingJacksonValue jacksonValue = new MappingJacksonValue(bean);
-		jacksonValue.setSerializationView(MyJacksonView3.class);
-		this.converter.writeInternal(jacksonValue, null, outputMessage);
-
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
-		assertThat(result, not(containsString("\"withView1\":\"with\"")));
-		assertThat(result, not(containsString("\"withView2\":\"with\"")));
-		assertThat(result, containsString("\"withoutView\":\"without\""));
 	}
 
 	@Test
@@ -304,7 +287,7 @@ public class MappingJackson2HttpMessageConverterTests {
 		jacksonValue.setFilters(filters);
 		this.converter.writeInternal(jacksonValue, null, outputMessage);
 
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 		assertThat(result, containsString("\"property1\":\"value\""));
 		assertThat(result, not(containsString("\"property2\":\"value\"")));
 	}
@@ -318,7 +301,7 @@ public class MappingJackson2HttpMessageConverterTests {
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
 		this.converter.writeInternal(jacksonValue, null, outputMessage);
 
-		assertEquals("/**/callback(\"foo\");", outputMessage.getBodyAsString(StandardCharsets.UTF_8));
+		assertEquals("/**/callback(\"foo\");", outputMessage.getBodyAsString(Charset.forName("UTF-8")));
 	}
 
 	@Test
@@ -334,7 +317,7 @@ public class MappingJackson2HttpMessageConverterTests {
 		jacksonValue.setJsonpFunction("callback");
 		this.converter.writeInternal(jacksonValue, null, outputMessage);
 
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 		assertThat(result, startsWith("/**/callback("));
 		assertThat(result, endsWith(");"));
 		assertThat(result, containsString("\"withView1\":\"with\""));
@@ -351,7 +334,7 @@ public class MappingJackson2HttpMessageConverterTests {
 
 		this.converter.writeInternal(bean, MyInterface.class, outputMessage);
 
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 		assertTrue(result.contains("\"string\":\"Foo\""));
 		assertTrue(result.contains("\"number\":42"));
 	}
@@ -359,7 +342,7 @@ public class MappingJackson2HttpMessageConverterTests {
 	@Test  // SPR-13318
 	public void writeSubTypeList() throws Exception {
 		MockHttpOutputMessage outputMessage = new MockHttpOutputMessage();
-		List<MyBean> beans = new ArrayList<>();
+		List<MyBean> beans = new ArrayList<MyBean>();
 		MyBean foo = new MyBean();
 		foo.setString("Foo");
 		foo.setNumber(42);
@@ -373,27 +356,11 @@ public class MappingJackson2HttpMessageConverterTests {
 
 		this.converter.writeInternal(beans, typeReference.getType(), outputMessage);
 
-		String result = outputMessage.getBodyAsString(StandardCharsets.UTF_8);
+		String result = outputMessage.getBodyAsString(Charset.forName("UTF-8"));
 		assertTrue(result.contains("\"string\":\"Foo\""));
 		assertTrue(result.contains("\"number\":42"));
 		assertTrue(result.contains("\"string\":\"Bar\""));
 		assertTrue(result.contains("\"number\":123"));
-	}
-
-	@Test
-	public void readWithNoDefaultConstructor() throws Exception {
-		String body = "{\"property1\":\"foo\",\"property2\":\"bar\"}";
-		MockHttpInputMessage inputMessage = new MockHttpInputMessage(body.getBytes("UTF-8"));
-		inputMessage.getHeaders().setContentType(new MediaType("application", "json"));
-		try {
-			converter.read(BeanWithNoDefaultConstructor.class, inputMessage);
-		}
-		catch (HttpMessageNotReadableException ex) {
-			assertTrue(ex.getErrorStatus().isPresent());
-			assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, ex.getErrorStatus().get());
-			return;
-		}
-		fail();
 	}
 
 
@@ -487,11 +454,8 @@ public class MappingJackson2HttpMessageConverterTests {
 
 	private interface MyJacksonView2 {}
 
-	private interface MyJacksonView3 {}
-
 
 	@SuppressWarnings("unused")
-	@JsonView(MyJacksonView3.class)
 	private static class JacksonViewBean {
 
 		@JsonView(MyJacksonView1.class)
@@ -550,27 +514,6 @@ public class MappingJackson2HttpMessageConverterTests {
 
 		public void setProperty2(String property2) {
 			this.property2 = property2;
-		}
-	}
-
-
-	private static class BeanWithNoDefaultConstructor {
-
-		private final String property1;
-
-		private final String property2;
-
-		public BeanWithNoDefaultConstructor(String property1, String property2) {
-			this.property1 = property1;
-			this.property2 = property2;
-		}
-
-		public String getProperty1() {
-			return property1;
-		}
-
-		public String getProperty2() {
-			return property2;
 		}
 	}
 

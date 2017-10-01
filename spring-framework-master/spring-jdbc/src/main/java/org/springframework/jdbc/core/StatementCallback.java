@@ -33,7 +33,6 @@ import org.springframework.dao.DataAccessException;
  * @since 16.03.2004
  * @see JdbcTemplate#execute(StatementCallback)
  */
-@FunctionalInterface
 public interface StatementCallback<T> {
 
 	/**

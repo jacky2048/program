@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import org.springframework.beans.BeanMetadataAttributeAccessor;
 import org.springframework.beans.MutablePropertyValues;
@@ -154,9 +153,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 	private boolean primary = false;
 
-	private final Map<String, AutowireCandidateQualifier> qualifiers = new LinkedHashMap<>(0);
-
-	private Supplier<?> instanceSupplier;
+	private final Map<String, AutowireCandidateQualifier> qualifiers =
+			new LinkedHashMap<String, AutowireCandidateQualifier>(0);
 
 	private boolean nonPublicAccessAllowed = true;
 
@@ -235,7 +233,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 			setAutowireCandidate(originalAbd.isAutowireCandidate());
 			setPrimary(originalAbd.isPrimary());
 			copyQualifiersFrom(originalAbd);
-			setInstanceSupplier(originalAbd.getInstanceSupplier());
 			setNonPublicAccessAllowed(originalAbd.isNonPublicAccessAllowed());
 			setLenientConstructorResolution(originalAbd.isLenientConstructorResolution());
 			setMethodOverrides(new MethodOverrides(originalAbd.getMethodOverrides()));
@@ -300,7 +297,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 			setAutowireCandidate(otherAbd.isAutowireCandidate());
 			setPrimary(otherAbd.isPrimary());
 			copyQualifiersFrom(otherAbd);
-			setInstanceSupplier(otherAbd.getInstanceSupplier());
 			setNonPublicAccessAllowed(otherAbd.isNonPublicAccessAllowed());
 			setLenientConstructorResolution(otherAbd.isLenientConstructorResolution());
 			getMethodOverrides().addOverrides(otherAbd.getMethodOverrides());
@@ -525,7 +521,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 			// otherwise we'll try constructor autowiring.
 			Constructor<?>[] constructors = getBeanClass().getConstructors();
 			for (Constructor<?> constructor : constructors) {
-				if (constructor.getParameterCount() == 0) {
+				if (constructor.getParameterTypes().length == 0) {
 					return AUTOWIRE_BY_TYPE;
 				}
 			}
@@ -644,7 +640,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @return the Set of {@link AutowireCandidateQualifier} objects.
 	 */
 	public Set<AutowireCandidateQualifier> getQualifiers() {
-		return new LinkedHashSet<>(this.qualifiers.values());
+		return new LinkedHashSet<AutowireCandidateQualifier>(this.qualifiers.values());
 	}
 
 	/**
@@ -654,28 +650,6 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public void copyQualifiersFrom(AbstractBeanDefinition source) {
 		Assert.notNull(source, "Source must not be null");
 		this.qualifiers.putAll(source.qualifiers);
-	}
-
-	/**
-	 * Specify a callback for creating an instance of the bean,
-	 * as an alternative to a declaratively specified factory method.
-	 * <p>If such a callback is set, it will override any other constructor
-	 * or factory method metadata. However, bean property population and
-	 * potential annotation-driven injection will still apply as usual.
-	 * @since 5.0
-	 * @see #setConstructorArgumentValues(ConstructorArgumentValues)
-	 * @see #setPropertyValues(MutablePropertyValues)
-	 */
-	public void setInstanceSupplier(Supplier<?> instanceSupplier) {
-		this.instanceSupplier = instanceSupplier;
-	}
-
-	/**
-	 * Return a callback for creating an instance of the bean, if any.
-	 * @since 5.0
-	 */
-	public Supplier<?> getInstanceSupplier() {
-		return this.instanceSupplier;
 	}
 
 	/**

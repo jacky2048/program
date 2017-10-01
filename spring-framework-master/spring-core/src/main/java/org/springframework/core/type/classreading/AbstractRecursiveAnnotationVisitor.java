@@ -85,10 +85,16 @@ abstract class AbstractRecursiveAnnotationVisitor extends AnnotationVisitor {
 				valueToUse = enumConstant.get(null);
 			}
 		}
-		catch (ClassNotFoundException | NoClassDefFoundError ex) {
+		catch (ClassNotFoundException ex) {
 			logger.debug("Failed to classload enum type while reading annotation metadata", ex);
 		}
-		catch (IllegalAccessException | AccessControlException ex) {
+		catch (NoClassDefFoundError ex) {
+			logger.debug("Failed to classload enum type while reading annotation metadata", ex);
+		}
+		catch (IllegalAccessException ex) {
+			logger.debug("Could not access enum value while reading annotation metadata", ex);
+		}
+		catch (AccessControlException ex) {
 			logger.debug("Could not access enum value while reading annotation metadata", ex);
 		}
 		return valueToUse;

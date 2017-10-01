@@ -16,6 +16,8 @@
 
 package org.springframework.web.socket.sockjs.transport.handler;
 
+import java.nio.charset.Charset;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,6 +31,8 @@ import org.springframework.web.socket.sockjs.transport.TransportHandler;
  * @since 4.0
  */
 public abstract class AbstractTransportHandler implements TransportHandler {
+
+	protected static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
 	protected final Log logger = LogFactory.getLog(getClass());
 

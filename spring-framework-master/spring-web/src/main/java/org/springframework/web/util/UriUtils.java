@@ -16,15 +16,10 @@
 
 package org.springframework.web.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 
 /**
  * Utility class for URI encoding and decoding based on RFC 3986.
@@ -171,64 +166,52 @@ public abstract class UriUtils {
 	}
 
 	/**
-	 * Encode characters outside the unreserved character set as defined in
-	 * <a href="https://tools.ietf.org/html/rfc3986#section-2">RFC 3986 Section 2</a>.
-	 * <p>This can be used to ensure the given String will not contain any
-	 * characters with reserved URI meaning regardless of URI component.
-	 * @param source the String to be encoded
-	 * @param charset the character encoding to encode to
-	 * @return the encoded String
-	 */
-	public static String encode(String source, Charset charset) {
-		HierarchicalUriComponents.Type type = HierarchicalUriComponents.Type.URI;
-		return HierarchicalUriComponents.encodeUriComponent(source, charset, type);
-	}
-
-	/**
-	 * Apply {@link #encode(String, String)} to the values in the given URI
-	 * variables and return a new Map containing the encoded values.
-	 * @param uriVariables the URI variable values to be encoded
-	 * @return the encoded String
-	 * @since 5.0
-	 */
-	public static Map<String, String> encodeUriVariables(Map<String, ?> uriVariables) {
-		Map<String, String> result = new LinkedHashMap<>(uriVariables.size());
-		uriVariables.entrySet().stream().forEach(entry -> {
-			String stringValue = (entry.getValue() != null ? entry.getValue().toString() : "");
-			result.put(entry.getKey(), encode(stringValue, StandardCharsets.UTF_8));
-		});
-		return result;
-	}
-
-	/**
-	 * Apply {@link #encode(String, String)} to the values in the given URI
-	 * variables and return a new array containing the encoded values.
-	 * @param uriVariables the URI variable values to be encoded
-	 * @return the encoded String
-	 * @since 5.0
-	 */
-	public static Object[] encodeUriVariables(Object... uriVariables) {
-		return Arrays.stream(uriVariables)
-				.map(value -> {
-					String stringValue = (value != null ? value.toString() : "");
-					return encode(stringValue, StandardCharsets.UTF_8);
-				})
-				.collect(Collectors.toList()).toArray();
-	}
-
-	/**
 	 * Decode the given encoded URI component.
-	 * <p>See {@link StringUtils#uriDecode(String, Charset)} for the decoding rules.
+	 * <ul>
+	 * <li>Alphanumeric characters {@code "a"} through {@code "z"}, {@code "A"} through {@code "Z"}, and
+	 * {@code "0"} through {@code "9"} stay the same.</li>
+	 * <li>Special characters {@code "-"}, {@code "_"}, {@code "."}, and {@code "*"} stay the same.</li>
+	 * <li>A sequence "{@code %<i>xy</i>}" is interpreted as a hexadecimal representation of the character.</li>
+	 * </ul>
 	 * @param source the encoded String
 	 * @param encoding the encoding
 	 * @return the decoded value
 	 * @throws IllegalArgumentException when the given source contains invalid encoded sequences
 	 * @throws UnsupportedEncodingException when the given encoding parameter is not supported
-	 * @see StringUtils#uriDecode(String, Charset)
 	 * @see java.net.URLDecoder#decode(String, String)
 	 */
 	public static String decode(String source, String encoding) throws UnsupportedEncodingException {
-		return StringUtils.uriDecode(source, Charset.forName(encoding));
+		if (source == null) {
+			return null;
+		}
+		Assert.hasLength(encoding, "Encoding must not be empty");
+		int length = source.length();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
+		boolean changed = false;
+		for (int i = 0; i < length; i++) {
+			int ch = source.charAt(i);
+			if (ch == '%') {
+				if ((i + 2) < length) {
+					char hex1 = source.charAt(i + 1);
+					char hex2 = source.charAt(i + 2);
+					int u = Character.digit(hex1, 16);
+					int l = Character.digit(hex2, 16);
+					if (u == -1 || l == -1) {
+						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+					}
+					bos.write((char) ((u << 4) + l));
+					i += 2;
+					changed = true;
+				}
+				else {
+					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+				}
+			}
+			else {
+				bos.write(ch);
+			}
+		}
+		return (changed ? new String(bos.toByteArray(), encoding) : source);
 	}
 
 	/**
@@ -239,11 +222,12 @@ public abstract class UriUtils {
 	 */
 	public static String extractFileExtension(String path) {
 		int end = path.indexOf('?');
+		int fragmentIndex = path.indexOf('#');
+		if (fragmentIndex != -1 && (end == -1 || fragmentIndex < end)) {
+			end = fragmentIndex;
+		}
 		if (end == -1) {
-			end = path.indexOf('#');
-			if (end == -1) {
-				end = path.length();
-			}
+			end = path.length();
 		}
 		int begin = path.lastIndexOf('/', end) + 1;
 		int paramIndex = path.indexOf(';', begin);

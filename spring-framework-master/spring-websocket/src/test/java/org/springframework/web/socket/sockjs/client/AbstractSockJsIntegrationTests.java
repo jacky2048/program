@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -110,18 +111,16 @@ public abstract class AbstractSockJsIntegrationTests {
 	public void setup() throws Exception {
 		logger.debug("Setting up '" + this.testName.getMethodName() + "'");
 		this.testFilter = new TestFilter();
-
 		this.wac = new AnnotationConfigWebApplicationContext();
 		this.wac.register(TestConfig.class, upgradeStrategyConfigClass());
-
 		this.server = createWebSocketTestServer();
 		this.server.setup();
 		this.server.deployConfig(this.wac, this.testFilter);
-		this.server.start();
-
+		// Set ServletContext in WebApplicationContext after deployment but before
+		// starting the server.
 		this.wac.setServletContext(this.server.getServletContext());
 		this.wac.refresh();
-
+		this.server.start();
 		this.baseUrl = "http://localhost:" + this.server.getPort();
 	}
 

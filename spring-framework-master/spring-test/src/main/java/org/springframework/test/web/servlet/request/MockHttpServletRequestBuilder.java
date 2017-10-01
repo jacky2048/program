@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +79,9 @@ import org.springframework.web.util.UriUtils;
 public class MockHttpServletRequestBuilder
 		implements ConfigurableSmartRequestBuilder<MockHttpServletRequestBuilder>, Mergeable {
 
+	private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
+
 	private final String method;
 
 	private final URI url;
@@ -101,21 +104,21 @@ public class MockHttpServletRequestBuilder
 
 	private String contentType;
 
-	private final MultiValueMap<String, Object> headers = new LinkedMultiValueMap<>();
+	private final MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
 
-	private final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+	private final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
 
-	private final List<Cookie> cookies = new ArrayList<>();
+	private final List<Cookie> cookies = new ArrayList<Cookie>();
 
-	private final List<Locale> locales = new ArrayList<>();
+	private final List<Locale> locales = new ArrayList<Locale>();
 
-	private final Map<String, Object> requestAttributes = new LinkedHashMap<>();
+	private final Map<String, Object> requestAttributes = new LinkedHashMap<String, Object>();
 
-	private final Map<String, Object> sessionAttributes = new LinkedHashMap<>();
+	private final Map<String, Object> sessionAttributes = new LinkedHashMap<String, Object>();
 
-	private final Map<String, Object> flashAttributes = new LinkedHashMap<>();
+	private final Map<String, Object> flashAttributes = new LinkedHashMap<String, Object>();
 
-	private final List<RequestPostProcessor> postProcessors = new ArrayList<>();
+	private final List<RequestPostProcessor> postProcessors = new ArrayList<RequestPostProcessor>();
 
 
 	/**
@@ -246,7 +249,7 @@ public class MockHttpServletRequestBuilder
 	 * @param content the body content
 	 */
 	public MockHttpServletRequestBuilder content(String content) {
-		this.content = content.getBytes(StandardCharsets.UTF_8);
+		this.content = content.getBytes(UTF8_CHARSET);
 		return this;
 	}
 
@@ -750,8 +753,10 @@ public class MockHttpServletRequestBuilder
 	public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
 		for (RequestPostProcessor postProcessor : this.postProcessors) {
 			request = postProcessor.postProcessRequest(request);
-			Assert.state(request != null,
-					() -> "Post-processor [" + postProcessor.getClass().getName() + "] returned null");
+			if (request == null) {
+				throw new IllegalStateException(
+						"Post-processor [" + postProcessor.getClass().getName() + "] returned null");
+			}
 		}
 		return request;
 	}

@@ -38,7 +38,7 @@ import org.springframework.util.MultiValueMap;
 public abstract class AbstractSubscriptionRegistry implements SubscriptionRegistry {
 
 	private static MultiValueMap<String, String> EMPTY_MAP =
-			CollectionUtils.unmodifiableMultiValueMap(new LinkedMultiValueMap<>(0));
+			CollectionUtils.unmodifiableMultiValueMap(new LinkedMultiValueMap<String, String>(0));
 
 	protected final Log logger = LogFactory.getLog(getClass());
 

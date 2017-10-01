@@ -66,7 +66,6 @@ public class MappingJackson2HttpMessageConverter extends AbstractJackson2HttpMes
 		super(objectMapper, MediaType.APPLICATION_JSON, new MediaType("application", "*+json"));
 	}
 
-
 	/**
 	 * Specify a custom prefix to use for this view's JSON output.
 	 * Default is none.
